@@ -1,6 +1,5 @@
-import { Request, Response, NextFunction, RequestHandler } from "express";
-import DFWInstance from "../script/DFWInstance"
-
+import { Request, Response, NextFunction, RequestHandler, ErrorRequestHandler } from "express";
+import DFWInstance from "../script/DFWInstance";
 
 export default interface DFWModule {
     middleware:RequestHandler;

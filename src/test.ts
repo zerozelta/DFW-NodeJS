@@ -4,6 +4,7 @@ import DatabaseManager from "./module/DatabaseManager";
 import SecurityManager from "./module/SecurityManager";
 import APIManager, { APIResponseScheme } from "./module/APIManager";
 import { Request, Response } from "express";
+import DFW from ".";
 
 let dfw = new DFWInstance({
     database:{
@@ -22,8 +23,17 @@ dfw.server.get("/test",(req,res)=>{
     res.json({hola:"mundo"}).send().end();
 });
 
+dfw.server.use((err,req,res,next)=>{
+    console.log("ERRORRRRR");
+    next(err);
+});
+
 dfw.getModule(APIManager).addListener("/boot",async (req:Request,res:Response,api:APIResponseScheme)=>{
    return api.success(await api.bootAsync());
+},{
+    security:{
+        session:true
+    }
 });
 
 dfw.getModule(APIManager).addListener("/login",async (req:Request,res:Response,api:APIResponseScheme)=>{
@@ -34,8 +44,7 @@ dfw.getModule(APIManager).addListener("/login",async (req:Request,res:Response,a
 });
 
 
-
-let listener = dfw.server.listen(3000,()=>{
+let listener = dfw.server.listen(300,()=>{
     console.log("[DFW] Express server running on port " + (listener.address() as AddressInfo).port);
 });
 

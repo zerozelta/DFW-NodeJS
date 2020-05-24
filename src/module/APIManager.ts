@@ -1,16 +1,17 @@
-import { NextFunction , Request , Response, RequestHandler } from "express";
-import DFWModule from "../types/DFWModule";
+import { NextFunction , Request , Response, RequestHandler, ErrorRequestHandler } from "express";
 import DFWInstance from "../script/DFWInstance";
 import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
-import DFWAPIListenerConfig from "../types/DFWAPIListenerConfig";
 import SessionManager from "./SessionManager";
+import DFWModule from "../script/DFWModule";
+import { DFWAPIListenerConfig } from "../types/DFWAPIListenerConfig";
+import { DFWRequestError } from "../types/DFWRequestError";
  
 declare global{
-    namespace DFW {
-        interface DFWRequestScheme{
+    export namespace DFW {
+        export interface DFWRequestScheme{
         }
         
-        interface DFWResponseScheme{
+        export interface DFWResponseScheme{
             api:APIResponseScheme;
         }
     }
@@ -29,7 +30,7 @@ export type APIResponseScheme = {
     /**
      * 
      */
-    error: (description?:string,code?:any) => any;
+    error: (description?:string,code?:number,ref?:any) => any;
 
     /**
      * 
@@ -103,10 +104,10 @@ export default class APIManager implements DFWModule{
             bootAsync : async ()=>{
                 return await this.getBootAsync(req);
             },
-            error : (description?:string,code?:any)=>{
+            error : (message:string = "error",code?:number,ref?:any)=>{
                 res.status(400);
                 res.statusMessage = "ERROR";
-                return { "error" : description , code };
+                return { message , code, ref };
             },
             success : (data?:any)=>{
                 res.status(200);
@@ -138,8 +139,7 @@ export default class APIManager implements DFWModule{
      * @param data 
      */
     public response(req:Request,res:Response,data = {}){
-        res.json(data);
-        res.end();
+        res.json(data).end();
     }
 
     /**
@@ -149,10 +149,41 @@ export default class APIManager implements DFWModule{
      * @param config 
      */
     public addListener(path:string,apiFunc:APIFunction,config:DFWAPIListenerConfig = {}){
-        
-        // Middleware levels
+        let apiLevelMid:(RequestHandler|ErrorRequestHandler)[] = this.getAPILevelMiddleware(config);
+
+        apiLevelMid.push(async (req:Request,res:Response,next:NextFunction)=>{
+            await Promise.resolve(apiFunc(req,res,res.dfw.api)).then((data)=>{
+                this.response(req,res,data);
+                next();
+            }).catch((err)=>{
+                next(new DFWRequestError(DFWRequestError.CODE_API_LEVEL_ERROR,err.message?err.message:err));
+            });
+        });
+
+        apiLevelMid.push(async (err:any,req:Request,res:Response,next:NextFunction)=>{
+            if(err){
+                if(process.env.NODE_ENV == "development") console.error(err);
+                if(err instanceof DFWRequestError){
+                    this.response(req,res,res.dfw.api.error(err.message,err.code,err.ref));
+                }else{
+                    this.response(req,res,res.dfw.api.error(err.message?err.message:err));
+                }
+            }
+            res.end();
+        });
+
+        console.log(`[API] ${path}`);
+        this.instance.server[config.method?config.method.toLowerCase():"get"](path,apiLevelMid);
+    }
+
+    /**
+     * 
+     * @param apiFunc 
+     * @param config 
+     */
+    public getAPILevelMiddleware(config:DFWAPIListenerConfig = {}):RequestHandler[]{
         let levels = [
-            (req:Request,res:Response,next:NextFunction)=>{ req.dfw.meta.config = config;  next(); }
+            async (req:Request,res:Response,next:NextFunction)=>{ req.dfw.meta.config = config;  next(); }
         ] as RequestHandler[];
 
         for(let modKey in this.instance.modules){
@@ -162,16 +193,7 @@ export default class APIManager implements DFWModule{
             }
         }
 
-        levels.push(async (req:Request,res:Response)=>{
-            Promise.resolve(apiFunc(req,res,res.dfw.api)).then((data)=>{
-                this.response(req,res,data);
-            }).catch((err)=>{
-                console.log(err);
-                this.response(req,res,res.dfw.api.error(err.message?err.message:err));
-            });
-        });
-
-        this.instance.server[config.method?config.method.toLowerCase():"get"](path,levels);
+        return levels;
     }
 
     /**

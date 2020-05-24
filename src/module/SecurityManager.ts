@@ -1,10 +1,11 @@
 import { NextFunction , Request , Response } from "express";
 import Password from "node-php-password";
-import DFWModule from "../types/DFWModule";
 import DFWInstance from "../script/DFWInstance";
 import dfw_credential from "../model/dfw_credential";
 import dfw_access from "../model/dfw_access";
-import DFWAPIListenerConfig from "../types/DFWAPIListenerConfig";
+import DFWModule from "../script/DFWModule";
+import { DFWAPIListenerConfig } from "../types/DFWAPIListenerConfig";
+import { DFWRequestError } from "../types/DFWRequestError";
 
 export default class SecurityManager implements DFWModule {
 
@@ -35,7 +36,7 @@ export default class SecurityManager implements DFWModule {
         let bindings:[number,any][] = [];
 
         if(config.security?.session !== undefined){
-            bindings.push([SecurityManager.RULE_LOGGED_SESSION,config.security.session]);
+            bindings.push([SecurityManager.RULE_LOGGED_SESSION,config.security.session?true:false]);
         }
 
         if(config.security?.credentials){
@@ -51,22 +52,23 @@ export default class SecurityManager implements DFWModule {
                 bindings.push(binding);
             }
         }
+        
 
         for(let binding of bindings){
             if(await this.checkBindingAsync(req,binding[0],binding[1]) === false){
-                res.status(400).json({error:SecurityManager.RULE_LABELS[binding[0]],code:binding[0]}).end();
-                return;
+                next(new DFWRequestError(DFWRequestError.CODE_API_ACCESS_ERROR,SecurityManager.RULE_LABELS[binding[0]],binding[0]));
+                break;
             }
         }
 
         next();
     }
 
-    public static verifyPassword(encoded:string,test:string):boolean{
+    public static verifyPassword(encoded:string,test:string):boolean {
         return Password.verify(test,encoded);
     }
 
-    public static encryptPassword(password:string):string{
+    public static encryptPassword(password:string):string {
         return Password.hash(password);
     }
 

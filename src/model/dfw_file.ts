@@ -2,7 +2,7 @@ import { Table, Column, Model , CreatedAt, UpdatedAt, PrimaryKey, DataType, Allo
 import dfw_user from './dfw_user';
 //import DFWInstance from '../scripts/system/DFWInstance';
 //import UploadManager, { UploadConfig, UploadOptions } from '../scripts/modules/UploadManager';
-import DFWCore from '..';
+import DFW from '..';
  
 @Table({tableName: 'dfw_files'})
 export default class dfw_file extends Model<dfw_file>{

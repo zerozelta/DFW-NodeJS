@@ -8,10 +8,12 @@
         "ESNext"
       ],
       "declaration": true,                   /* Generates corresponding '.d.ts' file. */
+      "declarationMap": true,
       "sourceMap": true,                     /* Generates corresponding '.map' file. */
       "outDir": "./lib",                     /* Redirect output structure to the directory. */
-      //"baseUrl": "./src",
-      /* Strict Type-Checking Options */
+      "noResolve": false,
+      "rootDir": "./src",
+      "types" : ["busboy", "express"],
       "strict": true,                        /* Enable all strict type-checking options. */
       "strictPropertyInitialization" : true,
       "noImplicitAny": false,                /* Raise error on expressions and declarations with an implied 'any' type. */
@@ -27,6 +29,6 @@
       ".vscode"
     ],
     "include": [
-      "src/**/*.ts"
+      "src/**/*",
     ],
   }

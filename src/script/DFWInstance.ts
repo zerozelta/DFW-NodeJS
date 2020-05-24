@@ -2,12 +2,12 @@ import { NextFunction , Express , Response , Request } from "express";
 import bodyParser from "body-parser";
 import cookieParser from "cookie-parser";
 import DFWConfig from "../types/DFWConfig";
-import DFWModule from "../types/DFWModule";
 import DatabaseManager from "../module/DatabaseManager";
 import SessionManager from "../module/SessionManager";
 import SecurityManager from "../module/SecurityManager";
 import { isString } from "util";
 import APIManager from "../module/APIManager";
+import DFWModule from "./DFWModule";
 
 declare global {
     namespace Express {

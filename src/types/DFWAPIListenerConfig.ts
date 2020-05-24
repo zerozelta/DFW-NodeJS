@@ -1,7 +1,7 @@
 import { RequestHandler } from "express";
 import { APIMethods } from "../module/APIManager";
 
-export default interface DFWAPIListenerConfig{
+export interface DFWAPIListenerConfig{
     method?:APIMethods;
     middleware?:RequestHandler;
     security?:ListenerSecurityConfig;
@@ -9,7 +9,6 @@ export default interface DFWAPIListenerConfig{
 
     }
 }
-
 
 export interface ListenerSecurityConfig {
     session?:boolean;

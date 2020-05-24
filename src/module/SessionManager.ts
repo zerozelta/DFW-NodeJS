@@ -2,15 +2,15 @@ import { NextFunction, Request , Response } from "express";
 import uuidv4 from "uuid/v4";
 import moment from "moment";
 import dfw_session from "../model/dfw_session";
-import DFWModule from "../types/DFWModule";
 import DFWInstance from "../script/DFWInstance";
 import dfw_user from "../model/dfw_user";
 import DFWUtils from "../script/DFWUtils";
 import { Includeable, Op } from "sequelize";
+import DFWModule from "../script/DFWModule";
 
 declare global{
-    namespace DFW {
-        interface DFWRequestScheme{
+    export namespace DFW {
+        export interface DFWRequestScheme{
             session:{
                 id?:number;
                 token?:string;
@@ -72,7 +72,7 @@ export default class SessionManager implements DFWModule{
         req.dfw.session.record.expire = moment().add(3,"days").toDate();
         req.dfw.session.record.save();
     
-        this.resetSessionData(req);
+        this.setupSessionData(req);
         next();
     }
 
@@ -80,7 +80,7 @@ export default class SessionManager implements DFWModule{
      * 
      * @param req 
      */
-    private resetSessionData(req:Request){
+    private setupSessionData(req:Request){
         req.dfw.session.id = req.dfw.session.record.id;
         req.dfw.session.token = req.dfw.session.record.token;
 
@@ -132,9 +132,7 @@ export default class SessionManager implements DFWModule{
                 req.dfw.session.record.idUser = userObj.id;
                 req.dfw.session.record = await req.dfw.session.record.save();
 
-                console.log("#1 inicia la sesion")
-                
-                await this.resetSessionData(req);
+                this.setupSessionData(req);
                 return true;
             }
         }

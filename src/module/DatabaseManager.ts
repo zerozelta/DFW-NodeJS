@@ -1,8 +1,8 @@
 import { Request, Response, NextFunction } from "express";
 import path from "path";
-import DFWModule from "../types/DFWModule";
 import DFWInstance from "../script/DFWInstance";
 import { Sequelize } from "sequelize-typescript";
+import DFWModule from "../script/DFWModule";
 
 declare global{
     namespace DFW {
