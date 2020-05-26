@@ -2,9 +2,11 @@ import { Request, Response, NextFunction, RequestHandler, ErrorRequestHandler } 
 import DFWInstance from "../script/DFWInstance";
 
 export default interface DFWModule {
-    middleware:RequestHandler;
-    APILevelMiddleware?:RequestHandler;
+    middleware:(req:Request,res:Response,next:NextFunction)=>void;
+    APILevelMiddleware?:(req:Request,res:Response,next:NextFunction)=>void;
 }
+
+export const MiddlewareAsyncWrapper = (fn:(...args)=>Promise<void>) => (...args) => fn(...args).catch(args[2]);
 
 export declare var DFWModule: {
     new (DFW:DFWInstance): DFWModule;

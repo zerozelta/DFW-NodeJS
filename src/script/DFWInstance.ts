@@ -9,18 +9,6 @@ import { isString } from "util";
 import APIManager from "../module/APIManager";
 import DFWModule from "./DFWModule";
 
-declare global {
-    namespace Express {
-        interface Request {
-            dfw: DFW.DFWRequestScheme;
-        }
-
-        interface Response {
-            dfw: DFW.DFWResponseScheme;
-        }
-    }
-}
-
 export default class DFWInstance{
 
     readonly config:DFWConfig;
@@ -67,17 +55,17 @@ export default class DFWInstance{
         return this.modules[isString(mod) ? mod : mod.name] as M;
     } 
 
+    /**
+     * Initialize dfw namespace and schemes
+     */
     public mainMiddleware = (req:Request, res:Response, next:NextFunction) => {
         
         req.dfw = {
-            meta:{
-
+            __meta:{
+                instance: this
             }
         } as any;
         
-        res.dfw = {
-        } as any;
-
         next();
     }
 }

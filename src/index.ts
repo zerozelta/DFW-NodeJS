@@ -2,6 +2,10 @@ import DFWInstance from "./script/DFWInstance";
 import {Express} from "express";
 import { DFWAPIListenerConfig } from "./types/DFWAPIListenerConfig";
 import DFWConfig from "./types/DFWConfig";
+import dfw_session from "./model/dfw_session";
+import { APIResponseScheme } from "./module/APIManager";
+import { Sequelize } from "sequelize/types";
+import { DFWSequelize, StaticModelType } from "./module/DatabaseManager";
 
 export default class DFW{
 
@@ -19,6 +23,14 @@ export default class DFW{
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+declare global {
+    namespace Express {
+        interface Request {
+            dfw: DFW.DFWRequestScheme;
+        }
+    }
+}
 
 declare global {
     export namespace DFW {
@@ -39,13 +51,19 @@ declare global {
         }
 
         export interface DFWRequestScheme{
-            meta:{
+            __meta:{
                 instance:DFWInstance,
                 config?:DFWAPIListenerConfig,
             },
-        }
-        
-        export interface DFWResponseScheme{
+            session:{
+                id?:number;
+                token?:string;
+                isLogged:boolean;
+                record:dfw_session;
+            }
+            api:APIResponseScheme;
+            db:DFWSequelize;
+            models:{[key:string]:StaticModelType};
         }
     }
 }

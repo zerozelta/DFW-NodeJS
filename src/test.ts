@@ -1,10 +1,8 @@
 import DFWInstance from "./script/DFWInstance";
 import { AddressInfo } from "net";
-import DatabaseManager from "./module/DatabaseManager";
-import SecurityManager from "./module/SecurityManager";
 import APIManager, { APIResponseScheme } from "./module/APIManager";
 import { Request, Response } from "express";
-import DFW from ".";
+import dfw_user from "./model/dfw_user";
 
 let dfw = new DFWInstance({
     database:{
@@ -19,12 +17,17 @@ let dfw = new DFWInstance({
     }
 });
 
-dfw.server.get("/test",(req,res)=>{
-    res.json({hola:"mundo"}).send().end();
+dfw.getModule(APIManager).addListener("/test",async (req:Request,res:Response,api)=>{
+    let user:dfw_user = await req.dfw.db.getModel("dfw_user").findByPk(1);
+    //let user:dfw_user = await req.dfw.models.dfw_user.findByPk(1);
+
+    return { user }
 });
 
+
 dfw.server.use((err,req,res,next)=>{
-    console.log("ERRORRRRR");
+    console.log("ERRORRRRR" + err);
+    console.log(err);
     next(err);
 });
 
@@ -32,7 +35,7 @@ dfw.getModule(APIManager).addListener("/boot",async (req:Request,res:Response,ap
    return api.success(await api.bootAsync());
 },{
     security:{
-        session:true
+        session:false
     }
 });
 

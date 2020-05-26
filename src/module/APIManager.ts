@@ -2,22 +2,11 @@ import { NextFunction , Request , Response, RequestHandler, ErrorRequestHandler 
 import DFWInstance from "../script/DFWInstance";
 import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
 import SessionManager from "./SessionManager";
-import DFWModule from "../script/DFWModule";
+import DFWModule, { MiddlewareAsyncWrapper } from "../script/DFWModule";
 import { DFWAPIListenerConfig } from "../types/DFWAPIListenerConfig";
 import { DFWRequestError } from "../types/DFWRequestError";
  
-declare global{
-    export namespace DFW {
-        export interface DFWRequestScheme{
-        }
-        
-        export interface DFWResponseScheme{
-            api:APIResponseScheme;
-        }
-    }
-}
-
-export type APIFunction = ((req:Request,res:Response,api:APIResponseScheme)=>Promise<any>)|((req:Request,res:Response,api:any)=>any);
+export type APIFunction = ((req:Request,res:Response,api:DFW.DFWRequestScheme)=>Promise<any>)|((req:Request,res:Response,api:any)=>any);
 
 export type APIMethods = "get"|"put"|"post"|"delete"|"options"|"link"|"GET"|"PUT"|"POST"|"DELETE"|"OPTIONS"|"LINK";
 
@@ -99,8 +88,8 @@ export default class APIManager implements DFWModule{
         this.instance = DFW;
     }
 
-    public middleware = async (req:Request,res:Response,next:NextFunction)=>{
-        res.dfw.api = {
+    public middleware = (req:Request,res:Response,next:NextFunction)=>{
+        req.dfw.api = {
             bootAsync : async ()=>{
                 return await this.getBootAsync(req);
             },
@@ -151,22 +140,22 @@ export default class APIManager implements DFWModule{
     public addListener(path:string,apiFunc:APIFunction,config:DFWAPIListenerConfig = {}){
         let apiLevelMid:(RequestHandler|ErrorRequestHandler)[] = this.getAPILevelMiddleware(config);
 
-        apiLevelMid.push(async (req:Request,res:Response,next:NextFunction)=>{
-            await Promise.resolve(apiFunc(req,res,res.dfw.api)).then((data)=>{
+        apiLevelMid.push( MiddlewareAsyncWrapper(async (req:Request,res:Response,next:NextFunction)=>{
+            await Promise.resolve(apiFunc(req,res,req.dfw)).then((data)=>{
                 this.response(req,res,data);
                 next();
             }).catch((err)=>{
                 next(new DFWRequestError(DFWRequestError.CODE_API_LEVEL_ERROR,err.message?err.message:err));
             });
-        });
+        }));
 
-        apiLevelMid.push(async (err:any,req:Request,res:Response,next:NextFunction)=>{
+        apiLevelMid.push((err:any,req:Request,res:Response,next:NextFunction)=>{
             if(err){
                 if(process.env.NODE_ENV == "development") console.error(err);
                 if(err instanceof DFWRequestError){
-                    this.response(req,res,res.dfw.api.error(err.message,err.code,err.ref));
+                    this.response(req,res,req.dfw.api.error(err.message,err.code,err.ref));
                 }else{
-                    this.response(req,res,res.dfw.api.error(err.message?err.message:err));
+                    this.response(req,res,req.dfw.api.error(err.message?err.message:err));
                 }
             }
             res.end();
@@ -183,7 +172,7 @@ export default class APIManager implements DFWModule{
      */
     public getAPILevelMiddleware(config:DFWAPIListenerConfig = {}):RequestHandler[]{
         let levels = [
-            async (req:Request,res:Response,next:NextFunction)=>{ req.dfw.meta.config = config;  next(); }
+            async (req:Request,res:Response,next:NextFunction)=>{ req.dfw.__meta.config = config;  next(); }
         ] as RequestHandler[];
 
         for(let modKey in this.instance.modules){

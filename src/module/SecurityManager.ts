@@ -3,7 +3,7 @@ import Password from "node-php-password";
 import DFWInstance from "../script/DFWInstance";
 import dfw_credential from "../model/dfw_credential";
 import dfw_access from "../model/dfw_access";
-import DFWModule from "../script/DFWModule";
+import DFWModule, { MiddlewareAsyncWrapper } from "../script/DFWModule";
 import { DFWAPIListenerConfig } from "../types/DFWAPIListenerConfig";
 import { DFWRequestError } from "../types/DFWRequestError";
 
@@ -27,12 +27,12 @@ export default class SecurityManager implements DFWModule {
 
     }
 
-    public middleware = async (req:Request,res:Response,next:NextFunction)=>{
+    public middleware = (req:Request,res:Response,next:NextFunction)=>{
         next();
     }
 
-    public APILevelMiddleware = async (req:Request,res:Response,next:NextFunction)=>{
-        let config:DFWAPIListenerConfig = req.dfw.meta.config?req.dfw.meta.config:{};
+    public APILevelMiddleware = MiddlewareAsyncWrapper( async (req:Request,res:Response,next:NextFunction)=>{
+        let config:DFWAPIListenerConfig = req.dfw.__meta.config?req.dfw.__meta.config:{};
         let bindings:[number,any][] = [];
 
         if(config.security?.session !== undefined){
@@ -56,13 +56,12 @@ export default class SecurityManager implements DFWModule {
 
         for(let binding of bindings){
             if(await this.checkBindingAsync(req,binding[0],binding[1]) === false){
-                next(new DFWRequestError(DFWRequestError.CODE_API_ACCESS_ERROR,SecurityManager.RULE_LABELS[binding[0]],binding[0]));
-                break;
+                throw new DFWRequestError(DFWRequestError.CODE_API_ACCESS_ERROR,SecurityManager.RULE_LABELS[binding[0]],binding[0]);
             }
         }
 
         next();
-    }
+    });
 
     public static verifyPassword(encoded:string,test:string):boolean {
         return Password.verify(test,encoded);

@@ -6,20 +6,8 @@ import DFWInstance from "../script/DFWInstance";
 import dfw_user from "../model/dfw_user";
 import DFWUtils from "../script/DFWUtils";
 import { Includeable, Op } from "sequelize";
-import DFWModule from "../script/DFWModule";
+import DFWModule, { MiddlewareAsyncWrapper } from "../script/DFWModule";
 
-declare global{
-    export namespace DFW {
-        export interface DFWRequestScheme{
-            session:{
-                id?:number;
-                token?:string;
-                isLogged:boolean;
-                record:dfw_session;
-            }
-        } 
-    }
-}
 
 export default class SessionManager implements DFWModule{
 
@@ -33,7 +21,7 @@ export default class SessionManager implements DFWModule{
         },1000*60*60*6);
     }
 
-    public readonly middleware = async (req:Request, res:Response, next:NextFunction)=>{
+    public readonly middleware = MiddlewareAsyncWrapper( async (req:Request, res:Response, next:NextFunction)=>{
         
         req.dfw.session = {
             isLogged:false,
@@ -74,7 +62,7 @@ export default class SessionManager implements DFWModule{
     
         this.setupSessionData(req);
         next();
-    }
+    });
 
     /**
      * 
