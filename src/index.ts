@@ -6,6 +6,7 @@ import dfw_session from "./model/dfw_session";
 import { APIResponseScheme } from "./module/APIManager";
 import { Sequelize } from "sequelize/types";
 import { DFWSequelize, StaticModelType } from "./module/DatabaseManager";
+import { DFWUploadScheme } from "./module/UploadManager";
 
 export default class DFW{
 
@@ -16,7 +17,10 @@ export default class DFW{
         return DFW.instances[`${name}`];
     }
 
-    public static getInstance(name:string){
+    public static getInstance(name?:string):DFWInstance|null{
+        if(this.instances.length == 0) return null;
+        if(!name) return this.instances[0];
+
         return DFW.instances[`${name}`];
     }
 
@@ -64,6 +68,7 @@ declare global {
             api:APIResponseScheme;
             db:DFWSequelize;
             models:{[key:string]:StaticModelType};
+            upload:DFWUploadScheme;
         }
     }
 }
