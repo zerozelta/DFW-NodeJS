@@ -28,6 +28,12 @@ export default class SessionManager implements DFWModule{
             token:undefined,
             id:undefined,
             record:undefined as any,
+            loginAsync : async (username:string,password:string,keepopen?:number)=>{
+                return this.loginAsync(req,res,username,password,keepopen);
+            },
+            logoutAsync : async ()=>{
+                return this.logoutAsync(req,res);
+            }
         }
     
         if(!req.cookies || !req.cookies.sid || !req.cookies.stk){

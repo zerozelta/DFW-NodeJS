@@ -5,16 +5,26 @@ import SessionManager from "./SessionManager";
 import DFWModule, { MiddlewareAsyncWrapper } from "../script/DFWModule";
 import { DFWAPIListenerConfig } from "../types/DFWAPIListenerConfig";
 import { DFWRequestError } from "../types/DFWRequestError";
+import { isArray, isObject } from "util";
  
 export type APIFunction = ((req:Request,res:Response,api:DFW.DFWRequestScheme)=>Promise<any>)|((req:Request,res:Response,api:any)=>any);
-
 export type APIMethods = "get"|"put"|"post"|"delete"|"options"|"link"|"GET"|"PUT"|"POST"|"DELETE"|"OPTIONS"|"LINK";
+
+export class APIListenerObject{
+    public readonly config:DFWAPIListenerConfig;
+    public readonly listener:APIFunction;
+
+    constructor(config:DFWAPIListenerConfig,listener:APIFunction){
+        this.config = config;
+        this.listener = listener;
+    }
+}
 
 export type APIResponseScheme = {
     /**
      * 
      */
-    bootAsync: () => Promise<DFW.Boot>;
+    getBootAsync: () => Promise<DFW.Boot>;
     
     /**
      * 
@@ -35,16 +45,6 @@ export type APIResponseScheme = {
      * 
      */
     notFound: (description?:string)=>void;
-
-    /**
-     * 
-     */
-    loginAsync : (username:string,password:string,keepopen?:number)=>Promise<boolean>;
-
-    /**
-     * 
-     */
-    logoutAsync : ()=>Promise<boolean>;
 }
 
 export type BootCallback = (req:Request,boot:DFW.Boot)=>Promise<any>;
@@ -74,7 +74,7 @@ export default class APIManager implements DFWModule{
                    boot.session.credentials.push({name,id});
 
                    if(c.access !== undefined){
-                       c.access.forEach((a)=>{
+                        c.access.forEach((a)=>{
                            let {name,id} = a; 
                            boot.session.credentials.push({name,id});
                         })
@@ -90,7 +90,7 @@ export default class APIManager implements DFWModule{
 
     public middleware = (req:Request,res:Response,next:NextFunction)=>{
         req.dfw.api = {
-            bootAsync : async ()=>{
+            getBootAsync : async ()=>{
                 return await this.getBootAsync(req);
             },
             error : (message:string = "error",code?:number,ref?:any)=>{
@@ -109,12 +109,6 @@ export default class APIManager implements DFWModule{
                 res.status(404);
                 return { message : description };
             },
-            loginAsync : async (username:string,password:string,keepopen?:number)=>{
-                return this.instance.getModule(SessionManager).loginAsync(req,res,username,password,keepopen);
-            },
-            logoutAsync : async ()=>{
-                return this.instance.getModule(SessionManager).logoutAsync(req,res);
-            }
         }
 
         next();
@@ -216,4 +210,26 @@ export default class APIManager implements DFWModule{
         return axios(path,config);
     }
 
+    /**
+     * Función recursiva que registra en DFW los listeners basados en una estructura de objeto
+     * @param node 
+     * @param path 
+     */
+    public registerAPIListenerObject(node:(APIListenerObject|Object)|(APIListenerObject|Object)[],path:string){  
+        if(node instanceof APIListenerObject){
+            this.addListener(path,node.listener,node.config);
+        }else if(isArray(node)){
+            for(let e of node){
+                this.registerAPIListenerObject(e,path);
+            }
+        }else if(isObject(node)){
+            let keys = Object.keys(node);
+            for( let key of keys){
+                let n = node[key];
+                this.registerAPIListenerObject(n,`${path}/${key}`);
+            }
+        }else{
+            throw "PhaseLoadModule:registerApiListener expected object|array|APIListener as node argument";
+        }
+    }
 }

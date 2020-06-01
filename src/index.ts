@@ -17,10 +17,8 @@ export default class DFW{
         return DFW.instances[`${name}`];
     }
 
-    public static getInstance(name?:string):DFWInstance|null{
-        if(this.instances.length == 0) return null;
+    public static getInstance(name?:string):DFWInstance{
         if(!name) return this.instances[0];
-
         return DFW.instances[`${name}`];
     }
 
@@ -64,6 +62,8 @@ declare global {
                 token?:string;
                 isLogged:boolean;
                 record:dfw_session;
+                loginAsync : (username:string,password:string,keepopen?:number)=>Promise<boolean>;
+                logoutAsync : ()=>Promise<boolean>;
             }
             api:APIResponseScheme;
             db:DFWSequelize;

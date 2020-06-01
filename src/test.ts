@@ -31,18 +31,18 @@ dfw.server.use((err,req,res,next)=>{
     next(err);
 });
 
-dfw.getModule(APIManager).addListener("/boot",async (req:Request,res:Response,api:APIResponseScheme)=>{
-   return api.success(await api.bootAsync());
+dfw.getModule(APIManager).addListener("/boot",async (req:Request,res:Response,dfw:DFW.DFWRequestScheme)=>{
+   return dfw.api.success(await dfw.api.getBootAsync());
 },{
     security:{
         session:false
     }
 });
 
-dfw.getModule(APIManager).addListener("/login",async (req:Request,res:Response,api:APIResponseScheme)=>{
-    return api.success({
-        status: await api.loginAsync("aldodelacomarca@gmail.com","aldodelacomarca"),
-        boot: await api.bootAsync()
+dfw.getModule(APIManager).addListener("/login",async (req:Request,res:Response,dfw:DFW.DFWRequestScheme)=>{
+    return dfw.api.success({
+        status: await dfw.session.loginAsync("aldodelacomarca@gmail.com","aldodelacomarca"),
+        boot: await dfw.api.getBootAsync()
     })
 });
 
