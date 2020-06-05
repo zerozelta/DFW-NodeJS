@@ -64,4 +64,8 @@ export default class dfw_credential extends Model<dfw_credential> {
         return false;
     }
 
+    /**
+     * TODO Crear funcion para asignar accesos
+     */
+
 }

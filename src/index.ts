@@ -7,10 +7,11 @@ import { APIResponseScheme } from "./module/APIManager";
 import { Sequelize } from "sequelize/types";
 import { DFWSequelize, StaticModelType } from "./module/DatabaseManager";
 import { DFWUploadScheme } from "./module/UploadManager";
+import fileUpload from "express-fileupload";
 
 export default class DFW{
 
-    private static  instances = [];
+    private static  instances = {};
 
     public static createInstance(name:string,config:DFWConfig,server?:Express):DFWInstance{
         DFW.instances[`${name}`] = new DFWInstance(config,server);
@@ -18,10 +19,9 @@ export default class DFW{
     }
 
     public static getInstance(name?:string):DFWInstance{
-        if(!name) return this.instances[0];
+        if(!name) return this.instances[Object.keys(this.instances)[0]];
         return DFW.instances[`${name}`];
     }
-
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////

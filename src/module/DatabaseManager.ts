@@ -26,6 +26,7 @@ export default class DatabaseManager implements DFWModule{
         let {models,...dbConfig} = dfw.config.database
         
         this.database = new Sequelize(dbConfig) as DFWSequelize;
+        dfw.database = this.database; // link DFW instance with this main database
 
         if(!models){
             models = [path.join(__dirname, '../model/*') as any];

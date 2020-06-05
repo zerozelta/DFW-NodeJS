@@ -8,6 +8,8 @@ import SecurityManager from "../module/SecurityManager";
 import { isString } from "util";
 import APIManager from "../module/APIManager";
 import DFWModule from "./DFWModule";
+import { Sequelize } from "sequelize/types";
+import UploadManager from "../module/UploadManager";
 
 export default class DFWInstance{
 
@@ -15,6 +17,8 @@ export default class DFWInstance{
     readonly server:Express;
 
     public modules:DFWModule[] = [];
+
+    public database!:Sequelize;
 
     constructor(config:DFWConfig, server:Express = require("express")()){
 
@@ -30,7 +34,7 @@ export default class DFWInstance{
         this.setupModule(new DatabaseManager(this));
         this.setupModule(new SessionManager(this));
         this.setupModule(new SecurityManager(this));
-        // upload manager
+        this.setupModule(new UploadManager(this));
         this.setupModule(new APIManager(this));
     }
 

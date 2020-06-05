@@ -1,6 +1,6 @@
 import fileUpload from "express-fileupload";
 import { Op } from "sequelize";
-import { promisify, isArray, isNumber } from "util";
+import { promisify, isArray, isNumber, isBoolean, isString } from "util";
 import md5File from 'md5-file/promise';
 import DFWInstance from "../script/DFWInstance";
 import dfw_file from "../model/dfw_file";
@@ -113,7 +113,7 @@ export default class UploadManager implements DFWModule{
 
         setInterval(()=>{ // Clear expired files each 6 hours
             this.purge();
-        },1000*60*60*6);
+        },21600000);
     }
 
     public middleware = (req:Request,res:Response,next:NextFunction)=>{
@@ -124,11 +124,14 @@ export default class UploadManager implements DFWModule{
             invalidateFileAsync: async (file:number|dfw_file|FileRecord)=>{
                 return await this.invalidateFileAsync(file);
             },
-            flushUploadAsync: async (file:UploadedFile,config:UploadOptions = {})=>{
-                return await this.flushUploadedFileAsync(req,file,config);
+            flushFileAsync: async (file:UploadedFile|string,config:UploadOptions = {})=>{
+                return await this.flushFileAsync(req,file,config);
             },
             getFileRecordAsync: async (file:number|number[]|dfw_file|dfw_file[],options?:FileRecordOptions)=>{
                 return await this.getFileRecordDataAsync(file,options);
+            },
+            assignFileChild: async (localFilePath:string,parent:number|dfw_file|FileRecord,options:UploadOptions = {})=>{
+                return this.assignChildLocalFileAsync(req.dfw,localFilePath,parent,options);
             },
             getFileRecord: (file:dfw_file|dfw_file[])=>{
                 return this.getFileRecordData(file);
@@ -150,8 +153,9 @@ export default class UploadManager implements DFWModule{
      * @param currentPath 
      * @param config 
      */
-    public async flushUploadedFileAsync(req:Request,file:UploadedFile,config:UploadOptions):Promise<dfw_file>{
+    public async flushFileAsync(req:Request,fileReference:UploadedFile|string,config:UploadOptions):Promise<dfw_file>{
         
+        let file = (isString(fileReference)?req.files![fileReference]:fileReference) as UploadedFile;
         let currentPath = file.tempFilePath;
 
         if(file === undefined || file === null){
@@ -163,7 +167,7 @@ export default class UploadManager implements DFWModule{
             throw new Error(`maximum file size exceeded (${(file.size/1024).toFixed(0)} Kb)`);
         }
         
-        return this.assingLocalFileAsync(req,currentPath,{...config, name:file.name });
+        return this.assingLocalFileAsync(req.dfw,currentPath,{...config, name:file.name });
     }
 
 
@@ -225,7 +229,7 @@ export default class UploadManager implements DFWModule{
      * @param filePath 
      * @param options 
      */
-    public async assingLocalFileAsync(req:Request,filePath:string,options:UploadOptions = {}){
+    public async assingLocalFileAsync(dfw:DFW.DFWRequestScheme,filePath:string,options:UploadOptions = {}):Promise<dfw_file>{
 
         if(await fileExistsAsync(filePath) == false){
             throw new Error(`Process uploaded file async error, unable to find file ${filePath}`);
@@ -263,7 +267,7 @@ export default class UploadManager implements DFWModule{
         return dfw_file.create({
             slug:options.slug,
             size:stats.size,
-            idUser: req.dfw.session.record.idUser,
+            idUser: dfw.session.record.idUser,
             name:filename,
             access:UploadManager.ACCESS_PUBLIC,
             checksum:md5,
@@ -280,13 +284,13 @@ export default class UploadManager implements DFWModule{
     /**
      * 
      * @param dfw 
-     * @param path 
+     * @param localFilePath 
      * @param parent 
      * @param variant 
      * @param options 
      */
-    public async assignChildLocalFileAsync(req:Request,path:string,parent:number|dfw_file|FileRecord,variant?:string,options:UploadOptions = {}){
-        await this.assingLocalFileAsync(req,path,Object.assign(options,{ parent : isNumber(parent)?parent:parent.id , variant }));
+    public async assignChildLocalFileAsync(dfw:DFW.DFWRequestScheme,localFilePath:string,parent:number|dfw_file|FileRecord,options:UploadOptions = {}){
+        await this.assingLocalFileAsync(dfw,localFilePath,Object.assign(options,{ parent : isNumber(parent)?parent:parent.id }));
     }
 
     /**
@@ -369,7 +373,11 @@ export default class UploadManager implements DFWModule{
      * Generate pre-configured middleware for file uploading
      * @param config 
      */
-    public makeUploadMiddleware(config?:UploadConfig){
+    public makeUploadMiddleware(config?:UploadConfig|boolean){
+        if(isBoolean(config)){
+            config = {};
+        }
+        
         return fileUpload(Object.assign({  limits: { fileSize: (5 * 1024 * 1024) } }, config, { useTempFiles : true , tempFileDir : this.TMPDIR }));
     }
 
@@ -424,7 +432,7 @@ export interface DFWUploadScheme{
     /**
      * Flushes the upload with the file and uploadConfig
      */
-    flushUploadAsync: (file:UploadedFile,config?:UploadOptions)=>Promise<dfw_file|null>
+    flushFileAsync: (file:UploadedFile|string,config?:UploadOptions)=>Promise<dfw_file|null>
 
     /***
      * 
@@ -455,4 +463,9 @@ export interface DFWUploadScheme{
      * 
      */
     removeFileAsync:(file:number|dfw_file|FileRecord)=>Promise<void>;
+
+    /**
+     * 
+     */
+    assignFileChild:(path:string,parent:number|dfw_file|FileRecord,options?:UploadOptions)=>Promise<any>
 }

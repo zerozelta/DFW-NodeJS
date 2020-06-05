@@ -1,11 +1,17 @@
 import { NextFunction , Request , Response, RequestHandler, ErrorRequestHandler } from "express";
 import DFWInstance from "../script/DFWInstance";
 import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
-import SessionManager from "./SessionManager";
 import DFWModule, { MiddlewareAsyncWrapper } from "../script/DFWModule";
 import { DFWAPIListenerConfig } from "../types/DFWAPIListenerConfig";
 import { DFWRequestError } from "../types/DFWRequestError";
-import { isArray, isObject } from "util";
+import { isArray, isObject, isFunction, isNumber } from "util";
+import dfw_user from "../model/dfw_user";
+import dfw_credential from "../model/dfw_credential";
+import dfw_access from "../model/dfw_access";
+import { Transaction } from "sequelize/types";
+import SecurityManager from "./SecurityManager";
+import DFWUtils from "../script/DFWUtils";
+import UploadManager from "./UploadManager";
  
 export type APIFunction = ((req:Request,res:Response,api:DFW.DFWRequestScheme)=>Promise<any>)|((req:Request,res:Response,api:any)=>any);
 export type APIMethods = "get"|"put"|"post"|"delete"|"options"|"link"|"GET"|"PUT"|"POST"|"DELETE"|"OPTIONS"|"LINK";
@@ -14,37 +20,15 @@ export class APIListenerObject{
     public readonly config:DFWAPIListenerConfig;
     public readonly listener:APIFunction;
 
-    constructor(config:DFWAPIListenerConfig,listener:APIFunction){
-        this.config = config;
-        this.listener = listener;
+    constructor(config:DFWAPIListenerConfig|APIFunction,listener?:APIFunction){
+        if(isFunction(config) && !listener){
+            this.listener = config as APIFunction;
+            this.config = { method:"get" }
+        }else{
+            this.config = config as DFWAPIListenerConfig;
+            this.listener = listener as APIFunction;
+        }
     }
-}
-
-export type APIResponseScheme = {
-    /**
-     * 
-     */
-    getBootAsync: () => Promise<DFW.Boot>;
-    
-    /**
-     * 
-     */
-    error: (description?:string,code?:number,ref?:any) => any;
-
-    /**
-     * 
-     */
-    success: (data?:any)=>any;
-
-    /**
-     * 
-     */
-    response: (data:any)=>void;
-
-    /**
-     * 
-     */
-    notFound: (description?:string)=>void;
 }
 
 export type BootCallback = (req:Request,boot:DFW.Boot)=>Promise<any>;
@@ -134,6 +118,12 @@ export default class APIManager implements DFWModule{
     public addListener(path:string,apiFunc:APIFunction,config:DFWAPIListenerConfig = {}){
         let apiLevelMid:(RequestHandler|ErrorRequestHandler)[] = this.getAPILevelMiddleware(config);
 
+        // Upload Middleware
+        if(config.upload){
+            apiLevelMid.push(this.instance.getModule(UploadManager).makeUploadMiddleware(config.upload));
+        }
+
+        // APIFunction middleware
         apiLevelMid.push( MiddlewareAsyncWrapper(async (req:Request,res:Response,next:NextFunction)=>{
             await Promise.resolve(apiFunc(req,res,req.dfw)).then((data)=>{
                 this.response(req,res,data);
@@ -143,6 +133,7 @@ export default class APIManager implements DFWModule{
             });
         }));
 
+        // Error catcher
         apiLevelMid.push((err:any,req:Request,res:Response,next:NextFunction)=>{
             if(err){
                 if(process.env.NODE_ENV == "development") console.error(err);
@@ -155,7 +146,7 @@ export default class APIManager implements DFWModule{
             res.end();
         });
 
-        console.log(`[API] ${path}`);
+        if(process.env.NODE_ENV == "development") console.log(`[API][${config.method?config.method.toUpperCase():"GET"}] ${path}`);
         this.instance.server[config.method?config.method.toLowerCase():"get"](path,apiLevelMid);
     }
 
@@ -232,4 +223,72 @@ export default class APIManager implements DFWModule{
             throw "PhaseLoadModule:registerApiListener expected object|array|APIListener as node argument";
         }
     }
+
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    public async createUserAsync (email:string,nick:string,password:string,transaction?:Transaction):Promise<dfw_user>{
+        return this.instance.database.models.dfw_user.create({
+            nick,
+            email,
+            encodedKey:SecurityManager.encryptPassword(password)
+        },{ transaction });
+    }
+
+    public async findUserAsync(nameOrMail:string,transaction?:Transaction):Promise<dfw_user>{
+        if(DFWUtils.isEmail(nameOrMail)){
+            return this.instance.database.models.dfw_user.findOne({where: { email: nameOrMail } , transaction });
+        }else{
+            return this.instance.database.models.dfw_user.findOne({where: { nick: nameOrMail } });
+        }
+    }
+
+    public async createCredentiaASync(name:string,description?:string,transaction?:Transaction):Promise<dfw_credential>{
+        return this.instance.database.models.dfw_credential.create({ name , description },{transaction});
+    }
+
+    public async createAccessAsync(name:string,description?:string,transaction?:Transaction):Promise<dfw_access>{
+        return this.instance.database.models.dfw_access.create({ name , description },{transaction});
+    }
+
+    public async assingCredentialTo(credential:number|dfw_credential,user:number|dfw_user,transaction?:Transaction):Promise<boolean>{
+        if(user instanceof dfw_user){
+            return user.assignCredentialAsync(credential,transaction);
+        }else{
+            let userObj = await this.instance.database.models.dfw_user.findByPk(user);
+            return this.assingCredentialTo(credential,userObj,transaction)
+        }
+    }
+
+    public async assingAccessTo(access:number|dfw_access,credential:number|dfw_credential,transaction?:Transaction):Promise<boolean>{
+        throw `Function APIMager assingAccessTo not implemented yet`
+    }
+}
+
+
+
+export type APIResponseScheme = {
+    /**
+     * 
+     */
+    getBootAsync: () => Promise<DFW.Boot>;
+    
+    /**
+     * 
+     */
+    error: (description?:string,code?:number,ref?:any) => any;
+
+    /**
+     * 
+     */
+    success: (data?:any)=>any;
+
+    /**
+     * 
+     */
+    response: (data:any)=>void;
+
+    /**
+     * 
+     */
+    notFound: (description?:string)=>void;
 }
