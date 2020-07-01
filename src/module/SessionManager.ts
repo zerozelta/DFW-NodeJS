@@ -25,8 +25,8 @@ export default class SessionManager implements DFWModule{
         
         req.dfw.session = {
             isLogged:false,
-            token:undefined,
-            id:undefined,
+            token:undefined as any,
+            id:undefined as any,
             record:undefined as any,
             loginAsync : async (username:string,password:string,keepopen?:number)=>{
                 return this.loginAsync(req,res,username,password,keepopen);
@@ -99,8 +99,9 @@ export default class SessionManager implements DFWModule{
             token
         });
 
-        res.cookie("sid",session.id);
-        res.cookie("stk",token);
+        //TODO sistema para controlar la duración de las sesiones
+        res.cookie("sid",session.id,{ expires: moment().add("days",30).toDate() }); 
+        res.cookie("stk",token, { expires: moment().add("days",30).toDate() });
 
         req.dfw.session = { id : session.id , token , isLogged: false , record : session } as any
 
@@ -141,12 +142,12 @@ export default class SessionManager implements DFWModule{
      * @param res 
      */
     public async logoutAsync(req:Request,res:Response){
-        if( req.dfw.session.record !== undefined ){
+        if( req.dfw.session.record){
             req.dfw.session.record.idUser = null;
             req.dfw.session.record.user = null;
+            req.dfw.session.isLogged = false;
 
             await req.dfw.session.record.save();
-            await this.regenerateSessionAsync(req,res);
             return true;
         }
 

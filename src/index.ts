@@ -4,10 +4,8 @@ import { DFWAPIListenerConfig } from "./types/DFWAPIListenerConfig";
 import DFWConfig from "./types/DFWConfig";
 import dfw_session from "./model/dfw_session";
 import { APIResponseScheme } from "./module/APIManager";
-import { Sequelize } from "sequelize/types";
 import { DFWSequelize, StaticModelType } from "./module/DatabaseManager";
 import { DFWUploadScheme } from "./module/UploadManager";
-import fileUpload from "express-fileupload";
 
 export default class DFW{
 
@@ -58,8 +56,8 @@ declare global {
                 config?:DFWAPIListenerConfig,
             },
             session:{
-                id?:number;
-                token?:string;
+                id:number;
+                token:string;
                 isLogged:boolean;
                 record:dfw_session;
                 loginAsync : (username:string,password:string,keepopen?:number)=>Promise<boolean>;

@@ -10,6 +10,7 @@ import APIManager from "../module/APIManager";
 import DFWModule from "./DFWModule";
 import { Sequelize } from "sequelize/types";
 import UploadManager from "../module/UploadManager";
+import express from "express";
 
 export default class DFWInstance{
 
@@ -20,7 +21,7 @@ export default class DFWInstance{
 
     public database!:Sequelize;
 
-    constructor(config:DFWConfig, server:Express = require("express")()){
+    constructor(config:DFWConfig, server:Express = express()){
 
         // Setup middleware
         server.use(cookieParser());

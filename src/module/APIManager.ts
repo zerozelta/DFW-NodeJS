@@ -136,7 +136,7 @@ export default class APIManager implements DFWModule{
         // Error catcher
         apiLevelMid.push((err:any,req:Request,res:Response,next:NextFunction)=>{
             if(err){
-                if(process.env.NODE_ENV == "development") console.error(err);
+                if(process.env.NODE_ENV == "development") { console.error(err) };
                 if(err instanceof DFWRequestError){
                     this.response(req,res,req.dfw.api.error(err.message,err.code,err.ref));
                 }else{
@@ -146,7 +146,10 @@ export default class APIManager implements DFWModule{
             res.end();
         });
 
-        if(process.env.NODE_ENV == "development") console.log(`[API][${config.method?config.method.toUpperCase():"GET"}] ${path}`);
+
+        console.log(`[API][${config.method?config.method.toUpperCase():"GET"}] ${path}`);
+
+        //if(process.env.NODE_ENV == "development") {  }
         this.instance.server[config.method?config.method.toLowerCase():"get"](path,apiLevelMid);
     }
 
