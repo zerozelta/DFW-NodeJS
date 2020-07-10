@@ -294,7 +294,6 @@ export default class UploadManager implements DFWModule{
     }
 
     /**
-     * 
      * @param file 
      */
     public getFileRecordData(file:dfw_file|dfw_file[],options:FileRecordOptions = {}):FileRecord|FileRecord[]{
@@ -308,6 +307,7 @@ export default class UploadManager implements DFWModule{
                 description:file.description,
                 variant:file.variant,
                 expire:file.expire,
+                checksum:file.checksum,
                 created:file.created_at,
                 children: options.recursive?file.children?file.children.map((cf)=>this.getFileRecordData(cf,options)):[]:[],
             } as FileRecord;

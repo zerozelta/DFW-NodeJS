@@ -66,16 +66,16 @@ export default class dfw_file extends Model<dfw_file>{
     //////////////////////////////////////////////////////////////////
     @Column({
         type: DataType.VIRTUAL,
-        get: function (){
-            return DFW.getInstance()?.getModule(UploadManager).getFileLocalPath(this as any);
+        get () {
+            return DFW.getInstance().getModule(UploadManager).getFileLocalPath(this as any);
         }
     })
     localPath!:string;
 
     @Column({
         type: DataType.VIRTUAL,
-        get: function (){
-            return DFW.getInstance()?.getModule(UploadManager).getFileURL(this as any);
+        get () {
+            return DFW.getInstance().getModule(UploadManager).getFileURL(this as any);
         }
     })
     url!:string;

@@ -129,6 +129,7 @@ export default class APIManager implements DFWModule{
                 this.response(req,res,data);
                 next();
             }).catch((err)=>{
+                console.error(err);
                 next(new DFWRequestError(DFWRequestError.CODE_API_LEVEL_ERROR,err.message?err.message:err));
             });
         }));

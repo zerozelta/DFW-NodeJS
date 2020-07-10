@@ -100,8 +100,8 @@ export default class SessionManager implements DFWModule{
         });
 
         //TODO sistema para controlar la duración de las sesiones
-        res.cookie("sid",session.id,{ expires: moment().add("days",30).toDate() }); 
-        res.cookie("stk",token, { expires: moment().add("days",30).toDate() });
+        res.cookie("sid",session.id,{ expires: moment().add(30,"days").toDate() }); 
+        res.cookie("stk",token, { expires: moment().add(30,"days").toDate() });
 
         req.dfw.session = { id : session.id , token , isLogged: false , record : session } as any
 
