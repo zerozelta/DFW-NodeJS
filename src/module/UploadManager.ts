@@ -14,6 +14,7 @@ import * as fs from "fs";
 import * as os from "os";
 import * as nodejsPath from "path";
 import * as UUID from "uuid";
+import dfw_user from "../model/dfw_user";
 
 const fileExistsAsync       = promisify(fs.exists);
 const fileRenameAsync       = promisify(fs.rename);
@@ -32,6 +33,7 @@ export type UploadOptions = {
     access?:number;                     // acces type defined by the access constants in dfw_file model
     description?:string;                // description text for help or alt attributes
 
+    user?:number|dfw_user;
     parent?:dfw_file|FileRecord|number; // file parent for file trees
     variant?:string;                    // file variant to diferenciate from another childs
 
@@ -130,8 +132,11 @@ export default class UploadManager implements DFWModule{
             getFileRecordAsync: async (file:number|number[]|dfw_file|dfw_file[],options?:FileRecordOptions)=>{
                 return await this.getFileRecordDataAsync(file,options);
             },
+            assingLocalFileAsync:async (filePath:string,options?:UploadOptions)=>{
+                return await this.assingLocalFileAsync(filePath,options);
+            },
             assignFileChild: async (localFilePath:string,parent:number|dfw_file|FileRecord,options:UploadOptions = {})=>{
-                return this.assignChildLocalFileAsync(req.dfw,localFilePath,parent,options);
+                return this.assignChildLocalFileAsync(localFilePath,parent,options);
             },
             getFileRecord: (file:dfw_file|dfw_file[])=>{
                 return this.getFileRecordData(file);
@@ -167,7 +172,7 @@ export default class UploadManager implements DFWModule{
             throw new Error(`maximum file size exceeded (${(file.size/1024).toFixed(0)} Kb)`);
         }
         
-        return this.assingLocalFileAsync(req.dfw,currentPath,{...config, name:file.name });
+        return this.assingLocalFileAsync(currentPath,{...config, name:file.name });
     }
 
 
@@ -229,7 +234,7 @@ export default class UploadManager implements DFWModule{
      * @param filePath 
      * @param options 
      */
-    public async assingLocalFileAsync(dfw:DFW.DFWRequestScheme,filePath:string,options:UploadOptions = {}):Promise<dfw_file>{
+    public async assingLocalFileAsync(filePath:string,options:UploadOptions = {}):Promise<dfw_file>{
 
         if(await fileExistsAsync(filePath) == false){
             throw new Error(`Process uploaded file async error, unable to find file ${filePath}`);
@@ -267,7 +272,7 @@ export default class UploadManager implements DFWModule{
         return dfw_file.create({
             slug:options.slug,
             size:stats.size,
-            idUser: dfw.session.record.idUser,
+            idUser: options.user? isNumber(options.user) ? options.user : options.user.id : undefined,
             name:filename,
             access:UploadManager.ACCESS_PUBLIC,
             checksum:md5,
@@ -289,8 +294,8 @@ export default class UploadManager implements DFWModule{
      * @param variant 
      * @param options 
      */
-    public async assignChildLocalFileAsync(dfw:DFW.DFWRequestScheme,localFilePath:string,parent:number|dfw_file|FileRecord,options:UploadOptions = {}){
-        await this.assingLocalFileAsync(dfw,localFilePath,Object.assign(options,{ parent : isNumber(parent)?parent:parent.id }));
+    public async assignChildLocalFileAsync(localFilePath:string,parent:number|dfw_file|FileRecord,options:UploadOptions = {}){
+        await this.assingLocalFileAsync(localFilePath,Object.assign(options,{ parent : isNumber(parent)?parent:parent.id }));
     }
 
     /**
@@ -450,22 +455,28 @@ export interface DFWUploadScheme{
     checkFileAccessAsync:(file:number|dfw_file)=>Promise<boolean>
 
     /**
-     * 
+     * by default set the expire value to "never" ot to specific date
      */
     validateFileAsync:(file:number|dfw_file|FileRecord,expire?:Date|null)=>Promise<dfw_file>;
 
     /**
-     * 
+     * invalidate file to be remvoed in netx purge operation
      */
     invalidateFileAsync:(file:number|dfw_file|FileRecord)=>Promise<dfw_file>;
 
     /**
-     * 
+     * remvoe file instantantly
      */
     removeFileAsync:(file:number|dfw_file|FileRecord)=>Promise<void>;
 
+
     /**
-     * 
+     * save a local file in database record
+     */
+    assingLocalFileAsync:(filePath:string,options?:UploadOptions)=>Promise<dfw_file>
+
+    /**
+     * assing local file as a children of previus created record
      */
     assignFileChild:(path:string,parent:number|dfw_file|FileRecord,options?:UploadOptions)=>Promise<any>
 }
