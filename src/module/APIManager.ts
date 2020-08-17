@@ -123,6 +123,16 @@ export default class APIManager implements DFWModule{
             apiLevelMid.push(this.instance.getModule(UploadManager).makeUploadMiddleware(config.upload));
         }
 
+        // Adding anothel layer of express middlewares 
+        if(config.middleware){
+            if(isArray(config.middleware)){
+                for(let mid of config.middleware) apiLevelMid.push(mid);
+            }else{
+                apiLevelMid.push(config.middleware);
+            }
+        }
+        
+
         // APIFunction middleware
         apiLevelMid.push( MiddlewareAsyncWrapper(async (req:Request,res:Response,next:NextFunction)=>{
             await Promise.resolve(apiFunc(req,res,req.dfw)).then((data)=>{

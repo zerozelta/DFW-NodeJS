@@ -3,7 +3,7 @@ import { APIMethods } from "../module/APIManager";
 
 export interface DFWAPIListenerConfig{
     method?:APIMethods;
-    middleware?:RequestHandler;
+    middleware?:RequestHandler|RequestHandler[];
     security?:ListenerSecurityConfig;
     upload?:boolean|{
 

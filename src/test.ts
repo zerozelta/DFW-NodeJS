@@ -41,7 +41,16 @@ DFW.getModule(APIManager).addListener("/boot",async (req:Request,res:Response,df
 },{
     security:{
         session:false
-    }
+    },
+    middleware:[
+        (req,res,next)=>{
+            console.log("hola");
+            next();
+        },(req,res,next)=>{
+            console.log("mundo");
+            next();
+        }
+    ]
 });
 
 DFW.getModule(APIManager).addListener("/login",async (req:Request,res:Response,dfw:DFW.DFWRequestScheme)=>{
