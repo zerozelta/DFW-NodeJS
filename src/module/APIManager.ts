@@ -12,6 +12,7 @@ import { Transaction } from "sequelize/types";
 import SecurityManager from "./SecurityManager";
 import DFWUtils from "../script/DFWUtils";
 import UploadManager from "./UploadManager";
+import bodyParser from "body-parser";
  
 export type APIFunction = ((req:Request,res:Response,api:DFW.DFWRequestScheme)=>Promise<any>)|((req:Request,res:Response,api:any)=>any);
 export type APIMethods = "get"|"put"|"post"|"delete"|"options"|"link"|"GET"|"PUT"|"POST"|"DELETE"|"OPTIONS"|"LINK";
@@ -174,6 +175,10 @@ export default class APIManager implements DFWModule{
             async (req:Request,res:Response,next:NextFunction)=>{ req.dfw.__meta.config = config;  next(); }
         ] as RequestHandler[];
 
+        if(config.parseBody !== false){ // Body parser middleware
+            levels.push(bodyParser.json(),bodyParser.urlencoded({ extended:true })); 
+        }
+        
         for(let modKey in this.instance.modules){
             let mod = this.instance.modules[modKey];
             if(mod.APILevelMiddleware){

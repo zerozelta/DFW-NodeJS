@@ -23,10 +23,12 @@ export default class DFWInstance{
 
     constructor(config:DFWConfig, server:Express = express()){
 
+        // let router = express.Router();
+
         // Setup middleware
         server.use(cookieParser());
-        server.use(bodyParser.json()); 
-        server.use(bodyParser.urlencoded({ extended:true }));
+        //server.use(bodyParser.json()); 
+        //server.use(bodyParser.urlencoded({ extended:true }));
         server.use(this.mainMiddleware);        
         
         this.server = server;

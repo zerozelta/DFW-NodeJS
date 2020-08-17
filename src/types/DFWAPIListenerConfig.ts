@@ -5,9 +5,8 @@ export interface DFWAPIListenerConfig{
     method?:APIMethods;
     middleware?:RequestHandler|RequestHandler[];
     security?:ListenerSecurityConfig;
-    upload?:boolean|{
-
-    }
+    parseBody?:false;
+    upload?:boolean|{}
 }
 
 export interface ListenerSecurityConfig {
