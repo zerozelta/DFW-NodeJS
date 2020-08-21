@@ -1,39 +1,36 @@
 import DFWInstance from "./script/DFWInstance";
+import DFWCore from "./"
 import { AddressInfo } from "net";
 import APIManager, { APIResponseScheme } from "./module/APIManager";
 import { Request, Response } from "express";
 import dfw_user from "./model/dfw_user";
+import dfw_file from "./model/dfw_file";
+import UploadManager from "./module/UploadManager";
 
-let DFW = new DFWInstance({
+let DFW = DFWCore.createInstance("test",{
     database:{
         username:"root",
         database:"dfw-test",
         password:"",
         dialect:"mysql",
-        logging:()=>{}
+        logging:console.log
     },
     upload:{
         tempDir:".dfw/temp/",
     }
 });
 
-
 DFW.getModule(APIManager).addListener("/upload",async (req:Request,res:Response,dfw:DFW.DFWRequestScheme)=>{
-    let dfwfile = await dfw.upload.flushFileAsync("file",{expiration:null});
-    return { dfwfile }
+
+    let dfwfile = await dfw.upload.flushFileAsync("file",{expiration:null}) as dfw_file;
+    let fileChild = await dfw.upload.assignFileChild(dfwfile.localPath,dfwfile);
+
+    return { dfwfile , fileChild }
 },{ upload:true , method:"POST" });
 
 
 DFW.getModule(APIManager).addListener("/test",async (req:Request,res:Response,dfw:DFW.DFWRequestScheme)=>{
-    let user:dfw_user = await DFW.getModule(APIManager).createUserAsync("test@scefira.com","test","test").catch((err)=>console.log(err)) as any;
-
-    console.log(user)
-
-    await dfw.session.loginAsync("test","test");
-
-    //let user:dfw_user = await req.dfw.models.dfw_user.findByPk(1);
-
-    return { user , boot: await dfw.api.getBootAsync() }
+    await DFW.getModule(UploadManager).removeFileAsync(await dfw_file.findByPk(33));
 });
 
 DFW.getModule(APIManager).addListener("/boot",async (req:Request,res:Response,dfw:DFW.DFWRequestScheme)=>{

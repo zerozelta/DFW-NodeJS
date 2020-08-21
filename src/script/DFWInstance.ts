@@ -1,5 +1,4 @@
 import { NextFunction , Express , Response , Request } from "express";
-import bodyParser from "body-parser";
 import cookieParser from "cookie-parser";
 import DFWConfig from "../types/DFWConfig";
 import DatabaseManager from "../module/DatabaseManager";
@@ -26,7 +25,7 @@ export default class DFWInstance{
         // let router = express.Router();
 
         // Setup middleware
-        server.use(cookieParser());
+        //server.use(cookieParser());
         //server.use(bodyParser.json()); 
         //server.use(bodyParser.urlencoded({ extended:true }));
         server.use(this.mainMiddleware);        

@@ -13,6 +13,7 @@ import SecurityManager from "./SecurityManager";
 import DFWUtils from "../script/DFWUtils";
 import UploadManager from "./UploadManager";
 import bodyParser from "body-parser";
+import cookieParser from "cookie-parser";
  
 export type APIFunction = ((req:Request,res:Response,api:DFW.DFWRequestScheme)=>Promise<any>)|((req:Request,res:Response,api:any)=>any);
 export type APIMethods = "get"|"put"|"post"|"delete"|"options"|"link"|"GET"|"PUT"|"POST"|"DELETE"|"OPTIONS"|"LINK";
@@ -174,6 +175,8 @@ export default class APIManager implements DFWModule{
         let levels = [
             async (req:Request,res:Response,next:NextFunction)=>{ req.dfw.__meta.config = config;  next(); }
         ] as RequestHandler[];
+
+        levels.push(cookieParser()); // cookie parser middelware
 
         if(config.parseBody !== false){ // Body parser middleware
             levels.push(bodyParser.json(),bodyParser.urlencoded({ extended:true })); 

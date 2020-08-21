@@ -8,13 +8,14 @@ import DFWModule from "../script/DFWModule";
 import moment from "moment";
 import DFWUtils from "../script/DFWUtils";
 import DatabaseManager from "./DatabaseManager";
+import dfw_user from "../model/dfw_user";
 import { Request, Response, NextFunction, static as ExpressStatic } from "express";
 
 import * as fs from "fs";
 import * as os from "os";
 import * as nodejsPath from "path";
 import * as UUID from "uuid";
-import dfw_user from "../model/dfw_user";
+
 
 const fileExistsAsync       = promisify(fs.exists);
 const fileRenameAsync       = promisify(fs.rename);
@@ -294,8 +295,8 @@ export default class UploadManager implements DFWModule{
      * @param variant 
      * @param options 
      */
-    public async assignChildLocalFileAsync(localFilePath:string,parent:number|dfw_file|FileRecord,options:UploadOptions = {}){
-        await this.assingLocalFileAsync(localFilePath,Object.assign(options,{ parent : isNumber(parent)?parent:parent.id }));
+    public async assignChildLocalFileAsync(localFilePath:string,parent:number|dfw_file|FileRecord,options:UploadOptions = {}):Promise<dfw_file>{
+        return this.assingLocalFileAsync(localFilePath,Object.assign(options,{ parent : isNumber(parent)?parent:parent.id }));
     }
 
     /**
@@ -391,11 +392,25 @@ export default class UploadManager implements DFWModule{
      * @param file 
      */
     public async removeFileAsync(file:number|dfw_file|FileRecord){
+        if(!file) throw `File record is null or undefined`;
+
         if(file instanceof dfw_file){
+            if(!file.children) file.children = await file.$get("children");
+            
+            for(let fc of file.children){
+                if(fc) await this.removeFileAsync(fc); // Remove all children files
+            }
             let path = file.localPath;
-            await fileUnlink(path).then(()=>{
+            console.log(path)
+            if(fs.existsSync(path)){
+                console.log("existe")
+                await fileUnlink(path).then(()=>{
+                    file.destroy();
+                }).catch(()=>{ throw `Unable to remove file`})
+            }else{
                 file.destroy();
-            }).catch(()=>{ throw `Unable to remvoe file`})
+                console.log("no existe")
+            }
         }else{
             let fo = await dfw_file.findByPk(isNumber(file)?file:file.id);
             if(fo){ return this.removeFileAsync(fo); }
@@ -478,5 +493,5 @@ export interface DFWUploadScheme{
     /**
      * assing local file as a children of previus created record
      */
-    assignFileChild:(path:string,parent:number|dfw_file|FileRecord,options?:UploadOptions)=>Promise<any>
+    assignFileChild:(path:string,parent:number|dfw_file|FileRecord,options?:UploadOptions)=>Promise<dfw_file>
 }
