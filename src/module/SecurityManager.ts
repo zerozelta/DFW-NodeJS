@@ -7,6 +7,11 @@ import DFWModule, { MiddlewareAsyncWrapper } from "../script/DFWModule";
 import { DFWAPIListenerConfig } from "../types/DFWAPIListenerConfig";
 import { DFWRequestError } from "../types/DFWRequestError";
 
+export type SecurityScheme = {
+    hasAccessAsync:(access:string|string[]|number|number[]|dfw_access|dfw_access[])=>Promise<boolean>
+    hasCredentialsAsync:(credentials:string|string[]|number|number[]|dfw_credential|dfw_credential[])=>Promise<boolean>
+}
+
 export default class SecurityManager implements DFWModule {
 
     static readonly RULE_LOGGED_SESSION             = 0;
@@ -28,6 +33,14 @@ export default class SecurityManager implements DFWModule {
     }
 
     public middleware = (req:Request,res:Response,next:NextFunction)=>{
+        req.dfw.security = { 
+            hasAccessAsync : (access:string|string[]|number|number[]|dfw_access|dfw_access[])=>{
+                return this.checkBindingAsync(req,SecurityManager.RULE_ACCESS,access)
+            },
+            hasCredentialsAsync : async (credentials:string|string[]|number|number[]|dfw_credential|dfw_credential[])=>{
+                return this.checkBindingAsync(req,SecurityManager.RULE_CREDENTIAL,credentials)
+            }
+        }
         next();
     }
 

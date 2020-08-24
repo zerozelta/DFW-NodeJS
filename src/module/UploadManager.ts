@@ -112,7 +112,7 @@ export default class UploadManager implements DFWModule{
         
         fileMakeTempDir(this.TMPDIR).catch();
 
-        DFW.server.use(this.getStaticUploadPath(),ExpressStatic(this.getLocalUploadDir())) // Public static upload path
+        DFW.server.use(this.getStaticUploadPath(),ExpressStatic(this.getLocalUploadDir(),{maxAge:2592000})) // Public static upload path
 
         setInterval(()=>{ // Clear expired files each 6 hours
             this.purge();
@@ -401,15 +401,12 @@ export default class UploadManager implements DFWModule{
                 if(fc) await this.removeFileAsync(fc); // Remove all children files
             }
             let path = file.localPath;
-            console.log(path)
             if(fs.existsSync(path)){
-                console.log("existe")
                 await fileUnlink(path).then(()=>{
                     file.destroy();
                 }).catch(()=>{ throw `Unable to remove file`})
             }else{
                 file.destroy();
-                console.log("no existe")
             }
         }else{
             let fo = await dfw_file.findByPk(isNumber(file)?file:file.id);

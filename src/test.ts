@@ -30,7 +30,11 @@ DFW.getModule(APIManager).addListener("/upload",async (req:Request,res:Response,
 
 
 DFW.getModule(APIManager).addListener("/test",async (req:Request,res:Response,dfw:DFW.DFWRequestScheme)=>{
-    await DFW.getModule(UploadManager).removeFileAsync(await dfw_file.findByPk(33));
+    if(await dfw.security.hasCredentialsAsync("VENDOR")){
+        return { correcto : "1" }
+    }else{
+        return { incorrecto : "0" }
+    }
 });
 
 DFW.getModule(APIManager).addListener("/boot",async (req:Request,res:Response,dfw:DFW.DFWRequestScheme)=>{

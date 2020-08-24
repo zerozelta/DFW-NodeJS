@@ -25,7 +25,7 @@ export default class DFWInstance{
         // let router = express.Router();
 
         // Setup middleware
-        //server.use(cookieParser());
+        server.use(cookieParser());
         //server.use(bodyParser.json()); 
         //server.use(bodyParser.urlencoded({ extended:true }));
         server.use(this.mainMiddleware);        
