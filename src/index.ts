@@ -3,10 +3,12 @@ import {Express} from "express";
 import { DFWAPIListenerConfig } from "./types/DFWAPIListenerConfig";
 import DFWConfig from "./types/DFWConfig";
 import dfw_session from "./model/dfw_session";
-import { APIResponseScheme } from "./module/APIManager";
+import { APIResponseScheme, APIListenerObject } from "./module/APIManager";
 import { DFWSequelize, StaticModelType } from "./module/DatabaseManager";
 import { DFWUploadScheme } from "./module/UploadManager";
 import { SecurityScheme } from "./module/SecurityManager";
+
+
 
 export default class DFW{
 
