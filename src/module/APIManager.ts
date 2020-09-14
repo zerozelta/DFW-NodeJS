@@ -119,25 +119,10 @@ export default class APIManager implements DFWModule{
      * @param config 
      */
     public addListener(path:string,apiFunc:APIFunction,config:DFWAPIListenerConfig = {}){
-        let apiLevelMid:(RequestHandler|ErrorRequestHandler)[] = this.getAPILevelMiddleware(config);
-
-        // Upload Middleware
-        if(config.upload){
-            apiLevelMid.push(this.instance.getModule(UploadManager).makeUploadMiddleware(config.upload));
-        }
-
-        // Adding anothel layer of express middlewares 
-        if(config.middleware){
-            if(isArray(config.middleware)){
-                for(let mid of config.middleware) apiLevelMid.push(mid);
-            }else{
-                apiLevelMid.push(config.middleware);
-            }
-        }
-        
+        let apiLevelMid:(RequestHandler|ErrorRequestHandler)[] = this.generateAPILevelMiddleware(config);
 
         // APIFunction middleware
-        apiLevelMid.push( MiddlewareAsyncWrapper(async (req:Request,res:Response,next:NextFunction)=>{
+        apiLevelMid.push(MiddlewareAsyncWrapper(async (req:Request,res:Response,next:NextFunction)=>{
             await Promise.resolve(apiFunc(req,res,req.dfw)).then((data)=>{
                 this.response(req,res,data);
                 next();
@@ -172,19 +157,34 @@ export default class APIManager implements DFWModule{
      * @param apiFunc 
      * @param config 
      */
-    public getAPILevelMiddleware(config:DFWAPIListenerConfig = {}):RequestHandler[]{
+    public generateAPILevelMiddleware(config:DFWAPIListenerConfig = {}):RequestHandler[]{
         let levels = [
             async (req:Request,res:Response,next:NextFunction)=>{ req.dfw.__meta.config = config;  next(); }
         ] as RequestHandler[];
 
+        // Body parser
         if(config.parseBody !== false){ // Body parser middleware
             levels.push(bodyParser.json(),bodyParser.urlencoded({ extended:true })); 
+        }
+
+        // Upload Middleware
+        if(config.upload){
+            levels.push(this.instance.getModule(UploadManager).makeUploadMiddleware(config.upload));
         }
         
         for(let modKey in this.instance.modules){
             let mod = this.instance.modules[modKey];
             if(mod.APILevelMiddleware){
                 levels.push(mod.APILevelMiddleware);
+            }
+        }
+
+        // Adding anothel layer of express middlewares 
+        if(config.middleware){
+            if(isArray(config.middleware)){
+                for(let mid of config.middleware) levels.push(mid);
+            }else{
+                levels.push(config.middleware);
             }
         }
 

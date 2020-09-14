@@ -33,7 +33,7 @@ DFW.getModule(APIManager).addListener("/test",async (req:Request,res:Response,df
     let test =  await dfw.db.transaction(async (transaction)=>{
 
         await dfw_session.create({
-            token:"12h3uh13g123h123h",
+            token:"12h3uh13g123h78123h",
             agent:"tester",
             ip:"::1",
             site:"/",
@@ -41,7 +41,7 @@ DFW.getModule(APIManager).addListener("/test",async (req:Request,res:Response,df
         })
 
         return await dfw_session.create({
-            token:"12tokeeneneiuh",
+            token:"12tokeenenei85uh",
             agent:"tester",
             ip:"::2",
             site:"/",

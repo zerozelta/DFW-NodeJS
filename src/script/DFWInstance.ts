@@ -35,8 +35,6 @@ export default class DFWInstance{
         this.setupModule(new SecurityManager(this));
         this.setupModule(new UploadManager(this));
         this.setupModule(new APIManager(this));
-        
-        //this.server.use("/",this.ROUTER_API_MIDDLEWARE);
     }
 
     /**

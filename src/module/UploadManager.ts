@@ -112,7 +112,7 @@ export default class UploadManager implements DFWModule{
         
         fileMakeTempDir(this.TMPDIR).catch();
 
-        DFW.ROUTER_API_MIDDLEWARE.use(this.getStaticUploadPath(),ExpressStatic(this.getLocalUploadDir(),{maxAge:2592000})) // Public static upload path
+        DFW.server.use(this.getStaticUploadPath(),ExpressStatic(this.getLocalUploadDir(),{maxAge:2592000})) // Public static upload path
 
         setInterval(()=>{ // Clear expired files each 6 hours
             this.purge();
