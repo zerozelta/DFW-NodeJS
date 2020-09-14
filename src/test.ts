@@ -1,11 +1,10 @@
 import DFWInstance from "./script/DFWInstance";
 import DFWCore from "./"
 import { AddressInfo } from "net";
-import APIManager, { APIResponseScheme } from "./module/APIManager";
+import APIManager from "./module/APIManager";
 import { Request, Response } from "express";
-import dfw_user from "./model/dfw_user";
 import dfw_file from "./model/dfw_file";
-import UploadManager from "./module/UploadManager";
+import dfw_session from "./model/dfw_session";
 
 let DFW = DFWCore.createInstance("test",{
     database:{
@@ -30,7 +29,29 @@ DFW.getModule(APIManager).addListener("/upload",async (req:Request,res:Response,
 
 
 DFW.getModule(APIManager).addListener("/test",async (req:Request,res:Response,dfw:DFW.DFWRequestScheme)=>{
-    if(await dfw.security.hasCredentialsAsync("VENDOR")){
+
+    let test =  await dfw.db.transaction(async (transaction)=>{
+
+        await dfw_session.create({
+            token:"12h3uh13g123h123h",
+            agent:"tester",
+            ip:"::1",
+            site:"/",
+            expire: new Date(),
+        })
+
+        return await dfw_session.create({
+            token:"12tokeeneneiuh",
+            agent:"tester",
+            ip:"::2",
+            site:"/",
+            expire: new Date(),
+        })
+    })
+
+    return dfw.api.success({test});
+
+    if(await dfw.security.hasCredentialsAsync("ADMIN")){
         return { correcto : "1" }
     }else{
         return { incorrecto : "0" }
@@ -40,15 +61,10 @@ DFW.getModule(APIManager).addListener("/test",async (req:Request,res:Response,df
 DFW.getModule(APIManager).addListener("/boot",async (req:Request,res:Response,dfw:DFW.DFWRequestScheme)=>{
    return dfw.api.success(await dfw.api.getBootAsync());
 },{
-    security:{
-        session:false
-    },
     middleware:[
         (req,res,next)=>{
-            console.log("hola");
             next();
         },(req,res,next)=>{
-            console.log("mundo");
             next();
         }
     ]
@@ -60,7 +76,6 @@ DFW.getModule(APIManager).addListener("/login",async (req:Request,res:Response,d
         boot: await dfw.api.getBootAsync()
     })
 });
-
 
 let listener = DFW.server.listen(300,()=>{
     console.log("[DFW] Express server running on port " + (listener.address() as AddressInfo).port);

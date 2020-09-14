@@ -35,7 +35,7 @@ export default class SessionManager implements DFWModule{
                 return this.logoutAsync(req,res);
             }
         }
-    
+        
         if(!req.cookies || !req.cookies.sid || !req.cookies.stk){
             req.dfw.session.record = await this.regenerateSessionAsync(req,res);
         }else{

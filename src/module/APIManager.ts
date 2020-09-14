@@ -4,7 +4,7 @@ import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
 import DFWModule, { MiddlewareAsyncWrapper } from "../script/DFWModule";
 import { DFWAPIListenerConfig } from "../types/DFWAPIListenerConfig";
 import { DFWRequestError } from "../types/DFWRequestError";
-import { isArray, isObject, isFunction, isNumber } from "util";
+import { isArray, isObject, isFunction } from "util";
 import dfw_user from "../model/dfw_user";
 import dfw_credential from "../model/dfw_credential";
 import dfw_access from "../model/dfw_access";
@@ -160,11 +160,11 @@ export default class APIManager implements DFWModule{
             res.end();
         });
 
-
-        console.log(`[API][${config.method?config.method.toUpperCase():"GET"}] ${path}`);
-
-        //if(process.env.NODE_ENV == "development") {  }
+        
+        this.instance.server.use(path,this.instance.ROUTER_API_MIDDLEWARE);
         this.instance.server[config.method?config.method.toLowerCase():"get"](path,apiLevelMid);
+        
+        console.log(`[API][${config.method?config.method.toUpperCase():"GET"}] ${path}`);
     }
 
     /**

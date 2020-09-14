@@ -1,4 +1,4 @@
-import { NextFunction , Express , Response , Request } from "express";
+import { NextFunction , Express , Response , Request, Router } from "express";
 import cookieParser from "cookie-parser";
 import DFWConfig from "../types/DFWConfig";
 import DatabaseManager from "../module/DatabaseManager";
@@ -15,22 +15,19 @@ export default class DFWInstance{
 
     readonly config:DFWConfig;
     readonly server:Express;
+    readonly ROUTER_API_MIDDLEWARE:Router = express.Router();
 
     public modules:DFWModule[] = [];
 
     public database!:Sequelize;
 
     constructor(config:DFWConfig, server:Express = express()){
-
-        // let router = express.Router();
+        this.server = server;
 
         // Setup middleware
-        server.use(cookieParser());
-        //server.use(bodyParser.json()); 
-        //server.use(bodyParser.urlencoded({ extended:true }));
-        server.use(this.mainMiddleware);        
+        this.ROUTER_API_MIDDLEWARE.use(cookieParser());
+        this.ROUTER_API_MIDDLEWARE.use(this.mainMiddleware);        
         
-        this.server = server;
         this.config = config;
 
         this.setupModule(new DatabaseManager(this));
@@ -38,6 +35,8 @@ export default class DFWInstance{
         this.setupModule(new SecurityManager(this));
         this.setupModule(new UploadManager(this));
         this.setupModule(new APIManager(this));
+        
+        //this.server.use("/",this.ROUTER_API_MIDDLEWARE);
     }
 
     /**
@@ -48,7 +47,7 @@ export default class DFWInstance{
         
         this.modules[modName] = mod;
         
-        this.server.use(mod.middleware);
+        this.ROUTER_API_MIDDLEWARE.use(mod.middleware);
 
         console.log(`[DFW] setted up module ${modName}`);
     }

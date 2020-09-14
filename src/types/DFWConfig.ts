@@ -19,12 +19,12 @@ export default interface DFWConfig{
         /**
          * Session token name space in cookie
          */
-        stk?:string
+        stk?:string;
 
         /**
          * Session id name space in cookie
          */
-        sid?:string
+        sid?:string;
     }
 
     /**
@@ -36,4 +36,6 @@ export default interface DFWConfig{
         staticUploadPath?:string;           // Path for URL example: /upload -> https://site.com/upload
         tempDir?:string;                    // temp directory for uploaded files, by default is a os.tmpdir 
     };
+
+    useCLS?: boolean;
 }

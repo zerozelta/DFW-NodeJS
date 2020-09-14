@@ -1,10 +1,12 @@
 import { Request, Response, NextFunction } from "express";
-import path from "path";
 import DFWInstance from "../script/DFWInstance";
 import { Sequelize } from "sequelize-typescript";
 import DFWModule from "../script/DFWModule";
 import { Model, BuildOptions } from "sequelize/types";
-import dfw_user from "../model/dfw_user";
+import path from "path";
+
+const cls = require('cls-hooked');
+const namespace = cls.createNamespace('dfw-sequelize-cls');
 
 export type DFWSequelize = Sequelize & {
     getModel : (model:string)=>ModelStatic;
@@ -23,7 +25,11 @@ export default class DatabaseManager implements DFWModule{
     public readonly database:DFWSequelize;
 
     constructor(dfw:DFWInstance){
-        let {models,...dbConfig} = dfw.config.database
+        let {models,...dbConfig} = dfw.config.database;
+
+        if(dfw.config.useCLS === undefined || dfw.config.useCLS === true){
+            (Sequelize as any).__proto__.useCLS(namespace);
+        }
         
         this.database = new Sequelize(dbConfig) as DFWSequelize;
         dfw.database = this.database; // link DFW instance with this main database
@@ -35,7 +41,7 @@ export default class DatabaseManager implements DFWModule{
         }
         
         this.database.afterDefine("DFWDefineModel",(model)=>{
-            if(process.env.NODE_ENV == "development") console.log("[DB_MODEL] "+ model.name);
+            if(process.env.NODE_ENV == "development") console.log("[DB_MODEL] " + model.name);
         });
 
         this.database.addModels(models);
