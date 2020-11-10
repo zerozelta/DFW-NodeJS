@@ -23,7 +23,7 @@ DFW.getModule(APIManager).addListener("/upload",async (req:Request,res:Response,
 
     let dfwfile = await dfw.upload.flushFileAsync("file",{expiration:null}) as dfw_file;
     let fileChild = await dfw.upload.assignFileChild(dfwfile.localPath,dfwfile);
-
+    
     return { dfwfile , fileChild }
 },{ upload:true , method:"POST" });
 

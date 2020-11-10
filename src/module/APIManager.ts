@@ -5,12 +5,6 @@ import DFWModule, { MiddlewareAsyncWrapper } from "../script/DFWModule";
 import { DFWAPIListenerConfig } from "../types/DFWAPIListenerConfig";
 import { DFWRequestError } from "../types/DFWRequestError";
 import { isArray, isObject, isFunction } from "util";
-import dfw_user from "../model/dfw_user";
-import dfw_credential from "../model/dfw_credential";
-import dfw_access from "../model/dfw_access";
-import { Transaction } from "sequelize/types";
-import SecurityManager from "./SecurityManager";
-import DFWUtils from "../script/DFWUtils";
 import UploadManager from "./UploadManager";
 import bodyParser from "body-parser";
  
@@ -246,7 +240,7 @@ export default class APIManager implements DFWModule{
     }
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
+    /*
     public async createUserAsync (email:string,nick:string,password:string,transaction?:Transaction):Promise<dfw_user>{
         return this.instance.database.models.dfw_user.create({
             nick,
@@ -283,6 +277,7 @@ export default class APIManager implements DFWModule{
     public async assingAccessTo(access:number|dfw_access,credential:number|dfw_credential,transaction?:Transaction):Promise<boolean>{
         throw `Function APIMager assingAccessTo not implemented yet`
     }
+    */
 }
 
 

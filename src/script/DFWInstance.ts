@@ -4,12 +4,12 @@ import DFWConfig from "../types/DFWConfig";
 import DatabaseManager from "../module/DatabaseManager";
 import SessionManager from "../module/SessionManager";
 import SecurityManager from "../module/SecurityManager";
-import { isString } from "util";
 import APIManager from "../module/APIManager";
 import DFWModule from "./DFWModule";
 import { Sequelize } from "sequelize/types";
 import UploadManager from "../module/UploadManager";
 import express from "express";
+import UserManager from "../module/UserManager";
 
 export default class DFWInstance{
 
@@ -35,6 +35,7 @@ export default class DFWInstance{
         this.setupModule(new SecurityManager(this));
         this.setupModule(new UploadManager(this));
         this.setupModule(new APIManager(this));
+        this.setupModule(new UserManager(this));
     }
 
     /**
@@ -55,7 +56,7 @@ export default class DFWInstance{
      * @param mod 
      */
     public getModule<M extends DFWModule>(mod: { new(...args:any): M ;}|string){
-        return this.modules[isString(mod) ? mod : mod.name] as M;
+        return this.modules[typeof mod == "string" ? mod : mod.name] as M;
     } 
 
     /**
