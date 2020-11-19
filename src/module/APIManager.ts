@@ -7,6 +7,9 @@ import { DFWRequestError } from "../types/DFWRequestError";
 import { isArray, isObject, isFunction } from "util";
 import UploadManager from "./UploadManager";
 import bodyParser from "body-parser";
+import UserManager from "./UserManager";
+import dfw_credential from "../model/dfw_credential";
+import dfw_user from "../model/dfw_user";
  
 export type APIFunction = ((req:Request,res:Response,api:DFW.DFWRequestScheme)=>Promise<any>)|((req:Request,res:Response,api:any)=>any);
 export type APIMethods = "get"|"put"|"post"|"delete"|"options"|"link"|"GET"|"PUT"|"POST"|"DELETE"|"OPTIONS"|"LINK";
@@ -240,44 +243,19 @@ export default class APIManager implements DFWModule{
     }
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    /*
-    public async createUserAsync (email:string,nick:string,password:string,transaction?:Transaction):Promise<dfw_user>{
-        return this.instance.database.models.dfw_user.create({
-            nick,
-            email,
-            encodedKey:SecurityManager.encryptPassword(password)
-        },{ transaction });
+    
+    public async createUserAsync (email:string,nick:string,password:string):Promise<dfw_user>{
+        return this.instance.getModule(UserManager).createUserAsync(email,nick,password);
     }
 
-    public async findUserAsync(nameOrMail:string,transaction?:Transaction):Promise<dfw_user>{
-        if(DFWUtils.isEmail(nameOrMail)){
-            return this.instance.database.models.dfw_user.findOne({where: { email: nameOrMail } , transaction });
-        }else{
-            return this.instance.database.models.dfw_user.findOne({where: { nick: nameOrMail } });
-        }
+    public async findUserAsync(nameOrMail:string,):Promise<dfw_user>{
+       return this.instance.getModule(UserManager).findUserAsync(nameOrMail);
     }
 
-    public async createCredentiaASync(name:string,description?:string,transaction?:Transaction):Promise<dfw_credential>{
-        return this.instance.database.models.dfw_credential.create({ name , description },{transaction});
+    public async assingCredentialTo(credential:number|dfw_credential,user:number|dfw_user):Promise<boolean>{
+        return this.instance.getModule(UserManager).assingCredentialTo(credential,user)
     }
-
-    public async createAccessAsync(name:string,description?:string,transaction?:Transaction):Promise<dfw_access>{
-        return this.instance.database.models.dfw_access.create({ name , description },{transaction});
-    }
-
-    public async assingCredentialTo(credential:number|dfw_credential,user:number|dfw_user,transaction?:Transaction):Promise<boolean>{
-        if(user instanceof dfw_user){
-            return user.assignCredentialAsync(credential,transaction);
-        }else{
-            let userObj = await this.instance.database.models.dfw_user.findByPk(user);
-            return this.assingCredentialTo(credential,userObj,transaction)
-        }
-    }
-
-    public async assingAccessTo(access:number|dfw_access,credential:number|dfw_credential,transaction?:Transaction):Promise<boolean>{
-        throw `Function APIMager assingAccessTo not implemented yet`
-    }
-    */
+    
 }
 
 

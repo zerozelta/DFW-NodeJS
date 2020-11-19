@@ -103,7 +103,7 @@ export default class UploadManager implements DFWModule{
         if(DFW.config.upload && DFW.config.upload.tempDir){
             this.TMPDIR = nodejsPath.join(DFW.config.upload.tempDir, UUID.v4());
         }else{
-            this.TMPDIR = nodejsPath.join(os.tmpdir(),UUID.v4());
+            this.TMPDIR = nodejsPath.join(".dfw/temp/", UUID.v4());
         }
         
         if(fs.existsSync(this.TMPDIR) == false){

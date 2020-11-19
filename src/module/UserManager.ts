@@ -17,7 +17,7 @@ export default class UserManager implements DFWModule{
     }
 
     public middleware = (req:Request,res:Response,next:NextFunction)=>{
-        
+        next();
     }
 
     public async createUserAsync (email:string,nick:string,password:string,transaction?:Transaction):Promise<dfw_user>{
@@ -44,7 +44,7 @@ export default class UserManager implements DFWModule{
         return this.instance.database.models.dfw_access.create({ name , description },{transaction});
     }
 
-    public async assingCredentialTo(credential:number|dfw_credential,user:number|dfw_user,transaction?:Transaction):Promise<boolean>{
+    public async assingCredentialTo(credential:number|dfw_credential|string|string[],user:number|dfw_user,transaction?:Transaction):Promise<boolean>{
         if(user instanceof dfw_user){
             return user.assignCredentialAsync(credential,transaction);
         }else{
