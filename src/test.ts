@@ -5,6 +5,7 @@ import APIManager from "./module/APIManager";
 import { Request, Response } from "express";
 import dfw_file from "./model/dfw_file";
 import dfw_session from "./model/dfw_session";
+import SecurityManager from "./module/SecurityManager";
 
 let DFW = DFWCore.createInstance("test",{
     database:{
@@ -14,9 +15,6 @@ let DFW = DFWCore.createInstance("test",{
         dialect:"mysql",
         logging:console.log
     },
-    upload:{
-        tempDir:".dfw/temp/",
-    }
 });
 
 DFW.getModule(APIManager).addListener("/upload",async (req:Request,res:Response,dfw:DFW.DFWRequestScheme)=>{
@@ -27,34 +25,14 @@ DFW.getModule(APIManager).addListener("/upload",async (req:Request,res:Response,
     return { dfwfile , fileChild }
 },{ upload:true , method:"POST" });
 
+///DFW.getModule(APIManager).addListener("/")
+
 
 DFW.getModule(APIManager).addListener("/test",async (req:Request,res:Response,dfw:DFW.DFWRequestScheme)=>{
-
-    let test =  await dfw.db.transaction(async (transaction)=>{
-
-        await dfw_session.create({
-            token:"12h3uh13g123h78123h",
-            agent:"tester",
-            ip:"::1",
-            site:"/",
-            expire: new Date(),
-        })
-
-        return await dfw_session.create({
-            token:"12tokeenenei85uh",
-            agent:"tester",
-            ip:"::2",
-            site:"/",
-            expire: new Date(),
-        })
-    })
-
-    return dfw.api.success({test});
-
-    if(await dfw.security.hasCredentialsAsync("ADMIN")){
-        return { correcto : "1" }
-    }else{
-        return { incorrecto : "0" }
+    return {
+        accesible: await DFW.getModule(SecurityManager).checkBindingArrayAsync(req,SecurityManager.jsonToBindings({
+            credentials:["ADMIN"]
+        }))
     }
 });
 

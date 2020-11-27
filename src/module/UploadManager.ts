@@ -12,7 +12,6 @@ import dfw_user from "../model/dfw_user";
 import { Request, Response, NextFunction, static as ExpressStatic } from "express";
 
 import * as fs from "fs";
-import * as os from "os";
 import * as nodejsPath from "path";
 import * as UUID from "uuid";
 

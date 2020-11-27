@@ -4,7 +4,7 @@ import DFWInstance from "../script/DFWInstance";
 import dfw_credential from "../model/dfw_credential";
 import dfw_access from "../model/dfw_access";
 import DFWModule, { MiddlewareAsyncWrapper } from "../script/DFWModule";
-import { DFWAPIListenerConfig } from "../types/DFWAPIListenerConfig";
+import { DFWAPIListenerConfig, ListenerSecurityConfig } from "../types/DFWAPIListenerConfig";
 import { DFWRequestError } from "../types/DFWRequestError";
 
 export type SecurityScheme = {
@@ -46,26 +46,7 @@ export default class SecurityManager implements DFWModule {
 
     public APILevelMiddleware = MiddlewareAsyncWrapper( async (req:Request,res:Response,next:NextFunction)=>{
         let config:DFWAPIListenerConfig = req.dfw.__meta.config?req.dfw.__meta.config:{};
-        let bindings:[number,any][] = [];
-
-        if(config.security?.session !== undefined){
-            bindings.push([SecurityManager.RULE_LOGGED_SESSION,config.security.session?true:false]);
-        }
-
-        if(config.security?.credentials){
-            bindings.push([SecurityManager.RULE_CREDENTIAL,config.security.credentials]);
-        }
-
-        if(config.security?.access){
-            bindings.push([SecurityManager.RULE_ACCESS,config.security.access]);
-        }
-
-        if(config.security?.bindings){
-            for(let binding of config.security.bindings){
-                bindings.push(binding);
-            }
-        }
-        
+        let bindings = config.security ? SecurityManager.jsonToBindings(config.security) : [];
 
         for(let binding of bindings){
             if(await this.checkBindingAsync(req,binding[0],binding[1]) === false){
@@ -76,6 +57,34 @@ export default class SecurityManager implements DFWModule {
         next();
     });
 
+    /**
+     * Genera un array de security bindings a partir de un obejto ListenerSecurityConfig
+     * @param secConfig 
+     */
+    public static jsonToBindings(secConfig:ListenerSecurityConfig):[number,any][]{
+        let bindings:[number,any][] = [];
+
+        if(secConfig.session !== undefined){
+            bindings.push([SecurityManager.RULE_LOGGED_SESSION,secConfig.session?true:false]);
+        }
+
+        if(secConfig.credentials){
+            bindings.push([SecurityManager.RULE_CREDENTIAL,secConfig.credentials]);
+        }
+
+        if(secConfig.access){
+            bindings.push([SecurityManager.RULE_ACCESS,secConfig.access]);
+        }
+
+        if(secConfig.bindings){
+            for(let binding of secConfig.bindings){
+                bindings.push(binding);
+            }
+        }
+
+        return bindings;
+    };
+
     public static verifyPassword(encoded:string,test:string):boolean {
         return Password.verify(test,encoded);
     }
@@ -84,6 +93,21 @@ export default class SecurityManager implements DFWModule {
         return Password.hash(password);
     }
 
+    /**
+     * Check all security bindings from a request
+     * @param req 
+     * @param bindings 
+     */
+    public async checkBindingArrayAsync(req:Request,bindings:[number,any][]):Promise<boolean>{
+        for(let i = 0; i<bindings.length;i++){
+            let binding = bindings[i];
+            if(await this.checkBindingAsync(req,binding[0],binding[1]) === false){
+                return false;
+            }
+        }
+
+        return true;
+    }
 
     /**
      * 
