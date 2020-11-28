@@ -1,7 +1,7 @@
 import { Table, Column, Model , CreatedAt, UpdatedAt, PrimaryKey, DataType, AllowNull, AutoIncrement, Unique, ForeignKey, HasMany } from 'sequelize-typescript';
 import dfw_user from './dfw_user';
 import DFW from '..';
-import UploadManager from '../module/UploadManager';
+import UploadManager from '../module/FileManager';
 
 @Table({tableName: 'dfw_files'})
 export default class dfw_file extends Model<dfw_file>{

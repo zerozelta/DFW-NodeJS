@@ -7,7 +7,7 @@ import SecurityManager from "../module/SecurityManager";
 import APIManager from "../module/APIManager";
 import DFWModule from "./DFWModule";
 import { Sequelize } from "sequelize/types";
-import UploadManager from "../module/UploadManager";
+import UploadManager from "../module/FileManager";
 import express from "express";
 import UserManager from "../module/UserManager";
 

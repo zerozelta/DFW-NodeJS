@@ -1,6 +1,6 @@
 import fileUpload from "express-fileupload";
 import { Op } from "sequelize";
-import { promisify, isArray, isNumber, isBoolean, isString } from "util";
+import { promisify, isArray, isNumber, isBoolean } from "util";
 import md5File from 'md5-file/promise';
 import DFWInstance from "../script/DFWInstance";
 import dfw_file from "../model/dfw_file";
@@ -119,15 +119,15 @@ export default class UploadManager implements DFWModule{
     }
 
     public middleware = (req:Request,res:Response,next:NextFunction)=>{
-        req.dfw.upload = {
+        req.dfw.file = {
             validateFileAsync: async (file:number|dfw_file|FileRecord,expire:Date|null = null)=>{
                 return await this.validateFileAsync(file,expire);
             },
             invalidateFileAsync: async (file:number|dfw_file|FileRecord)=>{
                 return await this.invalidateFileAsync(file);
             },
-            flushFileAsync: async (file:UploadedFile|string,config:UploadOptions = {})=>{
-                return await this.flushFileAsync(req,file,config);
+            flushUploadAsync: async (file:UploadedFile|string,config:UploadOptions = {})=>{
+                return await this.flushUploadAsync(req,file,config);
             },
             getFileRecordAsync: async (file:number|number[]|dfw_file|dfw_file[],options?:FileRecordOptions)=>{
                 return await this.getFileRecordDataAsync(file,options);
@@ -158,9 +158,9 @@ export default class UploadManager implements DFWModule{
      * @param currentPath 
      * @param config 
      */
-    public async flushFileAsync(req:Request,fileReference:UploadedFile|string,config:UploadOptions):Promise<dfw_file>{
+    public async flushUploadAsync(req:Request,fileReference:UploadedFile|string,config:UploadOptions):Promise<dfw_file>{
         
-        let file = (isString(fileReference)?req.files![fileReference]:fileReference) as UploadedFile;
+        let file = ( typeof fileReference == "string" ? req.files![fileReference] :fileReference ) as UploadedFile;
         let currentPath = file.tempFilePath;
 
         if(file === undefined || file === null){
@@ -444,11 +444,11 @@ export default class UploadManager implements DFWModule{
 
 }
 
-export interface DFWUploadScheme{
+export interface DFWFileScheme{
     /**
      * Flushes the upload with the file and uploadConfig
      */
-    flushFileAsync: (file:UploadedFile|string,config?:UploadOptions)=>Promise<dfw_file|null>
+    flushUploadAsync: (file:UploadedFile|string,config?:UploadOptions)=>Promise<dfw_file|null>
 
     /***
      * 

@@ -19,8 +19,8 @@ let DFW = DFWCore.createInstance("test",{
 
 DFW.getModule(APIManager).addListener("/upload",async (req:Request,res:Response,dfw:DFW.DFWRequestScheme)=>{
 
-    let dfwfile = await dfw.upload.flushFileAsync("file",{expiration:null}) as dfw_file;
-    let fileChild = await dfw.upload.assignFileChild(dfwfile.localPath,dfwfile);
+    let dfwfile = await dfw.file.flushUploadAsync("file",{expiration:null}) as dfw_file;
+    let fileChild = await dfw.file.assignFileChild(dfwfile.localPath,dfwfile);
     
     return { dfwfile , fileChild }
 },{ upload:true , method:"POST" });
@@ -29,12 +29,10 @@ DFW.getModule(APIManager).addListener("/upload",async (req:Request,res:Response,
 
 
 DFW.getModule(APIManager).addListener("/test",async (req:Request,res:Response,dfw:DFW.DFWRequestScheme)=>{
-    return {
-        accesible: await DFW.getModule(SecurityManager).checkBindingArrayAsync(req,SecurityManager.jsonToBindings({
-            credentials:["ADMIN"]
-        }))
-    }
-});
+   res.sendFile("D:/Users/zerozelta/Documents/React Projects/woopa/.dfw/upload/public/2020/11/edb85341-2e81-4bcc-9740-eb12b13a8002.jpeg",()=>{
+       res.end();
+   });
+},{disableAutosend:true});
 
 DFW.getModule(APIManager).addListener("/boot",async (req:Request,res:Response,dfw:DFW.DFWRequestScheme)=>{
    return dfw.api.success(await dfw.api.getBootAsync());

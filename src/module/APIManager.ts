@@ -5,7 +5,7 @@ import DFWModule, { MiddlewareAsyncWrapper } from "../script/DFWModule";
 import { DFWAPIListenerConfig } from "../types/DFWAPIListenerConfig";
 import { DFWRequestError } from "../types/DFWRequestError";
 import { isArray, isObject, isFunction } from "util";
-import UploadManager from "./UploadManager";
+import UploadManager from "./FileManager";
 import bodyParser from "body-parser";
 import UserManager from "./UserManager";
 import dfw_credential from "../model/dfw_credential";
@@ -121,8 +121,10 @@ export default class APIManager implements DFWModule{
         // APIFunction middleware
         apiLevelMid.push(MiddlewareAsyncWrapper(async (req:Request,res:Response,next:NextFunction)=>{
             await Promise.resolve(apiFunc(req,res,req.dfw)).then((data)=>{
-                this.response(req,res,data);
-                next();
+                if(res.finished != true && config.disableAutosend !== true ){
+                    this.response(req,res,data);
+                    next();
+                }
             }).catch((err)=>{
                 console.error(err);
                 next(new DFWRequestError(DFWRequestError.CODE_API_LEVEL_ERROR,err.message?err.message:err));
@@ -227,7 +229,7 @@ export default class APIManager implements DFWModule{
     public registerAPIListenerObject(node:(APIListenerObject|Object)|(APIListenerObject|Object)[],path:string){  
         if(node instanceof APIListenerObject){
             this.addListener(path,node.listener,node.config);
-        }else if(isArray(node)){
+        }else if(Array.isArray(node)){
             for(let e of node){
                 this.registerAPIListenerObject(e,path);
             }

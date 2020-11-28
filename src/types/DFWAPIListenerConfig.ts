@@ -6,7 +6,8 @@ export interface DFWAPIListenerConfig{
     middleware?:RequestHandler|RequestHandler[];
     security?:ListenerSecurityConfig;
     parseBody?:false;
-    upload?:boolean|{}
+    upload?:boolean|{};
+    disableAutosend?:true;
 }
 
 export interface ListenerSecurityConfig {
