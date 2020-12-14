@@ -6,6 +6,7 @@ import { Request, Response } from "express";
 import dfw_file from "./model/dfw_file";
 import dfw_session from "./model/dfw_session";
 import SecurityManager from "./module/SecurityManager";
+import UploadManager from "./module/FileManager";
 
 let DFW = DFWCore.createInstance("test",{
     database:{
@@ -33,6 +34,11 @@ DFW.getModule(APIManager).addListener("/test",async (req:Request,res:Response,df
        res.end();
    });
 },{disableAutosend:true});
+
+DFW.getModule(APIManager).addListener("/test2",async (req:Request,res:Response,dfw:DFW.DFWRequestScheme)=>{
+    let Upload = dfw.__meta.instance.getModule(UploadManager);
+    return { tmp:Upload.generateTempFileName()}
+ });
 
 DFW.getModule(APIManager).addListener("/boot",async (req:Request,res:Response,dfw:DFW.DFWRequestScheme)=>{
    return dfw.api.success(await dfw.api.getBootAsync());
