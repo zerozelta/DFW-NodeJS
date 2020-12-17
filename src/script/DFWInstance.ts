@@ -17,9 +17,14 @@ export default class DFWInstance{
     readonly server:Express;
     readonly ROUTER_API_MIDDLEWARE:Router = express.Router();
 
-    public modules:DFWModule[] = [];
-
     public database!:Sequelize;
+
+    public readonly DatabaseManager!:DatabaseManager;
+    public readonly SessionManager!:SessionManager;
+    public readonly SecurityManager!:SecurityManager; 
+    public readonly UploadManager!:UploadManager; 
+    public readonly APIManager!:APIManager; 
+    public readonly UserManager!:UserManager; 
 
     constructor(config:DFWConfig, server:Express = express()){
         this.server = server;
@@ -30,33 +35,36 @@ export default class DFWInstance{
         
         this.config = config;
 
-        this.setupModule(new DatabaseManager(this));
-        this.setupModule(new SessionManager(this));
-        this.setupModule(new SecurityManager(this));
-        this.setupModule(new UploadManager(this));
-        this.setupModule(new APIManager(this));
-        this.setupModule(new UserManager(this));
+        this.setupModule(DatabaseManager);
+        this.setupModule(SessionManager);
+        this.setupModule(SecurityManager);
+        this.setupModule(UploadManager);
+        this.setupModule(APIManager);
+        this.setupModule(UserManager);
+
     }
 
     /**
      * 
      */
-    public setupModule = (mod:DFWModule)=>{
+    public setupModule = (ModClass:{new (dfw:DFWInstance):DFWModule})=>{
+        let mod = new ModClass(this);
         let modName = (mod as Object).constructor.name;
         
-        this.modules[modName] = mod;
+        this[modName] = mod;
         
         this.ROUTER_API_MIDDLEWARE.use(mod.middleware);
 
         console.log(`[DFW] setted up module ${modName}`);
     }
 
+
     /**
      * retrive a module instance setedup in this DFWInstance with the class or name associated
      * @param mod 
      */
     public getModule<M extends DFWModule>(mod: { new(...args:any): M ;}|string){
-        return this.modules[typeof mod == "string" ? mod : mod.name] as M;
+        return this[typeof mod == "string" ? mod : mod.name] as M;
     } 
 
     /**
@@ -67,7 +75,8 @@ export default class DFWInstance{
         req.dfw = {
             __meta:{
                 instance: this
-            }
+            },
+            instance: this
         } as any;
         
         next();

@@ -8,13 +8,7 @@ import { Transaction } from "sequelize/types";
 import SecurityManager from "./SecurityManager";
 import DFWUtils from "../script/DFWUtils";
 
-export default class UserManager implements DFWModule{
-
-    private instance:DFWInstance;
-    
-    constructor(DFW:DFWInstance){
-        this.instance = DFW;
-    }
+export default class UserManager extends DFWModule{
 
     public middleware = (req:Request,res:Response,next:NextFunction)=>{
         next();

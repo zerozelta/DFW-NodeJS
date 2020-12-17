@@ -3,12 +3,10 @@ import {Express} from "express";
 import { DFWAPIListenerConfig } from "./types/DFWAPIListenerConfig";
 import DFWConfig from "./types/DFWConfig";
 import dfw_session from "./model/dfw_session";
-import { APIResponseScheme, APIListenerObject } from "./module/APIManager";
-import { DFWSequelize, StaticModelType } from "./module/DatabaseManager";
+import { APIResponseScheme } from "./module/APIManager";
+import { DFWSequelize } from "./module/DatabaseManager";
 import { DFWFileScheme } from "./module/FileManager";
 import { SecurityScheme } from "./module/SecurityManager";
-
-
 
 export default class DFW{
 
@@ -58,6 +56,7 @@ declare global {
                 instance:DFWInstance,
                 config?:DFWAPIListenerConfig,
             },
+            instance:DFWInstance,
             session:{
                 id:number;
                 token:string;
@@ -69,7 +68,7 @@ declare global {
             security:SecurityScheme;
             api:APIResponseScheme;
             db:DFWSequelize;
-            models:{[key:string]:StaticModelType};
+            /*models:{[key:string]:StaticModelType};*/
             file:DFWFileScheme;
         }
     }

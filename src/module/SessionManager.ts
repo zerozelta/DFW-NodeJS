@@ -9,12 +9,10 @@ import { Includeable, Op } from "sequelize";
 import DFWModule, { MiddlewareAsyncWrapper } from "../script/DFWModule";
 
 
-export default class SessionManager implements DFWModule{
-
-    public instance:DFWInstance;
+export default class SessionManager extends DFWModule{
 
     constructor(DFW:DFWInstance){
-        this.instance = DFW;
+        super(DFW);
 
         setInterval(()=>{ // Clear expired sessions each 6 hours
             this.sweepSessionsAsync();

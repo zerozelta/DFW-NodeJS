@@ -36,8 +36,7 @@ DFW.getModule(APIManager).addListener("/test",async (req:Request,res:Response,df
 },{disableAutosend:true});
 
 DFW.getModule(APIManager).addListener("/test2",async (req:Request,res:Response,dfw:DFW.DFWRequestScheme)=>{
-    let Upload = dfw.__meta.instance.getModule(UploadManager);
-    return { tmp:Upload.generateTempFileName()}
+    return { tmp:dfw.instance.UploadManager.generateTempFileName()}
  });
 
 DFW.getModule(APIManager).addListener("/boot",async (req:Request,res:Response,dfw:DFW.DFWRequestScheme)=>{

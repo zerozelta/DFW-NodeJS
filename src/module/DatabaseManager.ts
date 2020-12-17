@@ -20,11 +20,13 @@ export type StaticModelType<T = {} > = typeof Model & {
     new (values?: object, options?: BuildOptions):  Model<T> & T
 }
 
-export default class DatabaseManager implements DFWModule{
+export default class DatabaseManager extends DFWModule{
 
     public readonly database:DFWSequelize;
 
     constructor(dfw:DFWInstance){
+        super(dfw);
+        
         let {models,...dbConfig} = dfw.config.database;
 
         if(dfw.config.useCLS === undefined || dfw.config.useCLS === true){
@@ -53,7 +55,7 @@ export default class DatabaseManager implements DFWModule{
 
     middleware = (req:Request,res:Response,next:NextFunction)=>{
         req.dfw.db = this.database;
-        req.dfw.models = this.database.models;
+        //req.dfw.models = this.database.models;
         next();
     }
 

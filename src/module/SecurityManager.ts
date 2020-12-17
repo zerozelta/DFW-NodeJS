@@ -12,7 +12,7 @@ export type SecurityScheme = {
     hasCredentialsAsync:(credentials:string|string[]|number|number[]|dfw_credential|dfw_credential[])=>Promise<boolean>
 }
 
-export default class SecurityManager implements DFWModule {
+export default class SecurityManager extends DFWModule {
 
     static readonly RULE_LOGGED_SESSION             = 0;
     static readonly RULE_ACCESS                     = 1;
@@ -26,10 +26,6 @@ export default class SecurityManager implements DFWModule {
         [SecurityManager.RULE_CREDENTIAL] :         "access denied (you dond have the credentials to this)",
         [SecurityManager.RULE_BODY_PARAMS_SETTED] : "missing post arguments setted",
         [SecurityManager.RULE_QUERY_PARAMS_SETTED] :"missing query arguments setted",
-    }
-
-    constructor(DFW:DFWInstance){
-
     }
 
     public middleware = (req:Request,res:Response,next:NextFunction)=>{

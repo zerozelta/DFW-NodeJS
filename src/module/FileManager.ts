@@ -13,7 +13,6 @@ import { Request, Response, NextFunction, static as ExpressStatic } from "expres
 
 import * as fs from "fs";
 import * as nodejsPath from "path";
-import * as UUID from "uuid";
 
 const fileExistsAsync       = promisify(fs.exists);
 const fileRenameAsync       = promisify(fs.rename);
@@ -37,7 +36,8 @@ export type UploadOptions = {
     parent?:dfw_file|FileRecord|number; // file parent for file trees
     variant?:string;                    // file variant to diferenciate from another childs
 
-    copy?:boolean;                      // configuration indicates tha file origin will be copied inted of cuted
+    //copy?:boolean;                    // configuration indicates tha file origin will be copied inted of cuted
+    removeSource?:boolean;
 }
 
 export type UploadConfig = {
@@ -64,12 +64,11 @@ export type FileRecord = {
     size:number;
     expire:Date;
     created:Date;
-    children?:FileRecord[];
-    variant:string;
+    children:{[variant:string]:string};
 }
 
 export type FileRecordOptions = {
-    recursive?:boolean;
+    
 }
 
 export interface UploadedFile {
@@ -85,7 +84,7 @@ export interface UploadedFile {
     mv(path: string): Promise<void>;
 }
 
-export default class UploadManager implements DFWModule{
+export default class UploadManager extends DFWModule{
 
     static readonly ACCESS_PUBLIC         = 0; // Everybody can access and every user can manage
     static readonly ACCESS_SESSION        = 1; // Onli loged user can access but every user can manage
@@ -93,12 +92,9 @@ export default class UploadManager implements DFWModule{
     static readonly ACCESS_PROTECTED      = 3; // every body can access but is managed onli for uploader and ADMIN
 
     private readonly TMPDIR:string;
-
-    private readonly instance:DFWInstance;
     
     constructor(DFW:DFWInstance){
-
-        this.instance = DFW;
+        super(DFW);
 
         if(DFW.config.upload && DFW.config.upload.tempDir){
             this.TMPDIR = DFW.config.upload.tempDir;
@@ -112,9 +108,9 @@ export default class UploadManager implements DFWModule{
         }else{
             fs.mkdirSync(this.TMPDIR);
         }
-        
-        fileMakeTempDir(this.TMPDIR).catch();
 
+        this.TMPDIR = nodejsPath.normalize(fs.mkdtempSync(`${this.TMPDIR}${nodejsPath.sep}`));
+        
         DFW.server.use(this.getStaticUploadPath(),ExpressStatic(this.getLocalUploadDir(),{maxAge:2592000})) // Public static upload path
 
         setInterval(()=>{ // Clear expired files each 6 hours
@@ -263,14 +259,14 @@ export default class UploadManager implements DFWModule{
             await fileMakeDir(`${path}/${partialPath}`,{recursive:true});
         }
 
-        if(options.copy){
-            await fileCopy(filePath,finalFilePath).catch((e)=>{
-                throw new Error("Process uploaded file async error, unable to copy file uploaded: " + e);
-            })
-        }else{
+        if(options.removeSource){
             await fileRenameAsync(filePath,finalFilePath).catch((e)=>{
                 throw new Error("Process uploaded file async error, unable to move file uploaded: " + e);
             })
+        }else{
+            await fileCopy(filePath,finalFilePath).catch((e)=>{
+                throw new Error("Process uploaded file async error, unable to copy file uploaded: " + e);
+            });
         }
 
         return dfw_file.create({
@@ -278,7 +274,7 @@ export default class UploadManager implements DFWModule{
             size:stats.size,
             idUser: options.user? typeof options.user == "number" ? options.user : options.user.id : undefined,
             name:filename,
-            access:UploadManager.ACCESS_PUBLIC,
+            access: options.access ?? UploadManager.ACCESS_PUBLIC,
             checksum:md5,
             description,
             expire,
@@ -309,16 +305,25 @@ export default class UploadManager implements DFWModule{
         if(Array.isArray(file)){
             return file.map((f)=>this.getFileRecordData(f,options) as FileRecord);
         }else{
+            let children = {};
+
+            if(file.children){
+                file.children.map((cf)=>{
+                    if(cf.variant && cf.variant != ""){
+                        children[`${cf.variant}`] = cf.url;
+                    }
+                })
+            }
+
             return {
                 id:file.id,
                 url:file.url,
                 size:file.size,
                 description:file.description,
-                variant:file.variant,
                 expire:file.expire,
                 checksum:file.checksum,
                 created:file.created_at,
-                children: options.recursive?file.children?file.children.map((cf)=>this.getFileRecordData(cf,options)):[]:[],
+                children    
             } as FileRecord;
         }
     }
@@ -342,7 +347,11 @@ export default class UploadManager implements DFWModule{
         if(file instanceof dfw_file){
             return this.getFileRecordData(file,options);
         }else{
-            return await this.getFileRecordDataAsync(await this.instance.getModule(DatabaseManager).database.getModel("dfw_file").findByPk(file,{include:[{ association:"children" }]}),options);
+            return await this.getFileRecordDataAsync(await this.instance.DatabaseManager.database.getModel("dfw_file").findByPk(file,{
+                include:[
+                    { association:"children" }
+                ]
+            }),options);
         }
     }
 

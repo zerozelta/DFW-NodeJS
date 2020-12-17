@@ -1,13 +1,9 @@
 import { NextFunction , Request , Response, RequestHandler, ErrorRequestHandler } from "express";
-import DFWInstance from "../script/DFWInstance";
 import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
 import DFWModule, { MiddlewareAsyncWrapper } from "../script/DFWModule";
 import { DFWAPIListenerConfig } from "../types/DFWAPIListenerConfig";
 import { DFWRequestError } from "../types/DFWRequestError";
-import { isArray, isObject, isFunction } from "util";
-import UploadManager from "./FileManager";
 import bodyParser from "body-parser";
-import UserManager from "./UserManager";
 import dfw_credential from "../model/dfw_credential";
 import dfw_user from "../model/dfw_user";
  
@@ -19,7 +15,7 @@ export class APIListenerObject{
     public readonly listener:APIFunction;
 
     constructor(config:DFWAPIListenerConfig|APIFunction,listener?:APIFunction){
-        if(isFunction(config) && !listener){
+        if(typeof config == "function" && !listener){
             this.listener = config as APIFunction;
             this.config = { method:"get" }
         }else{
@@ -31,9 +27,7 @@ export class APIListenerObject{
 
 export type BootCallback = (req:Request,boot:DFW.Boot)=>Promise<any>;
 
-export default class APIManager implements DFWModule{
-
-    private instance:DFWInstance;
+export default class APIManager extends DFWModule{
 
     private bootCallbacks:BootCallback[] = [
 
@@ -65,10 +59,6 @@ export default class APIManager implements DFWModule{
             }
         }
    ];
-
-    constructor(DFW:DFWInstance){
-        this.instance = DFW;
-    }
 
     public middleware = (req:Request,res:Response,next:NextFunction)=>{
         req.dfw.api = {
@@ -168,11 +158,11 @@ export default class APIManager implements DFWModule{
 
         // Upload Middleware
         if(config.upload){
-            levels.push(this.instance.getModule(UploadManager).makeUploadMiddleware(config.upload));
+            levels.push(this.instance.UploadManager.makeUploadMiddleware(config.upload));
         }
         
-        for(let modKey in this.instance.modules){
-            let mod = this.instance.modules[modKey];
+        for(let modKey in this.instance){
+            let mod = this.instance[modKey];
             if(mod.APILevelMiddleware){
                 levels.push(mod.APILevelMiddleware);
             }
@@ -180,7 +170,7 @@ export default class APIManager implements DFWModule{
 
         // Adding anothel layer of express middlewares 
         if(config.middleware){
-            if(isArray(config.middleware)){
+            if(Array.isArray(config.middleware)){
                 for(let mid of config.middleware) levels.push(mid);
             }else{
                 levels.push(config.middleware);
@@ -233,7 +223,7 @@ export default class APIManager implements DFWModule{
             for(let e of node){
                 this.registerAPIListenerObject(e,path);
             }
-        }else if(isObject(node)){
+        }else if(typeof node == "object"){
             let keys = Object.keys(node);
             for( let key of keys){
                 let n = node[key];
@@ -247,15 +237,15 @@ export default class APIManager implements DFWModule{
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     
     public async createUserAsync (email:string,nick:string,password:string):Promise<dfw_user>{
-        return this.instance.getModule(UserManager).createUserAsync(email,nick,password);
+        return this.instance.UserManager.createUserAsync(email,nick,password);
     }
 
     public async findUserAsync(nameOrMail:string,):Promise<dfw_user>{
-       return this.instance.getModule(UserManager).findUserAsync(nameOrMail);
+       return this.instance.UserManager.findUserAsync(nameOrMail);
     }
 
     public async assingCredentialTo(credential:number|dfw_credential,user:number|dfw_user):Promise<boolean>{
-        return this.instance.getModule(UserManager).assingCredentialTo(credential,user)
+        return this.instance.UserManager.assingCredentialTo(credential,user)
     }
     
 }
