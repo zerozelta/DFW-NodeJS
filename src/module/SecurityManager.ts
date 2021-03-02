@@ -72,6 +72,15 @@ export default class SecurityManager extends DFWModule {
             bindings.push([SecurityManager.RULE_ACCESS,secConfig.access]);
         }
 
+        if(secConfig.validation){
+            if(secConfig.validation.body){
+                bindings.push([SecurityManager.RULE_BODY_PARAMS_SETTED,secConfig.validation.body]);
+            }
+            if(secConfig.validation.query){
+                bindings.push([SecurityManager.RULE_QUERY_PARAMS_SETTED,secConfig.validation.query]);
+            }
+        }
+
         if(secConfig.bindings){
             for(let binding of secConfig.bindings){
                 bindings.push(binding);

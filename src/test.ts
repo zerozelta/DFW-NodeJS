@@ -36,7 +36,7 @@ DFW.getModule(APIManager).addListener("/test",async (req:Request,res:Response,df
 },{disableAutosend:true});
 
 DFW.getModule(APIManager).addListener("/test2",async (req:Request,res:Response,dfw:DFW.DFWRequestScheme)=>{
-    return { tmp:dfw.instance.UploadManager.generateTempFileName()}
+    return {pass:SecurityManager.encryptPassword("BS83721C")}
  });
 
 DFW.getModule(APIManager).addListener("/boot",async (req:Request,res:Response,dfw:DFW.DFWRequestScheme)=>{
@@ -61,4 +61,3 @@ DFW.getModule(APIManager).addListener("/login",async (req:Request,res:Response,d
 let listener = DFW.server.listen(300,()=>{
     console.log("[DFW] Express server running on port " + (listener.address() as AddressInfo).port);
 });
-

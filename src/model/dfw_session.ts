@@ -20,8 +20,8 @@ export default class dfw_session extends Model<dfw_session> {
     @Column
     ip!: string;
 
-    @Column
-    site!: string;
+    @Column(DataType.BOOLEAN)
+    persist!: boolean;
 
     @Column(DataType.DATEONLY)
     expire!: Date;

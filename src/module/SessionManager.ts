@@ -59,9 +59,9 @@ export default class SessionManager extends DFWModule{
         /// update session data in async way (fast)
         req.dfw.session.record.expire = moment().add(3,"days").toDate(); // Caducidad
         req.dfw.session.record.agent = req.headers['user-agent']?req.headers['user-agent']:"";  // User agent
-        req.dfw.session.record.ip = req.ip;
-        req.dfw.session.record.site = req.originalUrl;
-        req.dfw.session.record.expire = moment().add(3,"days").toDate();
+        
+        if(req.dfw.session.record.ip != req.ip) req.dfw.session.record.ip = req.ip;
+        //req.dfw.session.record.site = req.originalUrl;
         req.dfw.session.record.save();
     
         this.setupSessionData(req);
@@ -149,7 +149,7 @@ export default class SessionManager extends DFWModule{
             return true;
         }
 
-        await this.regenerateSessionAsync(req,res);
+        //await this.regenerateSessionAsync(req,res); /// Comprobar que no es necesario regenerar una nueva session
         return false;
     }
 
