@@ -18,12 +18,12 @@ export interface DFWAPIListenerConfig{
     security?:ListenerSecurityConfig;
 
     /**
-     * 
+     * in false Disables the body parse by body-parser
      */
     parseBody?:false;
 
     /**
-     * 
+     *  allow to upload files 
      */
     upload?:boolean|{};
 

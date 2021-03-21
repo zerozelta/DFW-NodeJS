@@ -6,7 +6,7 @@ import { Request, Response } from "express";
 import dfw_file from "./model/dfw_file";
 import dfw_session from "./model/dfw_session";
 import SecurityManager from "./module/SecurityManager";
-import UploadManager from "./module/FileManager";
+import FileManager from "./module/FileManager";
 
 let DFW = DFWCore.createInstance("test",{
     database:{
@@ -20,11 +20,12 @@ let DFW = DFWCore.createInstance("test",{
 
 DFW.getModule(APIManager).addListener("/upload",async (req:Request,res:Response,dfw:DFW.DFWRequestScheme)=>{
 
-    let dfwfile = await dfw.file.flushUploadAsync("file",{expiration:null}) as dfw_file;
-    let fileChild = await dfw.file.assignFileChild(dfwfile.localPath,dfwfile);
+    let dfwfile = await dfw.file.flushUploadAsync("file",{variant:"test" , parent:37}) as dfw_file;
+    //let fileChild = await dfw.file.assignFileChild(dfwfile.localPath,dfwfile,{variant:"test"});
     
-    return { dfwfile , fileChild }
+    return { dfwfile , /*fileChild*/ }
 },{ upload:true , method:"POST" });
+
 
 ///DFW.getModule(APIManager).addListener("/")
 

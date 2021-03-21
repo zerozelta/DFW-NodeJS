@@ -1,5 +1,5 @@
 import fileUpload from "express-fileupload";
-import { Op } from "sequelize";
+import { Op, where } from "sequelize";
 import { promisify } from "util";
 import md5File from 'md5-file/promise';
 import DFWInstance from "../script/DFWInstance";
@@ -27,8 +27,8 @@ export type UploadOptions = {
     path?:string;                       // Destination path relative to root of the project
     name?:string;                       // filename
     slug?:string;                       // sllug for file
-    ext?:string;                        // file extensión set manually
-    expiration?:Date|moment.Moment|null;// Expiration of a the file in the server (null is never expire)
+    ext?:string;                        // file extensión
+    expiration?:Date|moment.Moment|null;// Expiration of a the file in the server (null is never expire) (by default never expire)
     access?:number;                     // acces type defined by the access constants in dfw_file model
     description?:string;                // description text for help or alt attributes
 
@@ -36,8 +36,7 @@ export type UploadOptions = {
     parent?:dfw_file|FileRecord|number; // file parent for file trees
     variant?:string;                    // file variant to diferenciate from another childs
 
-    //copy?:boolean;                    // configuration indicates tha file origin will be copied inted of cuted
-    removeSource?:boolean;
+    removeSource?:boolean;              //delete origin file 
 }
 
 export type UploadConfig = {
@@ -84,7 +83,7 @@ export interface UploadedFile {
     mv(path: string): Promise<void>;
 }
 
-export default class UploadManager extends DFWModule{
+export default class FileManager extends DFWModule{
 
     static readonly ACCESS_PUBLIC         = 0; // Everybody can access and every user can manage
     static readonly ACCESS_SESSION        = 1; // Onli loged user can access but every user can manage
@@ -130,7 +129,7 @@ export default class UploadManager extends DFWModule{
                 return await this.flushUploadAsync(req,file,config);
             },
             getFileRecordAsync: async (file:number|number[]|dfw_file|dfw_file[],options?:FileRecordOptions)=>{
-                return await this.getFileRecordDataAsync(file,options);
+                return await this.getFileRecordAsync(file,options);
             },
             assingLocalFileAsync:async (filePath:string,options?:UploadOptions)=>{
                 return await this.assingLocalFileAsync(filePath,options);
@@ -139,7 +138,7 @@ export default class UploadManager extends DFWModule{
                 return this.assignChildLocalFileAsync(localFilePath,parent,options);
             },
             getFileRecord: (file:dfw_file|dfw_file[])=>{
-                return this.getFileRecordData(file);
+                return this.getFileRecord(file);
             },
             checkFileAccessAsync: async (file:number|dfw_file)=>{
                 return await this.checkFileAccessAsync(req,file);
@@ -252,7 +251,7 @@ export default class UploadManager extends DFWModule{
         let expire = options.expiration ? options.expiration : null;
         let finalFilePath = `${path}/${partialPath}/${filename}`;
         let description = options.description?options.description:DFWUtils.getBaseName(originalBaseName);
-        let variant = options.variant?options.variant:"";
+        let variant = options.variant ? options.variant : null;
         let idFileParent = options.parent?typeof options.parent == "number" ? options.parent:options.parent.id:null;
 
         if(await fileExistsAsync(`${path}/${partialPath}`) == false){
@@ -269,12 +268,29 @@ export default class UploadManager extends DFWModule{
             });
         }
 
-        return dfw_file.create({
+        // Check if has a variant
+        let variantFile:dfw_file|undefined;
+        if(idFileParent){
+            let fileParent:dfw_file = await dfw_file.findByPk(idFileParent,{
+                include:[
+                    {
+                        association:"children" ,
+                        where:{
+                            variant
+                        },
+                        limit:1
+                    }
+                ]
+            });
+            variantFile = ( fileParent && fileParent.children.length > 0 ) ? fileParent.children[0] : undefined;
+        }
+
+        let data = {
             slug:options.slug,
             size:stats.size,
             idUser: options.user? typeof options.user == "number" ? options.user : options.user.id : undefined,
             name:filename,
-            access: options.access ?? UploadManager.ACCESS_PUBLIC,
+            access: options.access ?? FileManager.ACCESS_PUBLIC,
             checksum:md5,
             description,
             expire,
@@ -283,7 +299,21 @@ export default class UploadManager extends DFWModule{
             variant,
             partialPath,
             idFileParent
-        });
+        }
+
+        if(variantFile){
+            // remove old file resource
+            fileUnlink(variantFile.localPath);
+
+            // update dbregister
+            variantFile.setAttributes(data);
+            variantFile.save();
+
+            return variantFile;
+        }else{
+            return dfw_file.create(data);
+        }
+        
     }
 
     /**
@@ -301,9 +331,9 @@ export default class UploadManager extends DFWModule{
     /**
      * @param file 
      */
-    public getFileRecordData(file:dfw_file|dfw_file[],options:FileRecordOptions = {}):FileRecord|FileRecord[]{
+    public getFileRecord(file:dfw_file|dfw_file[],options:FileRecordOptions = {}):FileRecord|FileRecord[]{
         if(Array.isArray(file)){
-            return file.map((f)=>this.getFileRecordData(f,options) as FileRecord);
+            return file.map((f)=>this.getFileRecord(f,options) as FileRecord);
         }else{
             let children = {};
 
@@ -333,21 +363,21 @@ export default class UploadManager extends DFWModule{
      * @param DFW 
      * @param file 
      */
-    public async getFileRecordDataAsync(file:number|dfw_file|number[]|dfw_file[],options:FileRecordOptions = {}):Promise<FileRecord|FileRecord[]|undefined>{
+    public async getFileRecordAsync(file:number|dfw_file|number[]|dfw_file[],options:FileRecordOptions = {}):Promise<FileRecord|FileRecord[]|undefined>{
         if(!file) return;
 
         if(Array.isArray(file)){
             let res = [] as FileRecord[];
             for(let f of file){
-                res.push((await this.getFileRecordDataAsync(f,options)) as any);
+                res.push((await this.getFileRecordAsync(f,options)) as any);
             }
             return res;
         }
 
         if(file instanceof dfw_file){
-            return this.getFileRecordData(file,options);
+            return this.getFileRecord(file,options);
         }else{
-            return await this.getFileRecordDataAsync(await this.instance.DatabaseManager.database.getModel("dfw_file").findByPk(file,{
+            return await this.getFileRecordAsync(await this.instance.DatabaseManager.database.getModel("dfw_file").findByPk(file,{
                 include:[
                     { association:"children" }
                 ]

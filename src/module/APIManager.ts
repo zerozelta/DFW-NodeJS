@@ -158,7 +158,7 @@ export default class APIManager extends DFWModule{
 
         // Upload Middleware
         if(config.upload){
-            levels.push(this.instance.UploadManager.makeUploadMiddleware(config.upload));
+            levels.push(this.instance.FileManager.makeUploadMiddleware(config.upload));
         }
         
         for(let modKey in this.instance){

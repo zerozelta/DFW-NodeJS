@@ -1,7 +1,7 @@
 import { Table, Column, Model , CreatedAt, UpdatedAt, PrimaryKey, DataType, AllowNull, AutoIncrement, Unique, ForeignKey, HasMany } from 'sequelize-typescript';
 import dfw_user from './dfw_user';
 import DFW from '..';
-import UploadManager from '../module/FileManager';
+import FileManager from '../module/FileManager';
 
 @Table({tableName: 'dfw_files'})
 export default class dfw_file extends Model<dfw_file>{
@@ -55,7 +55,7 @@ export default class dfw_file extends Model<dfw_file>{
     idUser?: number|null;
 
     @Column(DataType.STRING())
-    variant!: string;
+    variant?: string;
 
     @CreatedAt
     created_at!: Date;
@@ -67,7 +67,7 @@ export default class dfw_file extends Model<dfw_file>{
     @Column({
         type: DataType.VIRTUAL,
         get () {
-            return DFW.getInstance().getModule(UploadManager).getFileLocalPath(this as any);
+            return DFW.getInstance().getModule(FileManager).getFileLocalPath(this as any);
         }
     })
     localPath!:string;
@@ -75,7 +75,7 @@ export default class dfw_file extends Model<dfw_file>{
     @Column({
         type: DataType.VIRTUAL,
         get () {
-            return DFW.getInstance().getModule(UploadManager).getFileURL(this as any);
+            return DFW.getInstance().getModule(FileManager).getFileURL(this as any);
         }
     })
     url!:string;

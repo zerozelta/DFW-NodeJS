@@ -123,6 +123,7 @@ export default class SessionManager extends DFWModule{
             if(userObj.checkPassword(password) === true){
                 req.dfw.session.record.user = userObj;
                 req.dfw.session.record.idUser = userObj.id;
+                req.dfw.session.record.persist = keepOpen ? true : false;
                 req.dfw.session.record = await req.dfw.session.record.save();
 
                 this.setupSessionData(req);
@@ -143,13 +144,14 @@ export default class SessionManager extends DFWModule{
         if( req.dfw.session.record){
             req.dfw.session.record.idUser = null;
             req.dfw.session.record.user = null;
+            req.dfw.session.record.persist = false;
             req.dfw.session.isLogged = false;
-
+            
             await req.dfw.session.record.save();
+
             return true;
         }
 
-        //await this.regenerateSessionAsync(req,res); /// Comprobar que no es necesario regenerar una nueva session
         return false;
     }
 
