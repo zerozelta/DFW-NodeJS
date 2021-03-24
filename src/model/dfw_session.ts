@@ -11,7 +11,7 @@ export default class dfw_session extends Model<dfw_session> {
 
     @Unique
     @AllowNull(false)
-    @Column(DataType.STRING(64))
+    @Column(DataType.STRING)
     token!: string;
 
     @Column

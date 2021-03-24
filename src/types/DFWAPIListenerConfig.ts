@@ -13,6 +13,11 @@ export interface DFWAPIListenerConfig{
     middleware?:RequestHandler|RequestHandler[];
 
     /**
+     * Indicates tah te session will not be saved nor sended as a cookie to the cliente
+     */
+    noSession?:true;
+
+    /**
      * 
      */
     security?:ListenerSecurityConfig;

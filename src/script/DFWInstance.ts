@@ -15,7 +15,7 @@ export default class DFWInstance{
 
     readonly config:DFWConfig;
     readonly server:Express;
-    readonly ROUTER_API_MIDDLEWARE:Router = express.Router();
+    public ROUTER_API_MIDDLEWARE:Router = express.Router();
 
     public database!:Sequelize;
 
@@ -26,8 +26,8 @@ export default class DFWInstance{
     public readonly APIManager!:APIManager; 
     public readonly UserManager!:UserManager; 
 
-    constructor(config:DFWConfig, server:Express = express()){
-        this.server = server;
+    constructor(config:DFWConfig, server?:Express){
+        this.server = server ?? express();
 
         // Setup middleware
         this.ROUTER_API_MIDDLEWARE.use(cookieParser());
@@ -71,14 +71,11 @@ export default class DFWInstance{
      * Initialize dfw namespace and schemes
      */
     public mainMiddleware = (req:Request, res:Response, next:NextFunction) => {
-        
-        req.dfw = {
-            __meta:{
-                instance: this
-            },
-            instance: this
-        } as any;
-        
+        if(!req.dfw) req.dfw = {} as any;
+        if(!req.dfw.__meta) req.dfw.__meta = {} as any;
+
+        req.dfw.__meta.instance = this;
+         
         next();
     }
 }

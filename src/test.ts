@@ -30,6 +30,11 @@ DFW.getModule(APIManager).addListener("/upload",async (req:Request,res:Response,
 ///DFW.getModule(APIManager).addListener("/")
 
 
+DFW.getModule(APIManager).addListener("/nosession",async (req:Request,res:Response,dfw:DFW.DFWRequestScheme)=>{
+    return dfw.api.success(await dfw.api.getBootAsync());
+ },{noSession:true});
+
+
 DFW.getModule(APIManager).addListener("/test",async (req:Request,res:Response,dfw:DFW.DFWRequestScheme)=>{
    res.sendFile("D:/Users/zerozelta/Documents/React Projects/woopa/.dfw/upload/public/2020/11/edb85341-2e81-4bcc-9740-eb12b13a8002.jpeg",()=>{
        res.end();

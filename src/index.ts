@@ -55,6 +55,7 @@ declare global {
             __meta:{
                 instance:DFWInstance,
                 config?:DFWAPIListenerConfig,
+                noSession:boolean; // indicates that the session will not be saved in the database nor send session cookie to the client
             },
             instance:DFWInstance,
             session:{

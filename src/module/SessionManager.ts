@@ -33,7 +33,12 @@ export default class SessionManager extends DFWModule{
                 return this.logoutAsync(req,res);
             }
         }
-        
+
+        if(req.dfw.__meta.noSession == true){ // skip the session middleware if noSession flag is true
+            console.log("NO SESSION ACTIVATED -> SKIP SESSION RECORD")
+            return next();
+        }
+
         if(!req.cookies || !req.cookies.sid || !req.cookies.stk){
             req.dfw.session.record = await this.regenerateSessionAsync(req,res);
         }else{
@@ -41,7 +46,7 @@ export default class SessionManager extends DFWModule{
             req.dfw.session.token = req.cookies.stk;
     
             let session:dfw_session|null = await dfw_session.findOne({
-                where : { id: req.dfw.session.id as number , token: req.dfw.session.token as string },
+                where : { id: req.dfw.session.id , token: req.dfw.session.token },
                 include : [{ 
                     association:"user",
                     attributes:["id","nick","email"]
@@ -49,7 +54,7 @@ export default class SessionManager extends DFWModule{
                 }]
             }) // Current session
     
-            if(!session || session.token !== req.cookies.stk){
+            if(!session){
                 req.dfw.session.record =  await this.regenerateSessionAsync(req,res);
             }else{
                 req.dfw.session.record = session;
@@ -57,14 +62,18 @@ export default class SessionManager extends DFWModule{
         }
     
         /// update session data in async way (fast)
-        req.dfw.session.record.expire = moment().add(3,"days").toDate(); // Caducidad
+        req.dfw.session.record.expire = moment().add(7,"days").toDate(); // Caducidad de la cookie
         req.dfw.session.record.agent = req.headers['user-agent']?req.headers['user-agent']:"";  // User agent
         
         if(req.dfw.session.record.ip != req.ip) req.dfw.session.record.ip = req.ip;
+
+        
         //req.dfw.session.record.site = req.originalUrl;
         req.dfw.session.record.save();
     
         this.setupSessionData(req);
+        //console.log(`SID: ${req.dfw.session.id} url: ${req.originalUrl}`);
+        
         next();
     });
 
@@ -76,7 +85,7 @@ export default class SessionManager extends DFWModule{
         req.dfw.session.id = req.dfw.session.record.id;
         req.dfw.session.token = req.dfw.session.record.token;
 
-        req.dfw.session.isLogged = req.dfw.session.record.idUser !== 0 && !req.dfw.session.record.idUser === false;
+        req.dfw.session.isLogged = typeof req.dfw.session.record.user != "undefined" && typeof req.dfw.session.record.idUser == "number";
         
         if(req.dfw.session.isLogged === false && !req.dfw.session.record === false){
             req.dfw.session.record.idUser = null;
@@ -98,9 +107,15 @@ export default class SessionManager extends DFWModule{
         });
 
         //TODO sistema para controlar la duración de las sesiones
+        
         res.cookie("sid",session.id,{ expires: moment().add(30,"days").toDate() }); 
         res.cookie("stk",token, { expires: moment().add(30,"days").toDate() });
-
+        
+        // set cookies for future references (dont remove these lines)
+        req.cookies.sid = session.id;
+        req.cookies.stk = token;
+        
+        
         req.dfw.session = { id : session.id , token , isLogged: false , record : session } as any
 
         return session;
@@ -113,8 +128,12 @@ export default class SessionManager extends DFWModule{
      * @param keepOpen undefined => onli browser session time | number => number in days that sessiopn keeps opened
      */
     public async loginAsync(req:Request,res:Response,user:string,password:string,keepOpen?:number):Promise<boolean>{
-        
+        if(req.dfw.__meta.noSession === true){ // Lock function if noSession is setted
+            throw Error(`Error you cant use dfw login API when noSession param is setted`)
+        }
+
         if(!user || !password) return false
+        
         
         // Retrive user with credentials
         let userObj =  await this.getUser(user);
@@ -141,6 +160,10 @@ export default class SessionManager extends DFWModule{
      * @param res 
      */
     public async logoutAsync(req:Request,res:Response){
+        if(req.dfw.__meta.noSession === true){ // Lock function if noSession is setted
+            throw Error(`Error you cant use dfw login API when noSession param is setted`)
+        }
+
         if( req.dfw.session.record){
             req.dfw.session.record.idUser = null;
             req.dfw.session.record.user = null;
