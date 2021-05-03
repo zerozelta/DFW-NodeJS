@@ -1,5 +1,4 @@
 import { NextFunction , Request , Response} from "express";
-import DFWInstance from "../script/DFWInstance";
 import DFWModule  from "../script/DFWModule";
 import dfw_user from "../model/dfw_user";
 import dfw_credential from "../model/dfw_credential";
@@ -19,30 +18,30 @@ export default class UserManager extends DFWModule{
             nick,
             email,
             encodedKey:SecurityManager.encryptPassword(password)
-        },{ transaction });
+        },{ transaction }) as any;
     }
 
     public async findUserAsync(nameOrMail:string,transaction?:Transaction):Promise<dfw_user>{
         if(DFWUtils.isEmail(nameOrMail)){
-            return this.instance.database.models.dfw_user.findOne({where: { email: nameOrMail } , transaction });
+            return this.instance.database.models.dfw_user.findOne({where: { email: nameOrMail } , transaction }) as any;
         }else{
-            return this.instance.database.models.dfw_user.findOne({where: { nick: nameOrMail } });
+            return this.instance.database.models.dfw_user.findOne({where: { nick: nameOrMail } }) as any;
         }
     }
 
     public async createCredentiaASync(name:string,description?:string,transaction?:Transaction):Promise<dfw_credential>{
-        return this.instance.database.models.dfw_credential.create({ name , description },{transaction});
+        return this.instance.database.models.dfw_credential.create({ name , description },{transaction}) as any;
     }
 
     public async createAccessAsync(name:string,description?:string,transaction?:Transaction):Promise<dfw_access>{
-        return this.instance.database.models.dfw_access.create({ name , description },{transaction});
+        return this.instance.database.models.dfw_access.create({ name , description },{transaction}) as any;
     }
 
     public async assingCredentialTo(credential:number|dfw_credential|string|string[],user:number|dfw_user,transaction?:Transaction):Promise<boolean>{
         if(user instanceof dfw_user){
             return user.assignCredentialAsync(credential,transaction);
         }else{
-            let userObj = await this.instance.database.models.dfw_user.findByPk(user);
+            let userObj:dfw_user = await this.instance.database.models.dfw_user.findByPk(user) as any;
             return this.assingCredentialTo(credential,userObj,transaction)
         }
     }

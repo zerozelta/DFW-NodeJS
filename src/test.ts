@@ -31,8 +31,9 @@ DFW.getModule(APIManager).addListener("/upload",async (req:Request,res:Response,
 
 
 DFW.getModule(APIManager).addListener("/nosession",async (req:Request,res:Response,dfw:DFW.DFWRequestScheme)=>{
+    console.log(dfw.instance);
     return dfw.api.success(await dfw.api.getBootAsync());
- },{noSession:true});
+ });
 
 
 DFW.getModule(APIManager).addListener("/test",async (req:Request,res:Response,dfw:DFW.DFWRequestScheme)=>{

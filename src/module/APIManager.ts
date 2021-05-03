@@ -133,17 +133,7 @@ export default class APIManager extends DFWModule{
             }
             res.end();
         });
-
-        this.instance.server.use(path,async (req:Request,res:Response,next:NextFunction)=>{ // rewrite the root level api 
-            // iniciamos la definicion de dfw con la metaconfiguración de la API
-            req.dfw = {
-                __meta : {
-                    config,
-                    noSession:config.noSession == true
-                }
-            } as any;
-            next(); 
-        });
+        
         this.instance.server.use(path,this.instance.ROUTER_API_MIDDLEWARE);
         this.instance.server[config.method?config.method.toLowerCase():"get"](path,apiLevelMid);
         
@@ -156,7 +146,12 @@ export default class APIManager extends DFWModule{
      * @param config 
      */
     public generateAPILevelMiddleware(config:DFWAPIListenerConfig = {}):RequestHandler[]{
-        let levels = [] as RequestHandler[];
+        let levels = [
+            async (req:Request,res:Response,next:NextFunction)=>{ // root api level
+                req.dfw.__meta.config = config;  
+                next(); 
+            }
+        ] as RequestHandler[];
 
         // Body parser
         if(config.parseBody !== false){ // Body parser middleware

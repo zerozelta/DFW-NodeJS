@@ -1,6 +1,6 @@
 {
   "name": "@scefira/dfw",
-  "version": "0.0.48",
+  "version": "0.0.51",
   "description": "nodejs express fast prototype library",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -38,7 +38,7 @@
     "nodemon": "^1.19.4",
     "ts-node": "^8.5.4",
     "ts-node-dev": "^1.0.0-pre.44",
-    "typescript": "^3.7.4"
+    "typescript": "4.2.4"
   },
   "dependencies": {
     "axios": "^0.21.1",
@@ -50,11 +50,11 @@
     "md5-file": "^4.0.0",
     "mime-types": "^2.1.26",
     "moment": "^2.26.0",
-    "mysql2": "^2.1.0",
+    "mysql2": "^2.2.5",
     "node-php-password": "^0.1.2",
     "reflect-metadata": "^0.1.13",
-    "sequelize": "^5.21.10",
-    "sequelize-typescript": "^1.1.0",
+    "sequelize": "^6.6.2",
+    "sequelize-typescript": "^2.1.0",
     "uuid": "^3.3.3"
   }
 }

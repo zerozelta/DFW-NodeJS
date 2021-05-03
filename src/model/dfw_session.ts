@@ -6,7 +6,7 @@ export default class dfw_session extends Model<dfw_session> {
     
     @PrimaryKey
     @AutoIncrement
-    @Column(DataType.INTEGER.UNSIGNED)
+    @Column(DataType.BIGINT.UNSIGNED)
     id!: number; 
 
     @Unique

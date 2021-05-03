@@ -1,5 +1,5 @@
 import fileUpload from "express-fileupload";
-import { Op, where } from "sequelize";
+import { Op } from "sequelize";
 import { promisify } from "util";
 import md5File from 'md5-file/promise';
 import DFWInstance from "../script/DFWInstance";
@@ -182,7 +182,7 @@ export default class FileManager extends DFWModule{
     public async invalidateFileAsync(file:number|dfw_file|FileRecord):Promise<dfw_file>{
         let fileId:number = typeof file == "number" ? file : file.id;
 
-        let fileObj:dfw_file;
+        let fileObj:dfw_file|null;
 
         if(file instanceof dfw_file){
             fileObj = file;
@@ -206,7 +206,7 @@ export default class FileManager extends DFWModule{
     public async validateFileAsync(file:number|dfw_file|FileRecord,expire:Date|null = null):Promise<dfw_file>{
         let fileId:number = typeof file == "number" ? file : file.id;
 
-        let fileObj:dfw_file;
+        let fileObj:dfw_file|null;
 
         if(file instanceof dfw_file){
             fileObj = file;
@@ -271,7 +271,7 @@ export default class FileManager extends DFWModule{
         // Check if has a variant
         let variantFile:dfw_file|undefined;
         if(idFileParent){
-            let fileParent:dfw_file = await dfw_file.findByPk(idFileParent,{
+            let fileParent:dfw_file|null = await dfw_file.findByPk(idFileParent,{
                 include:[
                     {
                         association:"children" ,
@@ -299,7 +299,7 @@ export default class FileManager extends DFWModule{
             variant,
             partialPath,
             idFileParent
-        }
+        } as any
 
         if(variantFile){
             // remove old file resource
@@ -364,6 +364,7 @@ export default class FileManager extends DFWModule{
      * @param file 
      */
     public async getFileRecordAsync(file:number|dfw_file|number[]|dfw_file[],options:FileRecordOptions = {}):Promise<FileRecord|FileRecord[]|undefined>{
+        
         if(!file) return;
 
         if(Array.isArray(file)){
@@ -377,11 +378,11 @@ export default class FileManager extends DFWModule{
         if(file instanceof dfw_file){
             return this.getFileRecord(file,options);
         }else{
-            return await this.getFileRecordAsync(await this.instance.DatabaseManager.database.getModel("dfw_file").findByPk(file,{
+            return await this.getFileRecordAsync((await this.instance.DatabaseManager.database.getModel("dfw_file").findByPk(file,{
                 include:[
                     { association:"children" }
                 ]
-            }),options);
+            }),options) as any);
         }
     }
 
@@ -481,7 +482,8 @@ export default class FileManager extends DFWModule{
      * Delete all expired uploaded files in the local file system
      */
     public async purge(){
-        let data:dfw_file[] = await this.instance.getModule(DatabaseManager).getModel("dfw_file").findAll({ where:{ expire:{ [Op.lt] :moment() }}});
+        let data:dfw_file[] = await this.instance.getModule(DatabaseManager).getModel("dfw_file").findAll({ where:{ expire:{ [Op.lt] :moment() }}}) as any;
+
         data.forEach((file)=>{
             fileUnlink(file.path).then(()=>{    // remove file
                 file.destroy();                 // remove record db

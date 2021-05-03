@@ -71,10 +71,13 @@ export default class DFWInstance{
      * Initialize dfw namespace and schemes
      */
     public mainMiddleware = (req:Request, res:Response, next:NextFunction) => {
-        if(!req.dfw) req.dfw = {} as any;
-        if(!req.dfw.__meta) req.dfw.__meta = {} as any;
+        req.dfw = {
+            __meta:{
+                instance: this
+            }
+        } as any;
 
-        req.dfw.__meta.instance = this;
+        req.dfw.instance = this;
          
         next();
     }

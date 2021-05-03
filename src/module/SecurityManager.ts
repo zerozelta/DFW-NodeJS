@@ -1,6 +1,5 @@
 import { NextFunction , Request , Response } from "express";
 import Password from "node-php-password";
-import DFWInstance from "../script/DFWInstance";
 import dfw_credential from "../model/dfw_credential";
 import dfw_access from "../model/dfw_access";
 import DFWModule, { MiddlewareAsyncWrapper } from "../script/DFWModule";
