@@ -33,7 +33,7 @@ export type UploadOptions = {
     description?:string;                // description text for help or alt attributes
 
     user?:number|dfw_user;
-    parent?:dfw_file|FileRecord|number; // file parent for file trees
+    parent?:dfw_file|number; // file parent for file trees
     variant?:string;                    // file variant to diferenciate from another childs
 
     removeSource?:boolean;              //delete origin file 
@@ -240,6 +240,10 @@ export default class FileManager extends DFWModule{
         }
 
         let originalBaseName = nodejsPath.basename(options.name?options.name:filePath);
+        let fileParent:dfw_file|undefined|null = options.parent ? typeof options.parent == "object" ? options.parent : await dfw_file.findByPk(options.parent) : undefined;
+        let idUser:number|undefined|null = options.user ? typeof options.parent == "object" ? (options.user as dfw_user).id : options.user as number: undefined;
+
+        if(fileParent) idUser = fileParent.idUser;
 
         let md5 = await md5File(filePath);
         let stats = await fileStat(filePath);
@@ -252,7 +256,7 @@ export default class FileManager extends DFWModule{
         let finalFilePath = `${path}/${partialPath}/${filename}`;
         let description = options.description?options.description:DFWUtils.getBaseName(originalBaseName);
         let variant = options.variant ? options.variant : null;
-        let idFileParent = options.parent?typeof options.parent == "number" ? options.parent:options.parent.id:null;
+        let idFileParent = fileParent ? fileParent.id : null;
 
         if(await fileExistsAsync(`${path}/${partialPath}`) == false){
             await fileMakeDir(`${path}/${partialPath}`,{recursive:true});
@@ -288,7 +292,7 @@ export default class FileManager extends DFWModule{
         let data = {
             slug:options.slug,
             size:stats.size,
-            idUser: options.user? typeof options.user == "number" ? options.user : options.user.id : undefined,
+            
             name:filename,
             access: options.access ?? FileManager.ACCESS_PUBLIC,
             checksum:md5,
@@ -298,6 +302,7 @@ export default class FileManager extends DFWModule{
             path,
             variant,
             partialPath,
+            idUser,
             idFileParent
         } as any
 

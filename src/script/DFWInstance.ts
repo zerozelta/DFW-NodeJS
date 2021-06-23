@@ -10,6 +10,7 @@ import { Sequelize } from "sequelize/types";
 import FileManager from "../module/FileManager";
 import express from "express";
 import UserManager from "../module/UserManager";
+import fs from "fs";
 
 export default class DFWInstance{
 
@@ -27,6 +28,11 @@ export default class DFWInstance{
     public readonly UserManager!:UserManager; 
 
     constructor(config:DFWConfig, server?:Express){
+
+        // Creating minimum directories
+        if(!fs.existsSync("./dfw")) fs.mkdirSync("./dfw");
+
+        // start express middleware
         this.server = server ?? express();
 
         // Setup middleware

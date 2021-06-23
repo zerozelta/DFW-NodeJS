@@ -4,7 +4,7 @@ import DFW from '..';
 import FileManager from '../module/FileManager';
 
 @Table({tableName: 'dfw_files'})
-export default class dfw_file extends Model<dfw_file>{
+export default class dfw_file extends Model{
     
     @PrimaryKey
     @AutoIncrement
