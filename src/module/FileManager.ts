@@ -33,10 +33,11 @@ export type UploadOptions = {
     description?:string;                // description text for help or alt attributes
 
     user?:number|dfw_user;
-    parent?:dfw_file|number; // file parent for file trees
+    parent?:dfw_file|number;            // file parent for file trees
     variant?:string;                    // file variant to diferenciate from another childs
 
-    removeSource?:boolean;              //delete origin file 
+    removeSource?:boolean;              // delete origin file (for tmp files)
+    removeSameVariants?:boolean;        // if the file has parent remove all file children with the same variant value (default false)
 }
 
 export type UploadConfig = {
@@ -242,8 +243,12 @@ export default class FileManager extends DFWModule{
         let originalBaseName = nodejsPath.basename(options.name?options.name:filePath);
         let fileParent:dfw_file|undefined|null = options.parent ? typeof options.parent == "object" ? options.parent : await dfw_file.findByPk(options.parent) : undefined;
         let idUser:number|undefined|null = options.user ? typeof options.parent == "object" ? (options.user as dfw_user).id : options.user as number: undefined;
+        let access:number|undefined|null = options.access ?? FileManager.ACCESS_PUBLIC;
 
-        if(fileParent) idUser = fileParent.idUser;
+        if(fileParent){
+            idUser = fileParent.idUser;
+            access = fileParent.access;
+        } 
 
         let md5 = await md5File(filePath);
         let stats = await fileStat(filePath);
@@ -272,29 +277,19 @@ export default class FileManager extends DFWModule{
             });
         }
 
-        // Check if has a variant
-        let variantFile:dfw_file|undefined;
-        if(idFileParent){
-            let fileParent:dfw_file|null = await dfw_file.findByPk(idFileParent,{
-                include:[
-                    {
-                        association:"children" ,
-                        where:{
-                            variant
-                        },
-                        limit:1
-                    }
-                ]
+        if(options.removeSameVariants && fileParent && fileParent.variant){
+            await dfw_file.destroy({
+                where:{
+                    idFileParent:fileParent.id,
+                    variant: fileParent.variant
+                }
             });
-            variantFile = ( fileParent && fileParent.children.length > 0 ) ? fileParent.children[0] : undefined;
         }
 
-        let data = {
+        return dfw_file.create({
             slug:options.slug,
             size:stats.size,
-            
             name:filename,
-            access: options.access ?? FileManager.ACCESS_PUBLIC,
             checksum:md5,
             description,
             expire,
@@ -303,22 +298,9 @@ export default class FileManager extends DFWModule{
             variant,
             partialPath,
             idUser,
-            idFileParent
-        } as any
-
-        if(variantFile){
-            // remove old file resource
-            fileUnlink(variantFile.localPath);
-
-            // update dbregister
-            variantFile.setAttributes(data);
-            variantFile.save();
-
-            return variantFile;
-        }else{
-            return dfw_file.create(data);
-        }
-        
+            access,
+            idFileParent,
+        });
     }
 
     /**
@@ -487,7 +469,7 @@ export default class FileManager extends DFWModule{
      * Delete all expired uploaded files in the local file system
      */
     public async purge(){
-        let data:dfw_file[] = await this.instance.getModule(DatabaseManager).getModel("dfw_file").findAll({ where:{ expire:{ [Op.lt] :moment() }}}) as any;
+        let data:dfw_file[] = await this.instance.getModule(DatabaseManager).getModel("dfw_file").findAll({ where:{ expire:{ [Op.lt] : moment() }}}) as any;
 
         data.forEach((file)=>{
             fileUnlink(file.path).then(()=>{    // remove file

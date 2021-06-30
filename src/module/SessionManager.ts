@@ -8,13 +8,12 @@ import DFWUtils from "../script/DFWUtils";
 import { Includeable, Op } from "sequelize";
 import DFWModule, { MiddlewareAsyncWrapper } from "../script/DFWModule";
 
-
 export default class SessionManager extends DFWModule{
 
     constructor(DFW:DFWInstance){
         super(DFW);
 
-        setInterval(()=>{ // Clear expired sessions each 6 hours
+        setInterval(()=>{ // Clear expired sessions every 6 hours
             this.sweepSessionsAsync();
         },1000*60*60*6);
     }
@@ -57,12 +56,13 @@ export default class SessionManager extends DFWModule{
     
         /// update session data in async way (fast)
         req.dfw.session.record.expire = moment().add(7,"days").toDate(); // Caducidad de la cookie
-        req.dfw.session.record.agent = req.headers['user-agent']?req.headers['user-agent']:"";  // User agent
         
+        // User agent
+        if( req.dfw.session.record.agent != req.headers['user-agent']) req.dfw.session.record.agent = req.headers['user-agent'] ?? "";
         if(req.dfw.session.record.ip != req.ip) req.dfw.session.record.ip = req.ip;
 
         //req.dfw.session.record.site = req.originalUrl;
-        req.dfw.session.record.save();
+        await req.dfw.session.record.save();
     
         this.setupSessionData(req);
 

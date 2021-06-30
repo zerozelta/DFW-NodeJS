@@ -14,8 +14,3 @@ export default abstract class DFWModule {
 }
 
 export const MiddlewareAsyncWrapper = (fn:(...args)=>Promise<void>) => (...args) => fn(...args).catch(args[2]);
-/*
-export declare var DFWModule: {
-    new (DFW:DFWInstance): DFWModule;
-}
-*/

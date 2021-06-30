@@ -52,5 +52,5 @@ export default interface DFWConfig{
         };
     };
 
-    useCLS?: boolean;
+    useCLS?: boolean; // by default true
 }
