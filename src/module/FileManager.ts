@@ -168,7 +168,7 @@ export default class FileManager extends DFWModule{
         }
 
         if(file.truncated === true){
-            fileUnlink(file.tempFilePath);
+            await fileUnlink(file.tempFilePath);
             throw new Error(`maximum file size exceeded (${(file.size/1024).toFixed(0)} Kb)`);
         }
         
@@ -277,13 +277,16 @@ export default class FileManager extends DFWModule{
             });
         }
 
+        // Removing same variant if cfg flag removeSameVariants is true
+        //TODO allow delete same variant not only on child files but also in root files (check if is secure)
         if(options.removeSameVariants && fileParent && fileParent.variant){
-            await dfw_file.destroy({
+            let dfl = await dfw_file.findAll({
                 where:{
                     idFileParent:fileParent.id,
                     variant: fileParent.variant
                 }
             });
+            for(let df of dfl){ await this.removeFileAsync(df); }
         }
 
         return dfw_file.create({
