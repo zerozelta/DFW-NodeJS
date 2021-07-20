@@ -1,14 +1,13 @@
-import { Table, Column, Model , CreatedAt, UpdatedAt, PrimaryKey, Unique, HasMany, BelongsToMany, Length, DataType, AllowNull, AutoIncrement } from 'sequelize-typescript';
+import { Table, Column, Model , CreatedAt, Default , UpdatedAt, PrimaryKey, Unique, HasMany, BelongsToMany, Length, DataType, AllowNull, AutoIncrement } from 'sequelize-typescript';
 import dfw_session from './dfw_session';
-import { isNumber, isString } from 'util';
 import dfw_credential from './dfw_credential';
 import dfw_users_credential from './dfw_users_credential';
 import dfw_access from './dfw_access';
 import { Transaction } from 'sequelize/types';
 import SecurityManager from '../module/SecurityManager';
- 
+
 @Table({tableName: 'dfw_users'})
-export default class dfw_user extends Model<dfw_user> {
+export default class dfw_user extends Model {
     
     @PrimaryKey
     @AutoIncrement
@@ -26,7 +25,12 @@ export default class dfw_user extends Model<dfw_user> {
     @Column(DataType.STRING(60))
     email!: string;
 
+    @Default(null)
+    @Column(DataType.TINYINT.UNSIGNED)
+    status!: string;
+
     @Column
+    @AllowNull(true)
     @Column(DataType.STRING)
     encodedKey!: string;
 
@@ -94,11 +98,11 @@ export default class dfw_user extends Model<dfw_user> {
             for(var i = 0; i < ownCreds.length; i++){
                 var sample = ownCreds[i];
 
-                if(isNumber(credential)){
+                if(typeof credential == "number"){
                     if(sample.id === credential) return true;
-                }else if(isString(credential)){
+                }else if(typeof credential == "string"){
                     if(sample.name === credential) return true;
-                }else if( credential instanceof dfw_credential ){
+                }else if( typeof credential == "object" && credential.id ){
                     if(sample.id === credential.id) return true;
                 }
             }
@@ -144,9 +148,9 @@ export default class dfw_user extends Model<dfw_user> {
                 return this.removeCredentialAsync(cred,transaction);
             }));
         }else{
-            if(isNumber(credential)){
+            if(typeof credential == "number"){
                 return this.$remove("credentials",credential,{transaction});
-            }else if(isString(credential)){
+            }else if(typeof credential == "string"){
                 var credObj = await dfw_credential.findOne({where:{name:credential}});
                 if(credObj){
                     return this.$remove("credentials",credObj,{transaction});
@@ -155,7 +159,7 @@ export default class dfw_user extends Model<dfw_user> {
                         reject("unknown credential " + credential);
                     });
                 }
-            }else if( credential instanceof dfw_credential ){
+            }else if( typeof credential == "object" && credential.id ){
                 return this.$remove("credentials",credential,{transaction});
             }
         }

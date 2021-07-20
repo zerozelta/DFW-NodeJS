@@ -3,7 +3,7 @@ import dfw_user from './dfw_user';
 import DFW from '..';
 import FileManager from '../module/FileManager';
 
-@Table({tableName: 'dfw_files'})
+@Table({tableName: 'dfw_files' , indexes:[{ fields:["idUser"]}]})
 export default class dfw_file extends Model{
     
     @PrimaryKey

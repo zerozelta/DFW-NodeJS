@@ -1,15 +1,14 @@
-import {Table, Column, Model , DataType, CreatedAt, UpdatedAt, PrimaryKey, ForeignKey, Unique, HasOne, AllowNull, BelongsTo, AutoIncrement } from 'sequelize-typescript';
+import {Table, Column, Model , Default , DataType, CreatedAt, UpdatedAt, PrimaryKey, ForeignKey, Unique, HasOne, AllowNull, BelongsTo, AutoIncrement } from 'sequelize-typescript';
 import dfw_user from './dfw_user';
  
-@Table({ tableName: "dfw_sessions"})
-export default class dfw_session extends Model<dfw_session> {
+@Table({ tableName: "dfw_sessions", indexes:[{ fields:["idUser"]}] })
+export default class dfw_session extends Model {
     
     @PrimaryKey
     @AutoIncrement
     @Column(DataType.BIGINT.UNSIGNED)
     id!: number; 
 
-    @Unique
     @AllowNull(false)
     @Column(DataType.STRING)
     token!: string;
@@ -20,8 +19,10 @@ export default class dfw_session extends Model<dfw_session> {
     @Column
     ip!: string;
 
+    @Default(false)
+    @AllowNull(false)
     @Column(DataType.BOOLEAN)
-    persist!: boolean;
+    persist?: boolean;
 
     @Column(DataType.DATEONLY)
     expire!: Date;

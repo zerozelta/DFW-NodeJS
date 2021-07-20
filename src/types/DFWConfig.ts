@@ -1,14 +1,14 @@
-import {Express} from "express";
+import {CookieOptions, Express} from "express";
 import { SequelizeOptions } from "sequelize-typescript";
 
 export default interface DFWConfig{
     /**
-     * 
+     * Custom server
      */
     server?:Express;
 
     /**
-     * 
+     * Database initialization config
      */
     database:SequelizeOptions;
 
@@ -25,6 +25,26 @@ export default interface DFWConfig{
          * Session id name space in cookie
          */
         sid?:string;
+
+        /**
+         * Default days to expire on non persistent sessions (onli on database record)
+         */
+        daysToExpire?:number;
+
+        /**
+         * Default days to expire on persistent sessions
+         */
+        daysToExpireOnPersistent?:number;
+
+        /**
+         * Set all sessions always persistent (logged or not logged)
+         */
+        forcePersistent?:boolean;
+
+        /**
+         * Cookie options (for sessions)
+         */
+        cookieOptions?:CookieOptions;
     }
 
     /**

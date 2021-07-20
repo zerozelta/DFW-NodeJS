@@ -10,7 +10,7 @@ import dfw_access from './dfw_access';
     }],
     timestamps: false
 })
-export default class dfw_access_credential extends Model<dfw_access_credential> {
+export default class dfw_access_credential extends Model {
     
     @ForeignKey(() => dfw_access)
     @Column({ unique: false, type: DataType.INTEGER.UNSIGNED })

@@ -30,7 +30,7 @@ export default class DFWInstance{
     constructor(config:DFWConfig, server?:Express){
 
         // Creating minimum directories
-        if(!fs.existsSync("./dfw")) fs.mkdirSync("./dfw");
+        if(!fs.existsSync("./.dfw")) fs.mkdirSync("./.dfw");
 
         // start express middleware
         this.server = server ?? express();

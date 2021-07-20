@@ -4,11 +4,18 @@ import { AddressInfo } from "net";
 import APIManager from "./module/APIManager";
 import { Request, Response } from "express";
 import dfw_file from "./model/dfw_file";
-import dfw_session from "./model/dfw_session";
 import SecurityManager from "./module/SecurityManager";
-import FileManager from "./module/FileManager";
+import DFWUtils from "./script/DFWUtils";
 
 let DFW = DFWCore.createInstance("test",{
+    session:{
+        daysToExpireOnPersistent:3,
+        forcePersistent:true,
+        cookieOptions:{
+            httpOnly:true,
+            sameSite:"lax"
+        }
+    },
     database:{
         username:"root",
         database:"dfw-test",
@@ -43,7 +50,16 @@ DFW.getModule(APIManager).addListener("/test",async (req:Request,res:Response,df
 },{disableAutosend:true});
 
 DFW.getModule(APIManager).addListener("/test2",async (req:Request,res:Response,dfw:DFW.DFWRequestScheme)=>{
-    return {pass:SecurityManager.encryptPassword("BS83721C")}
+    
+    Promise.resolve(async ()=>{
+        console.log("inicio")
+        await DFWUtils.sleepAsync(3000);
+        console.log("final")
+    }).then(()=>{
+        console.log("resuelto!!")
+    });
+
+    return dfw.api.success({})
  });
 
 DFW.getModule(APIManager).addListener("/boot",async (req:Request,res:Response,dfw:DFW.DFWRequestScheme)=>{
@@ -58,9 +74,23 @@ DFW.getModule(APIManager).addListener("/boot",async (req:Request,res:Response,df
     ]
 });
 
+DFW.getModule(APIManager).addListener("/signin",async (req:Request,res:Response,dfw:DFW.DFWRequestScheme)=>{
+    return dfw.api.success({
+        status: await DFW.UserManager.createUserAsync("aldodelacomarca@gmail.com","aldodelacomarca","Aldo123"),
+        boot: await dfw.api.getBootAsync()
+    })
+});
+
+DFW.getModule(APIManager).addListener("/logout",async (req:Request,res:Response,dfw:DFW.DFWRequestScheme)=>{
+    return dfw.api.success({
+        status: await dfw.session.logoutAsync(),
+        boot: await dfw.api.getBootAsync()
+    })
+});
+
 DFW.getModule(APIManager).addListener("/login",async (req:Request,res:Response,dfw:DFW.DFWRequestScheme)=>{
     return dfw.api.success({
-        status: await dfw.session.loginAsync("aldodelacomarca@gmail.com","aldodelacomarca"),
+        status: await dfw.session.loginAsync("aldodelacomarca@gmail.com","Aldo123",true),
         boot: await dfw.api.getBootAsync()
     })
 });

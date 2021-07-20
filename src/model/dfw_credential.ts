@@ -4,7 +4,7 @@ import dfw_access_credential from './dfw_access_credential';
 import dfw_access from './dfw_access';
  
 @Table({ tableName: "dfw_credentials"})
-export default class dfw_credential extends Model<dfw_credential> {
+export default class dfw_credential extends Model {
     
     @PrimaryKey
     @AutoIncrement

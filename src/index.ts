@@ -63,7 +63,7 @@ declare global {
                 token:string;
                 isLogged:boolean;
                 record:dfw_session;
-                loginAsync : (username:string,password:string,keepopen?:number)=>Promise<boolean>;
+                loginAsync : (username:string,password:string,persist?:boolean)=>Promise<boolean>;
                 logoutAsync : ()=>Promise<boolean>;
             },
             security:SecurityScheme;
