@@ -19,8 +19,8 @@ export default class dfw_session extends Model {
     @Column
     ip!: string;
 
-    @Default(false)
-    @AllowNull(false)
+    @Default(null)
+    @AllowNull(true)
     @Column(DataType.BOOLEAN)
     persist?: boolean;
 
