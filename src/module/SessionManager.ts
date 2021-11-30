@@ -5,7 +5,7 @@ import dfw_session from "../model/dfw_session";
 import DFWInstance from "../script/DFWInstance";
 import dfw_user from "../model/dfw_user";
 import DFWUtils from "../script/DFWUtils";
-import { Includeable, Op, Utils } from "sequelize";
+import { Includeable, Op } from "sequelize";
 import DFWModule, { MiddlewareAsyncWrapper } from "../script/DFWModule";
 
 export default class SessionManager extends DFWModule{
@@ -28,7 +28,7 @@ export default class SessionManager extends DFWModule{
     }
 
     public readonly middleware = MiddlewareAsyncWrapper( async (req:Request, res:Response, next:NextFunction)=>{
-        
+       
         req.dfw.session = {
             isLogged:false,
             token:undefined as any,
@@ -112,7 +112,7 @@ export default class SessionManager extends DFWModule{
      * @param password 
      * @param persist undefined => onli browser session time | number => number in days that sessiopn keeps opened
      */
-    public async loginAsync(req:Request,res:Response,user:string,password:string,persist?:boolean):Promise<boolean>{
+    public async loginAsync(req:Request,res:Response,user:string,password:string,persist:boolean = false):Promise<boolean>{
         if(!user || !password) return false;
         if(this.instance.config.session && this.instance.config.session.forcePersistent) persist = true; // set persistent if is forced
 
@@ -178,8 +178,6 @@ export default class SessionManager extends DFWModule{
 
         if(persist) cookieOptions.expires = moment().add(this.SESSION_PERSIST_EXPIRE_DAYS,"days").toDate();
 
-        console.log({ cookieOptions });
-
         res.cookie("sid", req.dfw.session.id,cookieOptions);
         res.cookie("stk", req.dfw.session.token,cookieOptions); 
 
@@ -191,7 +189,7 @@ export default class SessionManager extends DFWModule{
      * Destroy all sessions that expires 1 day ago
      */
     public async sweepSessionsAsync(){
-        dfw_session.destroy({
+        await dfw_session.destroy({
             where:{
                 expire: { [Op.lt] : moment().subtract(1,"day").toDate() },
             }

@@ -1,7 +1,7 @@
 import { NextFunction , Express , Response , Request, Router } from "express";
 import cookieParser from "cookie-parser";
 import DFWConfig from "../types/DFWConfig";
-import DatabaseManager from "../module/DatabaseManager";
+import DatabaseManager, { DFWSequelize } from "../module/DatabaseManager";
 import SessionManager from "../module/SessionManager";
 import SecurityManager from "../module/SecurityManager";
 import APIManager from "../module/APIManager";
@@ -18,7 +18,7 @@ export default class DFWInstance{
     readonly server:Express;
     public ROUTER_API_MIDDLEWARE:Router = express.Router();
 
-    public database!:Sequelize;
+    public database!:DFWSequelize;
 
     public readonly DatabaseManager!:DatabaseManager;
     public readonly SessionManager!:SessionManager;

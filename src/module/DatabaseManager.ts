@@ -6,7 +6,7 @@ import { Model, BuildOptions } from "sequelize/types";
 import path from "path";
 
 const cls = require('cls-hooked');
-const namespace = cls.createNamespace('dfw-sequelize-cls');
+let clsid = 0; // id to generate unique id for cls namespace
 
 export type DFWSequelize = Sequelize & {
     getModel : (model:string)=>ModelStatic;
@@ -24,13 +24,16 @@ export default class DatabaseManager extends DFWModule{
 
     public readonly database:DFWSequelize;
 
+    public readonly cls_namespace = cls.createNamespace(`dfw-sequelize-cls-${clsid++}`);
+
     constructor(dfw:DFWInstance){
         super(dfw);
         
         let {models,...dbConfig} = dfw.config.database;
 
         if(dfw.config.useCLS === undefined || dfw.config.useCLS === true){
-            (Sequelize as any).__proto__.useCLS(namespace);
+            //Sequelize.useCLS(this.namespace); // this dont work 
+            (Sequelize as any).__proto__.useCLS(this.cls_namespace);
         }
         
         this.database = new Sequelize(dbConfig) as DFWSequelize;

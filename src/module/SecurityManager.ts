@@ -160,14 +160,12 @@ export default class SecurityManager extends DFWModule {
     }
 
     public checkBodyParams(req:Request,params:string[]):boolean{
-        let keys = Object.keys(req.body);
-
+        let keys = req.body ? Object.keys(req.body) : [];
         return keys.length >= params.length && params.every(v => keys.includes(v))
     }
 
     public checkQueryParams(req:Request,params:string[]):boolean{
-        let keys = Object.keys(req.query);
-
+        let keys = req.query ? Object.keys(req.query) : [];
         return keys.length >= params.length && params.every(v => keys.includes(v));
     }
     
