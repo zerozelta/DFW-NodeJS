@@ -1,6 +1,7 @@
-import uuidv4 from "uuid/v4";
 import { lookup } from "mime-types";
 import path from "path";
+
+const uuid = require("uuid");
 
 export default class DFWUtils{
 
@@ -24,33 +25,30 @@ export default class DFWUtils{
      * 
      * @param path 
      */
-    public static getMimetype(path:string):string|false{
-        return lookup(path);  
+    public static getFileMimetype(path:string):string|null{
+        let mimetype = lookup(path);  
+        return mimetype ? mimetype : null;
     }
 
     /**
      * retrive file extension 
      * @param filePath 
      */
-    public static getExtension(filePath:string):string{
-        return path.extname(filePath).substr(1);
-    }
-
-    public static getBaseName(filePath:string){
-        path.basename(filePath)
+    public static getFilenameExtension(filePath:string):string{
+        return filePath.slice((filePath.lastIndexOf(".") - 1 >>> 0) + 2);
     }
 
     /**
      * 
      */
-    public static randomHexString(len:number){
+    public static generateRandomHexString(len:number):string{
         let maxlen = 8,
             min = Math.pow(16,Math.min(len,maxlen)-1),
             max = Math.pow(16,Math.min(len,maxlen)) - 1,
             n   = Math.floor( Math.random() * (max-min+1) ) + min,
             r   = n.toString(16);
         while ( r.length < len ) {
-           r = r + DFWUtils.randomHexString( len - maxlen );
+           r = r + DFWUtils.generateRandomHexString( len - maxlen );
         }
         return r;
     };
@@ -58,7 +56,7 @@ export default class DFWUtils{
     /**
      * 
      */
-    public static uuid(){
-        return uuidv4();
+    public static uuid():string{
+        return uuid.v4();
     }
 }

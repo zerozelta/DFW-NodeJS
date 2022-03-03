@@ -1,76 +1,26 @@
-import DFWInstance from "./script/DFWInstance";
-import {Express} from "express";
-import { DFWAPIListenerConfig } from "./types/DFWAPIListenerConfig";
-import DFWConfig from "./types/DFWConfig";
-import dfw_session from "./model/dfw_session";
-import { APIResponseScheme } from "./module/APIManager";
-import { DFWSequelize } from "./module/DatabaseManager";
-import { DFWFileScheme } from "./module/FileManager";
-import { SecurityScheme } from "./module/SecurityManager";
+import DFWInstance from "./DFWInstance";
+import { DFWConfig } from "./types/DFWConfig";
 
-export default class DFW{
+export class DFWCore {
+    public static DFW:DFWInstance;
 
-    private static  instances = {};
+    private static instances:{[key:string]:DFWInstance} = {}
 
-    public static createInstance(name:string,config:DFWConfig,server?:Express):DFWInstance{
-        DFW.instances[`${name}`] = new DFWInstance(config,server);
-        return DFW.instances[`${name}`];
+    public static createInstance(config:DFWConfig,name = "main"){
+        let DFW = new DFWInstance(config);
+
+        if(name == "main") this.DFW = DFW;
+
+        this.instances[name] = DFW;
+
+        return DFW;
     }
 
-    public static getInstance(name?:string):DFWInstance{
-        if(!name) return this.instances[Object.keys(this.instances)[0]];
-        return DFW.instances[`${name}`];
+    public static get(name:string = "main"):DFWInstance|undefined{
+        return this.instances[name];
     }
+
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////
+export default DFWCore;
 
-declare global {
-    namespace Express {
-        interface Request {
-            dfw: DFW.DFWRequestScheme;
-        }
-    }
-}
-
-declare global {
-    export namespace DFW {
-        export interface Boot{
-            session:{
-                isLogged:boolean,
-                nick?:string,
-                email?:string,
-                credentials:{
-                    id:number,
-                    name:string,
-                }[],
-                access?:{
-                    id:number,
-                    name:string,
-                }[]
-            }
-        }
-
-        export interface DFWRequestScheme{
-            __meta:{
-                instance:DFWInstance,
-                config?:DFWAPIListenerConfig,
-                noSession:boolean; // indicates that the session will not be saved in the database nor send session cookie to the client
-            },
-            instance:DFWInstance,
-            session:{
-                id:number;
-                token:string;
-                isLogged:boolean;
-                record:dfw_session;
-                loginAsync : (username:string,password:string,persist?:boolean)=>Promise<boolean>;
-                logoutAsync : ()=>Promise<boolean>;
-            },
-            security:SecurityScheme;
-            api:APIResponseScheme;
-            db:DFWSequelize;
-            /*models:{[key:string]:StaticModelType};*/
-            file:DFWFileScheme;
-        }
-    }
-}

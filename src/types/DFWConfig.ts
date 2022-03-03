@@ -1,60 +1,50 @@
-import {CookieOptions, Express} from "express";
-import { SequelizeOptions } from "sequelize-typescript";
+import { CookieOptions } from "express";
 
-export default interface DFWConfig{
-    /**
-     * Custom server
-     */
-    server?:Express;
-
+export type DFWConfig = {
     /**
      * Database initialization config
      */
-    database:SequelizeOptions;
+    database: any;
 
     /**
-     * TODO
+     * 
      */
-    session?:{
+    session?: {
         /**
          * Session token name space in cookie
          */
-        stk?:string;
+        stk?: string;
 
         /**
          * Session id name space in cookie
          */
-        sid?:string;
+        sid?: string;
 
         /**
-         * Default days to expire on non persistent sessions (onli on database record)
+         * Default days to expire session in database (only in database cookie will not be affected)
          */
-        daysToExpire?:number;
+        daysToExpire?: number;
 
         /**
-         * Default days to expire on persistent sessions
+         * If session expiration will be rehidrated eachtime the user have an activity with the server
          */
-        daysToExpireOnPersistent?:number;
+        persistent?:boolean;
 
-        /**
-         * Set all sessions always persistent (logged or not logged)
-         */
-        forcePersistent?:boolean;
 
         /**
          * Cookie options (for sessions)
          */
-        cookieOptions?:CookieOptions;
+        cookieOptions?: CookieOptions;
     }
 
     /**
      * 
      */
-    upload?:{ 
-        localPrivateUploadDir?:string;      // Path for local private resurces (by defaul its relative to execution directory) example upload -> C:/var/www/resources/upload/private 
-        localUploadDir?:string;             // Path for local resurces (by defaul its relative to execution directory) example upload -> C:/var/www/resources/upload/public
-        staticUploadPath?:string;           // Path for URL example: /upload -> https://site.com/upload
-        tempDir?:string;                    // temp directory for uploaded files, by default is a os.tmpdir 
+    upload?: {
+        localPrivateUploadDir?: string;      // Path for local private resurces (by defaul its relative to execution directory) example upload -> C:/var/www/resources/upload/private 
+        localUploadDir?: string;             // Path for local resurces (by defaul its relative to execution directory) example upload -> C:/var/www/resources/upload/public
+        staticUploadPath?: string;           // Path for URL example: /upload -> https://site.com/upload
+        tempDir?: string;                    // temp directory for uploaded files, by default is a os.tmpdir 
 
         headers?: any;
         highWaterMark?: number;
@@ -71,6 +61,4 @@ export default interface DFWConfig{
             headerPairs?: number;
         };
     };
-
-    useCLS?: boolean; // by default true
 }

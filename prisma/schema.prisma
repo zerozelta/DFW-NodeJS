@@ -1,0 +1,117 @@
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["interactiveTransactions"]
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model dfw_access {
+  id          Int      @id @default(autoincrement()) @db.UnsignedInt
+  name        String   @unique @db.VarChar(255)
+  description String?  @db.VarChar(255)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  credentials dfw_credentials_access[]
+
+  @@index([name])
+}
+
+model dfw_credential {
+  id          Int      @id @default(autoincrement()) @db.UnsignedInt
+  name        String   @unique @db.VarChar(255)
+  description String?  @db.VarChar(255)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  users       dfw_users_credentials[]
+  access      dfw_credentials_access[]
+
+  @@index([name])
+}
+
+model dfw_file {
+  id          Int         @id @default(autoincrement()) @db.UnsignedInt
+  path        String      @db.VarChar(255)
+  description String?     @db.VarChar(255)
+  idUser      Int?        @db.UnsignedInt
+  variant     String?     @db.VarChar(255)
+  size        Int?        @db.UnsignedInt
+  checksum    String?     @db.VarChar(255)
+  slug        String?     @db.VarChar(255)
+  mimetype    String?     @db.VarChar(255)
+  expire      DateTime?   @db.Date
+  idParent    Int?        @db.UnsignedInt
+
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  user        dfw_user?   @relation(fields: [idUser] , references: [id])
+  parent      dfw_file?   @relation("parent" , fields: [idParent] , references: [id])
+  children    dfw_file[]  @relation("parent")
+
+  @@index([expire])
+  @@index([id])
+  @@index([slug])
+}
+
+model dfw_session {
+  id        Int       @id @default(autoincrement()) @db.UnsignedInt
+  token     String    @db.Char(36)
+  agent     String?   @db.VarChar(255)
+  ip        String?   @db.VarChar(255)
+  expire    DateTime? @db.Date
+  idUser    Int?      @db.UnsignedInt
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  user      dfw_user? @relation( fields: [idUser] , references: [id])
+
+  @@index([idUser])
+}
+
+model dfw_user {
+  id          Int             @id @default(autoincrement()) @db.UnsignedInt
+  nick        String          @unique @db.VarChar(255)
+  email       String          @unique @db.VarChar(255)
+  status      Int?            @db.TinyInt
+  encodedKey  String?         @db.VarChar(255)
+
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  sessions    dfw_session[]
+  credentials dfw_users_credentials[]
+  files       dfw_file[]
+
+  @@index([email])
+  @@index([nick])
+}
+
+// Pivot tables
+
+model dfw_credentials_access {
+  idAccess      Int             @db.UnsignedInt
+  idCredential  Int             @db.UnsignedInt
+
+  credentials   dfw_credential  @relation(fields: [idCredential] , references: [id])
+  access        dfw_access      @relation(fields: [idAccess] , references: [id])
+
+  @@id([idAccess, idCredential])
+}
+
+model dfw_users_credentials {
+  idUser       Int              @db.UnsignedInt
+  idCredential Int              @db.UnsignedInt
+
+  user         dfw_user         @relation(fields: [idUser], references: [id])
+  credential   dfw_credential   @relation(fields: [idCredential], references: [id])
+
+  @@id([idUser, idCredential])
+}

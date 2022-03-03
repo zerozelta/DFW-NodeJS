@@ -1,0 +1,37 @@
+import DFWInstance from "../DFWInstance";
+import { Request } from "express";
+import SecurityManager from "../manager/SecurityManager";
+import UserManager from "../manager/UserManager";
+import SessionManager from "../manager/SessionManager";
+import FileManager from "../manager/FileManager";
+import DFWBoot from "./DFWBoot";
+import { dfw_access, dfw_session, dfw_user, Prisma, PrismaClient } from "@prisma/client";
+
+export type DFWRequest = {
+    dfw: DFWRequestScheme;
+} & Request
+
+export type DFWRequestScheme = {
+    __meta: {
+        config?: any,
+        noSession: boolean; // indicates session will not be saved in the database neither send session cookie to the client
+
+    },
+    instance: DFWInstance,
+    session: {
+        isLogged: boolean
+        user?: dfw_user
+        record: dfw_session & { user?: { id: number, nick: any, email: any } | null }
+    },
+
+    db: PrismaClient;
+
+    boot: () => Promise<DFWBoot>;
+
+    //manager
+    SecurityManager: SecurityManager;
+    SessionManager: SessionManager;
+    FileManager: FileManager;
+    UserManager: UserManager;
+}
+
