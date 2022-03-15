@@ -2,11 +2,6 @@ import { CookieOptions } from "express";
 
 export type DFWConfig = {
     /**
-     * Database initialization config
-     */
-    database: any;
-
-    /**
      * 
      */
     session?: {
