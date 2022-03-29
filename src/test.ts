@@ -1,14 +1,7 @@
-import { Prisma, PrismaClient } from "@prisma/client";
 import { DFWCore } from ".";
 
 var DFW = DFWCore.createInstance({
-    database: {
-        username: "root",
-        database: "dfw-test",
-        password: "",
-        dialect: "mysql",
-        logging: console.log
-    },
+
 });
 
 //DFW.DatabaseManager.database.sync(); 

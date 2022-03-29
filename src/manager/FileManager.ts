@@ -4,7 +4,7 @@ import { DFWRequest } from "../types/DFWRequestScheme";
 import DFWModule from "./DFWModule";
 import md5File from 'md5-file';
 
-import { Request, Response, NextFunction, static as ExpressStatic } from "express";
+import { Response } from "express";
 
 import * as fs from "fs";
 import * as path from "path";
@@ -68,7 +68,7 @@ export default class FileManager extends DFWModule {
         }
 
         if (fs.existsSync(this.tmpDir)) {
-            fs.rmdirSync(this.tmpDir, { recursive: true });
+            fs.rmSync(this.tmpDir, { recursive: true });
             fs.mkdirSync(this.tmpDir);
         } else {
             fs.mkdirSync(this.tmpDir);

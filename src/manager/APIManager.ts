@@ -12,7 +12,7 @@ import cookieParser from "cookie-parser";
 export type APIFunction = (req: DFWRequest, res: Response, dfw: DFWRequestScheme) => (Promise<any> | any)
 export type APIMethods = "get" | "put" | "post" | "delete" | "options" | "link";
 
-export class APIListenerObject {
+export class APIListener {
     public readonly config: APIListenerConfig;
     public readonly listener: APIFunction;
 
@@ -205,8 +205,8 @@ export default class APIManager extends DFWModule {
      * @param listener 
      * @param path 
     */
-    public addListenerObject(listener: (APIListenerObject | Object) | (APIListenerObject | Object)[], path: string) {
-        if (listener instanceof APIListenerObject) {
+    public addListenerObject(listener: (APIListener | Object) | (APIListener | Object)[], path: string) {
+        if (listener instanceof APIListener) {
             this.addListener(path, listener.listener, listener.config);
         } else if (Array.isArray(listener)) {
             for (let e of listener) {
