@@ -41,7 +41,7 @@ model dfw_file {
   description String?     @db.VarChar(255)
   idUser      Int?        @db.UnsignedInt
   variant     String?     @db.VarChar(255)
-  size        Int?        @db.UnsignedInt
+  size        BigInt?     @db.UnsignedBigInt
   checksum    String?     @db.VarChar(255)
   slug        String?     @db.VarChar(255)
   mimetype    String?     @db.VarChar(255)
@@ -58,6 +58,8 @@ model dfw_file {
   @@index([expire])
   @@index([id])
   @@index([slug])
+  @@index([idParent])
+  @@index([idUser])
 }
 
 model dfw_session {

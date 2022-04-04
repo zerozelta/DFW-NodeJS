@@ -27,6 +27,11 @@ DFW.APIManager.addListener("/boot", async (req, res) => {
     return req.dfw.boot();
 })
 
+DFW.APIManager.addListener("/file", async (req, res) => {
+    return req.dfw.FileManager.flushUpload(req,"file",{description:"File test"});
+} , { method:"post" , upload:true })
+
+ 
 DFW.APIManager.addListener("/error", async (req, res) => {
     throw "ERROR_TEST_CODE";
     return { you: "shoulnt see this" };

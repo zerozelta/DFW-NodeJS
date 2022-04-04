@@ -119,7 +119,7 @@ export default class APIManager extends DFWModule {
         }));
 
         handlers.push(((err: any, req: Request, res: Response, next: NextFunction) => {
-            if (process.env.NODE_ENV == "development") console.error(`[DFW_API_ERROR] ${err}`);
+            if (process.env.NODE_ENV == "development") console.error(`[DFW_ERROR] ${err}`);
             res.statusCode = 500;
 
             if (err instanceof TypeError) {
@@ -156,7 +156,7 @@ export default class APIManager extends DFWModule {
         }
 
         if (config.upload) {
-            fileUpload(Object.assign(config.upload, config, { useTempFiles: true, tempFileDir: this.instance.FileManager.tmpDir }));
+            handlers.push(fileUpload(Object.assign(config.upload, config, { useTempFiles: true, tempFileDir: this.instance.FileManager.tmpDir })));
         }
 
         handlers.push(MiddlewareAsyncWrapper(async (req: DFWRequest, res: Response, next: NextFunction) => {
