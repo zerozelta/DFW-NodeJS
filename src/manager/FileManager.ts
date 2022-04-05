@@ -161,15 +161,22 @@ export default class FileManager extends DFWModule {
      * @param bodyFileName 
      * @param cfg 
      */
-    public async flushUpload(req: Request, file: string, cfg: FileConfig = {}) {
+    public async flushUpload(req: DFWRequest, file: string, cfg: FileConfig = {}) {
         if (!req.files) throw `DFW_ERROR_UPLOAD_ENPOINT_MUST_BE_ENABLED`;
         if (!req.files[file]) throw `DFW_ERROR_UNABLE_TO_FOUND_FILE_UPLOAD_NAME`;
+        
         if (Array.isArray(!req.files[file])) {
             return (req.files[file] as UploadedFile[]).map(async (fileData, index) => {
-                return await this.assignLocalFileAsync(fileData.tempFilePath, Object.assign({ ext: DFWUtils.getFilenameExtension(fileData.name) }, cfg), true);
+                return await this.assignLocalFileAsync(fileData.tempFilePath, Object.assign({
+                    user: req.dfw.session.user,
+                    ext: DFWUtils.getFilenameExtension(fileData.name)
+                }, cfg), true);
             })
         } else {
-            return await this.assignLocalFileAsync((req.files[file] as UploadedFile).tempFilePath, Object.assign({ ext: DFWUtils.getFilenameExtension((req.files[file] as UploadedFile).name) }, cfg), true);
+            return await this.assignLocalFileAsync((req.files[file] as UploadedFile).tempFilePath, Object.assign({
+                user: req.dfw.session.user,
+                ext: DFWUtils.getFilenameExtension((req.files[file] as UploadedFile).name)
+            }, cfg), true);
         }
     }
 

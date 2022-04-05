@@ -144,7 +144,7 @@ export default class APIManager extends DFWModule {
                     __meta: {
                         config,
                     },
-                    innstance: this.instance,
+                    instance: this.instance,
                 } as any;
                 next();
             }
