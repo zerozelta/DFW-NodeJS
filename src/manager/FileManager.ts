@@ -127,33 +127,31 @@ export default class FileManager extends DFWModule {
             });
         }
 
-        return this.db.$transaction(async () => {
-            // Removing same variant if has variant and parent
-            if (cfg.parent && cfg.variant) {
-                let dfl = await this.db.dfw_file.findMany({
-                    where: {
-                        idParent,
-                        variant,
-                    }
-                });
-                for (let df of dfl) { await this.removeFileAsync(df); }
-            }
-
-            return this.db.dfw_file.create({
-                data: {
+        // Removing same variant if has variant and parent
+        if (cfg.parent && cfg.variant) {
+            let variantFiles = await this.db.dfw_file.findMany({
+                where: {
                     idParent,
-                    mimetype,
-                    checksum,
-                    expire,
                     variant,
-                    description,
-                    path: finalFilePath,
-                    idUser: cfg.user === null ? null : typeof cfg.user == "object" ? cfg.user.id : cfg.user,
-                    slug: cfg.slug,
-                    size: stats.size,
                 }
             });
-        })
+            await this.removeFilesAsync(variantFiles);
+        }
+
+        return this.db.dfw_file.create({
+            data: {
+                idParent,
+                mimetype,
+                checksum,
+                expire,
+                variant,
+                description,
+                path: finalFilePath,
+                idUser: cfg.user === null ? null : typeof cfg.user == "object" ? cfg.user.id : cfg.user,
+                slug: cfg.slug,
+                size: stats.size,
+            }
+        });
     }
 
     /**
@@ -164,7 +162,7 @@ export default class FileManager extends DFWModule {
     public async flushUpload(req: DFWRequest, file: string, cfg: FileConfig = {}) {
         if (!req.files) throw `DFW_ERROR_UPLOAD_ENPOINT_MUST_BE_ENABLED`;
         if (!req.files[file]) throw `DFW_ERROR_UNABLE_TO_FOUND_FILE_UPLOAD_NAME`;
-        
+
         if (Array.isArray(!req.files[file])) {
             return (req.files[file] as UploadedFile[]).map(async (fileData, index) => {
                 return await this.assignLocalFileAsync(fileData.tempFilePath, Object.assign({
@@ -187,10 +185,17 @@ export default class FileManager extends DFWModule {
     /**
      * Remove file record from the DB and from the local file space (removes their children too)
      */
-    public async removeFileAsync(file: number | dfw_file) {
+    public async removeFilesAsync(file: number | dfw_file | number[] | dfw_file[]) {
+        //TODO Implementar funcion
+        // Primero eliminar de la base de datos (en bulk 'delete many'), despues del disco duro (si falla el delete de la base de datos conservar archivos en disco duro)
+        /*
         let path: string;
         let idFile = typeof file == "object" ? file.id : file;
-        let fileObj = typeof file == "object" ? file : await this.db.dfw_file.findUnique({ select: { path: true }, where: { id: idFile } });
+        let fileObj = typeof file == "object" ? file : await this.db.dfw_file.findUnique({
+            select: { path: true }, where: {
+                id: idFile
+            }
+        });
 
         if (fileObj) {
             path = fileObj.path;
@@ -204,9 +209,7 @@ export default class FileManager extends DFWModule {
             }
         });
 
-        for (let fc of childrenFiles) {
-            if (fc) await this.removeFileAsync(fc); // Remove all children files
-        }
+        await this.removeFilesAsync(childrenFiles);
 
         if (fs.existsSync(path)) {
             await fileUnlink(path).then(() => {
@@ -217,7 +220,7 @@ export default class FileManager extends DFWModule {
                 });
             }).catch(() => { throw `Unable to remove file ${idFile}` });
         }
-
+        */
     }
 
 

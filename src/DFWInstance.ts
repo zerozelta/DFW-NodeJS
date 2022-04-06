@@ -24,7 +24,7 @@ class DFWInstance {
         this.config = config;
 
         this.database = new PrismaClient({
-            //log: process.env.NODE_ENV == "development" ? ['query', 'info', 'warn', 'error'] : undefined,
+            log: config.database ? config.database.log ? ['query', 'info', 'warn', 'error'] : undefined : undefined,
         });
 
         if (fs.existsSync(".dfw") == false) {

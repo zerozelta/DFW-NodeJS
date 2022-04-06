@@ -118,6 +118,7 @@ export default class APIManager extends DFWModule {
             }).catch((err) => next(err));
         }));
 
+        // error handler middleware
         handlers.push(((err: any, req: Request, res: Response, next: NextFunction) => {
             if (process.env.NODE_ENV == "development") console.error(`[DFW_ERROR] ${err}`);
             res.statusCode = 500;
