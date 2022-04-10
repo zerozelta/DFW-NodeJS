@@ -4,13 +4,13 @@ import { DFWRequest } from "../types/DFWRequestScheme";
 import DFWModule from "./DFWModule";
 import md5File from 'md5-file';
 
-import { Response, Request } from "express";
+import { Response } from "express";
 
 import * as fs from "fs";
 import * as path from "path";
 import DFWUtils from "../DFWUtils";
 import { dfw_file, dfw_user } from "@prisma/client";
-import fileUpload, { UploadedFile } from "express-fileupload";
+import { UploadedFile } from "express-fileupload";
 import { DateTime } from "luxon";
 
 const fileExistsAsync = promisify(fs.exists);
@@ -135,7 +135,10 @@ export default class FileManager extends DFWModule {
                     variant,
                 }
             });
-            await this.removeFilesAsync(variantFiles);
+
+            for (let vFile of variantFiles) {
+                await this.removeFileAsync(vFile);
+            }
         }
 
         return this.db.dfw_file.create({
@@ -178,49 +181,80 @@ export default class FileManager extends DFWModule {
         }
     }
 
+    /**
+     * 
+     * @param posfix 
+     * @returns 
+     */
     public generateTempFileName(posfix?: string) {
         return path.join(this.tmpDir, `${DFWUtils.uuid()}${posfix ? `.${posfix}` : ""}`);
     }
 
     /**
-     * Remove file record from the DB and from the local file space (removes their children too)
+     * Get an array of all childrens of the file in the tree (including 2 levels of nested files)
+     * @param file 
      */
-    public async removeFilesAsync(file: number | dfw_file | number[] | dfw_file[]) {
-        //TODO Implementar funcion
-        // Primero eliminar de la base de datos (en bulk 'delete many'), despues del disco duro (si falla el delete de la base de datos conservar archivos en disco duro)
-        /*
-        let path: string;
-        let idFile = typeof file == "object" ? file.id : file;
-        let fileObj = typeof file == "object" ? file : await this.db.dfw_file.findUnique({
-            select: { path: true }, where: {
-                id: idFile
-            }
-        });
-
-        if (fileObj) {
-            path = fileObj.path;
-        } else {
-            throw `Unable to find file`
-        }
-
-        let childrenFiles = await this.db.dfw_file.findMany({
+    public async getChildrenFileIdsAsync(file: number | { id: number }): Promise<number[]> {
+        let queryRes = await this.db.dfw_file.findMany({
+            select: {
+                id: true,
+                idParent: true,
+                children: true,
+            },
             where: {
-                idParent: idFile
+                idParent: typeof file == "number" ? file : file.id
             }
         });
 
-        await this.removeFilesAsync(childrenFiles);
+        let res: any[] = [];
 
-        if (fs.existsSync(path)) {
-            await fileUnlink(path).then(() => {
-                this.db.dfw_file.delete({
-                    where: {
-                        id: idFile
-                    }
-                });
-            }).catch(() => { throw `Unable to remove file ${idFile}` });
+        for (let f of queryRes) {
+            res.push(f.id);
+            for (let fc of f.children) {
+                res.push(fc.id);
+            }
         }
-        */
+
+        return res.flat();
+    }
+
+    /**
+     * 
+     * @param file 
+     */
+    public async removeFileAsync(file: number | dfw_file) {
+
+        let ids = [typeof file == "object" ? file.id : file, ...await this.getChildrenFileIdsAsync(file)];
+
+        let deletableFiles = await this.db.dfw_file.findMany({
+            where: {
+                id: {
+                    in: ids
+                }
+            }
+        });
+
+        await this.db.dfw_file.deleteMany({
+            where: {
+                id: {
+                    in: ids
+                }
+            }
+        }).catch((e) => { throw new Error(`Unable to delete file records in DB ` + e) });
+
+        for (let file of deletableFiles) {
+            if (fs.existsSync(file.path)) {
+                await fileUnlink(file.path).then(() => {
+                    this.db.dfw_file.delete({
+                        where: {
+                            id: file.id
+                        }
+                    });
+                }).catch(() => { /* Do nothing */ });
+            }
+        }
+
+        return deletableFiles;
     }
 
 

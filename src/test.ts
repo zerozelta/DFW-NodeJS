@@ -7,7 +7,7 @@ var DFW = DFWCore.createInstance();
 DFW.APIManager.startServer(300);
 
 DFW.APIManager.addListener("/", async (req, res) => {
-    return { hola: "mundo" }
+    return DFW.FileManager.removeFileAsync(1);
 })
 
 DFW.APIManager.addListener("/login", async (req, res, dfw) => {

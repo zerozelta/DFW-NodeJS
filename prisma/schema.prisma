@@ -41,7 +41,7 @@ model dfw_file {
   description String?     @db.VarChar(255)
   idUser      Int?        @db.UnsignedInt
   variant     String?     @db.VarChar(255)
-  size        BigInt?     @db.UnsignedBigInt
+  size        Int?        @db.UnsignedInt
   checksum    String?     @db.VarChar(255)
   slug        String?     @db.VarChar(255)
   mimetype    String?     @db.VarChar(255)
