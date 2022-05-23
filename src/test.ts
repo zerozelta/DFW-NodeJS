@@ -20,13 +20,22 @@ DFW.APIManager.addListener("/logout", async (req, res, dfw) => {
     return dfw.boot();
 })
 
+DFW.APIManager.addListener("/security", async (req, res, dfw) => {
+    console.log("Esto no debería haber pasado de aqui")
+    return dfw.boot();
+}, {
+    security: {
+        session: true
+    }
+})
+
 DFW.APIManager.addListener("/boot", async (req, res) => {
     return req.dfw.boot();
 })
 
 DFW.APIManager.addListener("/file", async (req, res) => {
     return req.dfw.FileManager.flushUpload(req, "file", { description: "File test" });
-}, { method: "post", upload: true })
+}, { method: "post", upload: true, security: { session: true } })
 
 DFW.APIManager.addListener("/error", async (req, res, dfw) => {
     return await dfw.db.$transaction(async (db) => {

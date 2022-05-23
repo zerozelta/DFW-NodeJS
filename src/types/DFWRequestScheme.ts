@@ -13,9 +13,7 @@ export type DFWRequest = {
 
 export type DFWRequestScheme = {
     __meta: {
-        config?: any,
         noSession: boolean; // indicates session will not be saved in the database neither send session cookie to the client
-
     },
     instance: DFWInstance,
     session: {

@@ -1,6 +1,6 @@
 {
   "name": "@scefira/dfw",
-  "version": "0.1.4",
+  "version": "0.1.6",
   "description": "nodejs express fast prototype library",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",

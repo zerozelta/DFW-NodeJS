@@ -27,13 +27,6 @@ export default class SecurityManager extends DFWModule {
     }
 
     public middleware = async (req: DFWRequest, res: Response) => {
-        let config: APIListenerConfig = req.dfw.__meta.config ? req.dfw.__meta.config : {};
-        let bindings = config.security ? SecurityManager.jsonToBindings(config.security) : [];
-
-        for (let binding of bindings) {
-            if (await this.checkBindingAsync(req, binding[0], binding[1]) === false) throw SecurityManager.RULE_LABELS[binding[0]], binding[0];
-        }
-
         req.dfw.SecurityManager = this;
     }
 

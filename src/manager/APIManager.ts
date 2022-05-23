@@ -8,6 +8,7 @@ import DFWBoot from "../types/DFWBoot";
 import DFWInstance from "../DFWInstance";
 import express from "express";
 import cookieParser from "cookie-parser";
+import SecurityManager from "./SecurityManager";
 
 export type APIFunction = (req: DFWRequest, res: Response, dfw: DFWRequestScheme) => (Promise<any> | any)
 export type APIMethods = "get" | "put" | "post" | "delete" | "options" | "link";
@@ -33,7 +34,7 @@ export default class APIManager extends DFWModule {
 
     public server?: Express;
 
-    public API_ROUTER: Router = express.Router();
+    public DFW_BASIC_ROUTER: Router = express.Router();
 
     private bootCallbacks: BootCallback[] = [
 
@@ -82,6 +83,32 @@ export default class APIManager extends DFWModule {
 
     constructor(DFW: DFWInstance) {
         super(DFW);
+
+        this.DFW_BASIC_ROUTER.use(cookieParser());
+
+        this.DFW_BASIC_ROUTER.use(((req: DFWRequest, res: Response, next: NextFunction) => {
+            req.dfw = {
+                __meta: {},
+                instance: this.instance,
+            } as any;
+            next();
+        }) as any);
+
+        this.DFW_BASIC_ROUTER.use(MiddlewareAsyncWrapper(async (req: DFWRequest, res: Response, next: NextFunction) => {
+            try {
+                await this.instance.DatabaseManager.middleware(req, res);
+                await this.instance.SessionManager.middleware(req, res);
+                await this.instance.SecurityManager.middleware(req, res);
+                await this.instance.UserManager.middleware(req, res);
+                await this.instance.FileManager.middleware(req, res);
+                await this.instance.APIManager.middleware(req, res);
+
+                next();
+            } catch (e) {
+                next(e);
+            }
+        }));
+
     }
 
     public async middleware(req: DFWRequest, res: Response) {
@@ -89,11 +116,8 @@ export default class APIManager extends DFWModule {
     }
 
     public startServer(port = 3000, server: Express = require("express")()) {
-        this.API_ROUTER.use(cookieParser());
-
-        server.listen(port);
         this.server = server;
-
+        this.server.listen(port);
         console.log(`[DFW] Server listening on port ${port}`);
     }
 
@@ -107,7 +131,7 @@ export default class APIManager extends DFWModule {
 
         if (!this.server) throw `you must start an DFW/Express Server before add a listener`;
 
-        let handlers = this.makeRequestHandlers(config);
+        let handlers = this.makeAPIListenerMiddlewares(config);
 
         // APIFunction middleware
         handlers.push(MiddlewareAsyncWrapper(async (req: DFWRequest, res: Response, next: NextFunction) => {
@@ -132,49 +156,40 @@ export default class APIManager extends DFWModule {
             next(err);
         }) as any);
 
-        this.server.use(path, this.API_ROUTER);
+        this.server.use(path, this.DFW_BASIC_ROUTER); // Install basic middleware
         this.server[config.method ? config.method.toLowerCase() : "get"](path, handlers);
 
         console.log(`[API][${config.method ? config.method.toUpperCase() : "GET"}] ${path}`);
     }
 
-    makeRequestHandlers(config: APIListenerConfig = {}) {
-        let handlers: any[] = [
-            (req: DFWRequest, res: Response, next: NextFunction) => {
-                req.dfw = {
-                    __meta: {
-                        config,
-                    },
-                    instance: this.instance,
-                } as any;
-                next();
-            }
-        ];
+    makeAPIListenerMiddlewares(config: APIListenerConfig = {}) {
+        let handlers: any[] = [];
+
+        //Check security middleware
+        if (config.security) {
+            handlers.push(
+                MiddlewareAsyncWrapper(async (req: DFWRequest, res: Response, next: NextFunction) => {
+                    let bindings = config.security ? SecurityManager.jsonToBindings(config.security) : [];
+                    for (let binding of bindings) {
+                        console.log(binding);
+                        if (await req.dfw.SecurityManager.checkBindingAsync(req, binding[0], binding[1]) === false) {
+                            next(`${SecurityManager.RULE_LABELS[binding[0]]}`);
+                        }
+                    }
+                    next();
+                })
+            )
+        }
 
         // Body parser
         if (config.parseBody !== false) { // Body parser middleware
             handlers.push(bodyParser.json(), bodyParser.urlencoded({ extended: true }));
         }
 
+        // Upload handler
         if (config.upload) {
             handlers.push(fileUpload(Object.assign(config.upload, config, { useTempFiles: true, tempFileDir: this.instance.FileManager.tmpDir })));
         }
-
-        handlers.push(MiddlewareAsyncWrapper(async (req: DFWRequest, res: Response, next: NextFunction) => {
-            try {
-
-                await this.instance.DatabaseManager.middleware(req, res);
-                await this.instance.SessionManager.middleware(req, res);
-                await this.instance.SecurityManager.middleware(req, res);
-                await this.instance.UserManager.middleware(req, res);
-                await this.instance.FileManager.middleware(req, res);
-                await this.instance.APIManager.middleware(req, res);
-
-                next();
-            } catch (e) {
-                next(e);
-            }
-        }));
 
         return handlers;
     }
