@@ -16,12 +16,12 @@ export default class UserManager extends DFWModule {
         dfw.UserManager = this;
     }
 
-    public async createUserAsync(email: string, nick: string, password: string) {
+    public async createUserAsync(email: string, nick: string, password?: string) {
         return this.db.dfw_user.create({
             data: {
                 nick,
                 email,
-                encodedKey: SecurityManager.encryptPassword(password)
+                encodedKey: password ? SecurityManager.encryptPassword(password) : undefined
             }
         });
     }

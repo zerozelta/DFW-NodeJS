@@ -5,6 +5,7 @@ import DFWModule from "./DFWModule";
 import { DateTime } from "luxon";
 import DFWUtils from "../DFWUtils";
 import SecurityManager from "./SecurityManager";
+import { dfw_session } from "@prisma/client";
 
 const DEFAULT_SESSION_EXPIRE_DAYS = 7;
 const DEFAULT_COOKIES_SETTINGS = {
@@ -37,9 +38,7 @@ export default class SessionManager extends DFWModule {
             let session = await this.db.dfw_session.findFirst({
                 where: { id: Number(req.cookies.sid), token: req.cookies.stk },
                 include: {
-                    user: {
-                        select: { id: true, nick: true, email: true }
-                    }
+                    user: true
                 },
             });
 
@@ -70,7 +69,7 @@ export default class SessionManager extends DFWModule {
     private async regenerateSessionAsync(req: DFWRequest) {
         let token = DFWUtils.uuid();
 
-        let session = await this.db.dfw_session.create({
+        let session: dfw_session = await this.db.dfw_session.create({
             data: {
                 token,
                 agent: req.headers['user-agent'] ?? "",
@@ -106,7 +105,7 @@ export default class SessionManager extends DFWModule {
                     }
                 });
 
-                req.dfw.session = { isLogged: true, record: sessionUpdated , user: userObj }
+                req.dfw.session = { isLogged: true, record: sessionUpdated, user: userObj }
 
                 return true;
             }

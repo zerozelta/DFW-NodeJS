@@ -90,6 +90,8 @@ export default class APIManager extends DFWModule {
             req.dfw = {
                 __meta: {},
                 instance: this.instance,
+                req,
+                res
             } as any;
             next();
         }) as any);
