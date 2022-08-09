@@ -112,6 +112,7 @@ export default class FileManager extends DFWModule {
         let description = cfg.description;
         let variant = cfg.variant;
         let idParent = typeof cfg.parent == "object" ? cfg.parent.id : cfg.parent;
+        let idUser =  typeof cfg.user === "object" ? cfg.user!.id : cfg.user
 
         if (await fileExistsAsync(partialPath) == false) {
             await fileMakeDir(partialPath, { recursive: true });
@@ -149,8 +150,8 @@ export default class FileManager extends DFWModule {
                 expire,
                 variant,
                 description,
+                idUser,
                 path: finalFilePath,
-                idUser: cfg.user === null ? null : typeof cfg.user == "object" ? cfg.user.id : cfg.user,
                 slug: cfg.slug,
                 size: stats.size,
             }

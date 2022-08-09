@@ -149,7 +149,7 @@ export default class APIManager extends DFWModule {
             if (process.env.NODE_ENV == "development") console.error(`[DFW_ERROR] ${err}`);
             res.statusCode = 500;
 
-            if (err instanceof TypeError) {
+            if (typeof err === "object" && err.message) {
                 res.json({ error: err.message, stack: process.env.NODE_ENV == "development" ? err.stack : null }).end();
             } else {
                 res.json({ error: err }).end();
