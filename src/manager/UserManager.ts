@@ -42,40 +42,8 @@ export default class UserManager extends DFWModule {
         return this.db.dfw_access.create({ data: { name, description } });
     }
 
-    public async addCredentialAsync(user: dfw_user, credential: dfw_credential | number | string | any[]): Promise<dfw_credential[]> {
-        if (Array.isArray(credential)) {
-            let result = await Promise.all(credential.map((credentialObj) => this.addCredentialAsync(user, credentialObj)))
-            return result.flat(1);
-        } else {
-            let idCredential: number;
-
-            if (typeof credential == "number") {
-                idCredential = credential;
-            } else if (typeof credential == "string") {
-                let credentialObj = (await this.db.dfw_credential.findFirst({ where: { name: credential } }));
-                if (credentialObj) { idCredential = credentialObj.id; } else { return [] }
-            } else {
-                idCredential = credential.id;
-            }
-
-            let newCredential = await this.db.dfw_credential.update({
-                data: {
-                    users: {
-                        create: {
-                            user: {
-                                connect: {
-                                    id: user.id
-                                }
-                            }
-                        }
-                    }
-                },
-                where: {
-                    id: idCredential
-                }
-            }).catch((e) => []) as any;
-            return Array.isArray(newCredential) ? newCredential : [newCredential];
-        }
+    public async assignCredentialAsync(user: number | dfw_user, credential: dfw_credential | number | string | any[]): Promise<dfw_credential[]> {
+        return this.instance.SecurityManager.use(this.db).addCredentialToAsync(user, credential);
     }
 
 }

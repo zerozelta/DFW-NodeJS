@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import Password from "node-php-password";
 import { DFWRequest } from "../types/DFWRequestScheme";
-import { APIListenerConfig, ListenerSecurityConfig } from "../types/APIListenerConfig";
+import { ListenerSecurityConfig } from "../types/APIListenerConfig";
 import DFWModule from "./DFWModule";
 import { dfw_access, dfw_credential, dfw_user } from "@prisma/client";
 
@@ -137,6 +137,43 @@ export default class SecurityManager extends DFWModule {
     public async checkUserAccessAsync(user: dfw_user | null | undefined, access: dfw_access | dfw_access[] | string | string[]) {
         if (!user) return false;
         return false
+    }
+
+    public async addCredentialToAsync(user: number | dfw_user, credential: dfw_credential | number | string | any[]) {
+        const idUser = typeof user === "object" ? user.id : user;
+        if (Array.isArray(credential)) {
+            let result = await Promise.all(credential.map((credentialObj) => this.addCredentialToAsync(user, credentialObj)))
+            return result.flat(1);
+        } else {
+            let idCredential: number;
+
+            if (typeof credential == "number") {
+                idCredential = credential;
+            } else if (typeof credential == "string") {
+                let credentialObj = (await this.db.dfw_credential.findFirst({ where: { name: credential } }));
+                if (credentialObj) { idCredential = credentialObj.id; } else { return [] }
+            } else {
+                idCredential = credential.id;
+            }
+
+            let newCredential = await this.db.dfw_credential.update({
+                data: {
+                    users: {
+                        create: {
+                            user: {
+                                connect: {
+                                    id: idUser
+                                }
+                            }
+                        }
+                    }
+                },
+                where: {
+                    id: idCredential
+                }
+            }).catch((e) => []) as any;
+            return Array.isArray(newCredential) ? newCredential : [newCredential];
+        }
     }
 
     public checkBodyParams(req: Request, params: string[]): boolean {

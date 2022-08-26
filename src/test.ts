@@ -1,6 +1,16 @@
 import { DFWCore } from ".";
 
-var DFW = DFWCore.createInstance();
+var DFW = DFWCore.createInstance({
+    session: {
+        cookieOptions: {
+            sameSite: "lax",
+            secure: false,
+            httpOnly: true,
+            domain: "localhost",
+            maxAge: 60 * 1000 * 60 * 24 * 365 // 365 days
+        }
+    }
+});
 
 //DFW.DatabaseManager.database.sync(); 
 
@@ -42,7 +52,7 @@ DFW.APIManager.addListener("/error", async (req, res, dfw) => {
         let t1 = performance.now();
         await dfw.UserManager.use(db).createCredentiaASync("DUMMY-1")
         console.log(performance.now() - t1);
-        throw new Error("ERROR_TONTO");
+        throw new Error("ERROR");
         await dfw.UserManager.use(db).createCredentiaASync("DUMMY-2")
         await dfw.UserManager.use(db).createCredentiaASync("DUMMY-2")
     }).catch((e) => {
@@ -55,6 +65,6 @@ DFW.APIManager.addListener("/strap", async ({ dfw }, res) => {
     let newUser = await dfw.UserManager.createUserAsync("aldodelacomarca@gmail.com", "zerozelta", "Aldo1234");
     let newCredential = await dfw.SecurityManager.createCredentialAsync("ADMIN");
     let user = await dfw.db.dfw_user.findUnique({ where: { id: 1 } });
-    let credential = await dfw.UserManager.addCredentialAsync(user!, ["ADMIN", "TESTER"]);
+    let credential = await dfw.UserManager.assignCredentialAsync(user!, ["ADMIN", "TESTER"]);
     return { credential }
 });

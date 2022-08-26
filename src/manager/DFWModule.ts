@@ -23,14 +23,6 @@ export default abstract class DFWModule {
     public use(db:PrismaClient|Omit<PrismaClient, '$connect' | '$disconnect' | '$on' | '$transaction' | '$use'>): this {
         this._db = db;
         return this;
-        /*
-        return new Proxy(this,{
-            get: (target, prop, receiver)=>{
-                if(prop === "db") return db;
-                return target[prop];
-            }
-        });
-        */
     }
 
     public static middleware?: (req: Request, res: Response, next: NextFunction) => void

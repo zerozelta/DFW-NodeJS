@@ -8,9 +8,6 @@ import SecurityManager from "./SecurityManager";
 import { dfw_session } from "@prisma/client";
 
 const DEFAULT_SESSION_EXPIRE_DAYS = 7;
-const DEFAULT_COOKIES_SETTINGS = {
-
-}
 
 export default class SessionManager extends DFWModule {
 
@@ -41,7 +38,6 @@ export default class SessionManager extends DFWModule {
                     user: true
                 },
             });
-
             req.dfw.session = session ? { record: session, user: session.user as any, isLogged: session.user ? true : false } : await this.regenerateSessionAsync(req);
         }
 
@@ -150,6 +146,8 @@ export default class SessionManager extends DFWModule {
         let diffCookies = req.cookies.sid != req.dfw.session.record.id || req.cookies.stk != req.dfw.session.record.token;
 
         if (!diffCookies) return; // no diference in cookies prevent reset cookies
+
+        console.log(cookieOptions);
 
         res.cookie(this.sidFieldName, req.dfw.session.record.id, cookieOptions);
         res.cookie(this.stkFieldName, req.dfw.session.record.token, cookieOptions);
