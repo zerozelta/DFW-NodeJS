@@ -4,7 +4,7 @@ import { DFWRequest } from "../types/DFWRequestScheme";
 import DFWModule from "./DFWModule";
 import md5File from 'md5-file';
 
-import { Response } from "express";
+import express, { Response } from "express";
 
 import * as fs from "fs";
 import * as path from "path";
@@ -51,13 +51,18 @@ export type UploadConfig = {
 }
 
 const DEFAULT_PUBLIC_STATIC_FILES_PATH = "/static/upload";
-const LOCAL_PUBLIC_UPLOAD_DIR = ".dfw/upload/public";
-const LOCAL_PROTECTED_UPLOAD_DIR = ".dfw/upload/protected";
 
 export default class FileManager extends DFWModule {
 
+    readonly LOCAL_PUBLIC_UPLOAD_DIR = ".dfw/upload/public";
+    readonly LOCAL_PROTECTED_UPLOAD_DIR = ".dfw/upload/protected";
+
     readonly tmpDir: string;
-    readonly publicStaticFilesPath = DEFAULT_PUBLIC_STATIC_FILES_PATH;
+    private publicStaticFilesPath = DEFAULT_PUBLIC_STATIC_FILES_PATH;
+
+    get PUBLIC_STATIC_FILES_PATH() {
+        return this.publicStaticFilesPath;
+    }
 
     constructor(DFW: DFWInstance) {
         super(DFW);
@@ -78,7 +83,7 @@ export default class FileManager extends DFWModule {
         this.tmpDir = path.normalize(fs.mkdtempSync(`${this.tmpDir}${path.sep}`));
 
         // Public static upload path
-        //DFW.APIManager.server.use(this.publicStaticFilesPath, ExpressStatic(LOCAL_PUBLIC_UPLOAD_DIR, { maxAge: 2592000 }));
+        DFW.APIManager.server.use(this.publicStaticFilesPath, express.static(this.LOCAL_PUBLIC_UPLOAD_DIR, { maxAge: 2592000 }));
 
         // Clear expired files each 6 hours
         /*
@@ -106,13 +111,13 @@ export default class FileManager extends DFWModule {
         let stats = await fileStat(filePath);
         let filename = `${DFWUtils.uuid()}.${cfg.ext ?? DFWUtils.getFilenameExtension(filePath)}`;
         let mimetype = DFWUtils.getFileMimetype(filename);
-        let partialPath = `${cfg.protected ? LOCAL_PROTECTED_UPLOAD_DIR : LOCAL_PUBLIC_UPLOAD_DIR}/${DateTime.now().toFormat("y/MM")}`
+        let partialPath = `${cfg.protected ? this.LOCAL_PROTECTED_UPLOAD_DIR : this.LOCAL_PUBLIC_UPLOAD_DIR}/${DateTime.now().toFormat("y/MM")}`
         let expire = cfg.expiration ? cfg.expiration : null;
         let finalFilePath = `${partialPath}/${filename}`;
         let description = cfg.description;
         let variant = cfg.variant;
         let idParent = typeof cfg.parent == "object" ? cfg.parent.id : cfg.parent;
-        let idUser =  typeof cfg.user === "object" ? cfg.user!.id : cfg.user
+        let idUser = typeof cfg.user === "object" ? cfg.user!.id : cfg.user
 
         if (await fileExistsAsync(partialPath) == false) {
             await fileMakeDir(partialPath, { recursive: true });

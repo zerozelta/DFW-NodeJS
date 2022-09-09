@@ -32,7 +32,7 @@ export type BootCallback = (req: DFWRequest, boot: DFWBoot) => Promise<any>;
 
 export default class APIManager extends DFWModule {
 
-    public server?: Express;
+    public server: Express = require("express")();
 
     public DFW_BASIC_ROUTER: Router = express.Router();
 
@@ -117,8 +117,7 @@ export default class APIManager extends DFWModule {
         req.dfw.boot = () => this.getBootAsync(req);
     }
 
-    public startServer(port = 3000, server: Express = require("express")()) {
-        this.server = server;
+    public startServer(port = 3000) {
         this.server.listen(port);
         console.log(`[DFW] Server listening on port ${port}`);
     }

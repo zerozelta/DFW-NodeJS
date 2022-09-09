@@ -1,4 +1,5 @@
 import { RequestHandler } from "express";
+import fileUpload from "express-fileupload";
 import { APIMethods } from "../manager/APIManager";
 import { DFWRequest } from "./DFWRequestScheme";
 
@@ -27,8 +28,9 @@ export type APIListenerConfig = {
  
      /**
       *  allow/disallow to upload files 
+      *  @default false
       */
-     upload?:any;
+     upload?:true|fileUpload.Options;
  
      /**
       * Disable the autosend system, allows you to specify what send to the clien and when
