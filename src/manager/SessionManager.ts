@@ -147,8 +147,6 @@ export default class SessionManager extends DFWModule {
 
         if (!diffCookies) return; // no diference in cookies prevent reset cookies
 
-        console.log(cookieOptions);
-
         res.cookie(this.sidFieldName, req.dfw.session.record.id, cookieOptions);
         res.cookie(this.stkFieldName, req.dfw.session.record.token, cookieOptions);
 

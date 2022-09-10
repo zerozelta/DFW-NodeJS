@@ -165,6 +165,11 @@ export default class APIManager extends DFWModule {
 
     makeAPIListenerMiddlewares(config: APIListenerConfig = {}) {
         let handlers: any[] = [];
+        
+        // Body parser
+        if (config.parseBody !== false) { // Body parser middleware
+            handlers.push(bodyParser.json(), bodyParser.urlencoded({ extended: true }));
+        }
 
         //Check security middleware
         if (config.security) {
@@ -172,7 +177,6 @@ export default class APIManager extends DFWModule {
                 MiddlewareAsyncWrapper(async (req: DFWRequest, res: Response, next: NextFunction) => {
                     let bindings = config.security ? SecurityManager.jsonToBindings(config.security) : [];
                     for (let binding of bindings) {
-                        console.log(binding);
                         if (await req.dfw.SecurityManager.checkBindingAsync(req, binding[0], binding[1]) === false) {
                             next(`${SecurityManager.RULE_LABELS[binding[0]]}`);
                         }
@@ -180,11 +184,6 @@ export default class APIManager extends DFWModule {
                     next();
                 })
             )
-        }
-
-        // Body parser
-        if (config.parseBody !== false) { // Body parser middleware
-            handlers.push(bodyParser.json(), bodyParser.urlencoded({ extended: true }));
         }
 
         // Upload handler
