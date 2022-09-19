@@ -6,6 +6,7 @@ import SessionManager from "../manager/SessionManager";
 import FileManager from "../manager/FileManager";
 import DFWBoot from "./DFWBoot";
 import { dfw_session, dfw_user, PrismaClient } from "@prisma/client";
+import { APIListenerConfig } from "./APIListenerConfig";
 
 export type DFWRequest = {
     dfw: DFWRequestScheme;
@@ -13,7 +14,7 @@ export type DFWRequest = {
 
 export type DFWRequestScheme = {
     __meta: {
-        noSession: boolean // indicates session will not be saved in the database neither send session cookie to the client
+        config: APIListenerConfig       // retrives the API configuration
     },
     req:DFWRequest
     res:Response

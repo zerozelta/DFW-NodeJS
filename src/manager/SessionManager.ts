@@ -29,6 +29,8 @@ export default class SessionManager extends DFWModule {
 
         req.dfw.SessionManager = this;
 
+        if (req.dfw.__meta.config.noSession) return;
+
         if (!req.cookies || !req.cookies.sid || !req.cookies.stk) {
             req.dfw.session = await this.regenerateSessionAsync(req);
         } else {
@@ -44,16 +46,18 @@ export default class SessionManager extends DFWModule {
         this.setSessionCookies(req, res);
 
         res.on("finish", async () => { // callback to touch the session record
-            await req.dfw.db.dfw_session.update({
-                data: {
-                    ip: req.ip,
-                    agent: req.headers['user-agent'] ?? "",
-                    expire: DateTime.now().plus({ days: this.sessionExpirationDays }).toJSDate()
-                },
-                where: {
-                    id: Number(req.dfw.session.record.id)
-                }
-            })
+            if (!req.dfw.__meta.config.noSession) {
+                await req.dfw.db.dfw_session.update({
+                    data: {
+                        ip: req.ip,
+                        agent: req.headers['user-agent'] ?? "",
+                        expire: DateTime.now().plus({ days: this.sessionExpirationDays }).toJSDate()
+                    },
+                    where: {
+                        id: Number(req.dfw.session.record.id)
+                    }
+                })
+            }
         });
     };
 

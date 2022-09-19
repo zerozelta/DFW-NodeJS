@@ -38,6 +38,12 @@ export type APIListenerConfig = {
      autoSend?:boolean;
 
      /**
+      * if false the session system will be disabled for this api endpoint
+      * @default true
+      */
+      noSession?:boolean;
+
+     /**
       * Callback function after the server responses to the client (after the connection was closed)
       */
      callback?:(req:DFWRequest,objResponse:any)=>Promise<void>

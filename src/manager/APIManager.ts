@@ -88,7 +88,9 @@ export default class APIManager extends DFWModule {
 
         this.DFW_BASIC_ROUTER.use(((req: DFWRequest, res: Response, next: NextFunction) => {
             req.dfw = {
-                __meta: {},
+                __meta: {
+                    config: req['__dfw_APIConfig'] ?? {}
+                },
                 instance: this.instance,
                 req,
                 res
@@ -104,7 +106,6 @@ export default class APIManager extends DFWModule {
                 await this.instance.UserManager.middleware(req, res);
                 await this.instance.FileManager.middleware(req, res);
                 await this.instance.APIManager.middleware(req, res);
-
                 next();
             } catch (e) {
                 next(e);
@@ -157,7 +158,16 @@ export default class APIManager extends DFWModule {
             next(err);
         }) as any);
 
-        this.server.use(path, this.DFW_BASIC_ROUTER); // Install basic middleware
+        // Setup meta data
+        this.server[config.method ? config.method.toLowerCase() : "get"](path, ((req: Request, _res: Response, next: NextFunction) => {
+            req["__dfw_APIConfig"] = config;
+            next();
+        }) as any);
+
+        // Install basic middleware
+        this.server[config.method ? config.method.toLowerCase() : "get"](path, this.DFW_BASIC_ROUTER);
+
+        // Install API handlers
         this.server[config.method ? config.method.toLowerCase() : "get"](path, handlers);
 
         console.log(`[API][${config.method ? config.method.toUpperCase() : "GET"}] ${path}`);
@@ -165,7 +175,7 @@ export default class APIManager extends DFWModule {
 
     makeAPIListenerMiddlewares(config: APIListenerConfig = {}) {
         let handlers: any[] = [];
-        
+
         // Body parser
         if (config.parseBody !== false) { // Body parser middleware
             handlers.push(bodyParser.json(), bodyParser.urlencoded({ extended: true }));
