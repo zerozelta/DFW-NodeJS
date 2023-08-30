@@ -1,18 +1,18 @@
 export type DFWBoot = {
-    session:{
-        user?:{
-            id:number,
-            nick?:string,
-            email?:string,
+    session: {
+        user?: {
+            id: number,
+            nick?: string,
+            email?: string,
+            credentials: {
+                id: number,
+                name: string,
+                access: {
+                    id: number,
+                    name: string,
+                }[]
+            }[],
         }
-        credentials:{
-            id:number,
-            name:string,
-        }[],
-        access:{
-            id:number,
-            name:string,
-        }[]
     }
 }
 

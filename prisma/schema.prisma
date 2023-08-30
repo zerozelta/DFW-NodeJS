@@ -16,7 +16,7 @@ model dfw_access {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  credentials dfw_credentials_access[]
+  credentials dfw_credential[]
 
   @@index([name])
 }
@@ -29,8 +29,8 @@ model dfw_credential {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  users       dfw_users_credentials[]
-  access      dfw_credentials_access[]
+  users       dfw_user[]
+  access      dfw_access[]
 
   @@index([name])
 }
@@ -89,31 +89,9 @@ model dfw_user {
   updatedAt   DateTime        @updatedAt
 
   sessions    dfw_session[]
-  credentials dfw_users_credentials[]
+  credentials dfw_credential[]
   files       dfw_file[]
 
   @@index([email])
   @@index([nick])
-}
-
-// Pivot tables
-
-model dfw_credentials_access {
-  idAccess      Int             @db.UnsignedInt
-  idCredential  Int             @db.UnsignedInt
-
-  credentials   dfw_credential  @relation(fields: [idCredential] , references: [id])
-  access        dfw_access      @relation(fields: [idAccess] , references: [id])
-
-  @@id([idAccess, idCredential])
-}
-
-model dfw_users_credentials {
-  idUser       Int              @db.UnsignedInt
-  idCredential Int              @db.UnsignedInt
-
-  user         dfw_user         @relation(fields: [idUser], references: [id])
-  credential   dfw_credential   @relation(fields: [idCredential], references: [id])
-
-  @@id([idUser, idCredential])
 }

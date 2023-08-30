@@ -159,12 +159,8 @@ export default class SecurityManager extends DFWModule {
             let newCredential = await this.db.dfw_credential.update({
                 data: {
                     users: {
-                        create: {
-                            user: {
-                                connect: {
-                                    id: idUser
-                                }
-                            }
+                        connect: {
+                            id: idUser
                         }
                     }
                 },
@@ -172,6 +168,7 @@ export default class SecurityManager extends DFWModule {
                     id: idCredential
                 }
             }).catch((e) => []) as any;
+
             return Array.isArray(newCredential) ? newCredential : [newCredential];
         }
     }

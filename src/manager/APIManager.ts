@@ -40,43 +40,14 @@ export default class APIManager extends DFWModule {
 
         /** add default callback on each APIManager instance */
         async ({ dfw }: DFWRequest, boot: DFWBoot) => {
+            const session = dfw.session;
             boot.session = {
-                user: dfw.session.user ? {
-                    id: dfw.session.user.id,
-                    nick: dfw.session.user.nick,
-                    email: dfw.session.user.email,
-                } : undefined,
-                credentials: [],
-                access: [],
-            }
-
-            if (dfw.session.isLogged && dfw.session.user) {
-                let credentials = await dfw.db.dfw_credential.findMany({
-                    select: { id: true, name: true },
-                    where: {
-                        users: {
-                            every: {
-                                idUser: dfw.session.user.id
-                            }
-                        }
-                    }
-                })
-
-                let access = await dfw.db.dfw_access.findMany({
-                    select: { id: true, name: true },
-                    where: {
-                        credentials: {
-                            every: {
-                                idCredential: {
-                                    in: credentials.map((c) => (c.id))
-                                }
-                            }
-                        }
-                    }
-                });
-
-                boot.session.credentials = credentials;
-                boot.session.access = access;
+                user: session.user ? {
+                    id: session.user.id,
+                    nick: session.user.nick,
+                    email: session.user.email,
+                    credentials:  session.user['credentials']
+                } : undefined
             }
         }
     ];

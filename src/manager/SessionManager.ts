@@ -37,7 +37,22 @@ export default class SessionManager extends DFWModule {
             let session = await this.db.dfw_session.findFirst({
                 where: { id: Number(req.cookies.sid), token: req.cookies.stk },
                 include: {
-                    user: true
+                    user: {
+                        include: {
+                            credentials: {
+                                select: {
+                                    id: true,
+                                    name: true,
+                                    access: {
+                                        select: {
+                                            id: true,
+                                            name: true
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
                 },
             });
             req.dfw.session = session ? { record: session, user: session.user as any, isLogged: session.user ? true : false } : await this.regenerateSessionAsync(req);
@@ -96,7 +111,22 @@ export default class SessionManager extends DFWModule {
             if (SecurityManager.verifyPassword(userObj.encodedKey!, password)) {
                 let sessionUpdated = await this.db.dfw_session.update({
                     include: {
-                        user: true
+                        user: {
+                            include: {
+                                credentials: {
+                                    select: {
+                                        id: true,
+                                        name: true,
+                                        access: {
+                                            select: {
+                                                id: true,
+                                                name: true
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     },
                     where: { id: Number(req.dfw.session.record.id) },
                     data: {
@@ -122,15 +152,6 @@ export default class SessionManager extends DFWModule {
      */
     public async logoutAsync(req: DFWRequest) {
         let sessionUpdated = await req.dfw.db.dfw_session.update({
-            include: {
-                user: {
-                    select: {
-                        id: true,
-                        email: true,
-                        nick: true
-                    }
-                }
-            },
             where: { id: Number(req.dfw.session.record.id) },
             data: {
                 idUser: null,

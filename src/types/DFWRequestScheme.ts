@@ -22,7 +22,7 @@ export type DFWRequestScheme = {
     session: {
         isLogged: boolean
         user?: dfw_user
-        record: dfw_session & { user?: { id: number, nick: any, email: any } | null }
+        record: dfw_session & { user?: dfw_user | null }
     },
 
     db: PrismaClient;
