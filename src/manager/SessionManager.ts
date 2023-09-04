@@ -35,7 +35,7 @@ export default class SessionManager extends DFWModule {
             req.dfw.session = await this.regenerateSessionAsync(req);
         } else {
             let session = await this.db.dfw_session.findFirst({
-                where: { id: Number(req.cookies.sid), token: req.cookies.stk },
+                where: { id: Number(req.cookies.sid), token: req.cookies.stk, expire: { gte: new Date() } },
                 include: {
                     user: {
                         include: {
@@ -62,16 +62,17 @@ export default class SessionManager extends DFWModule {
 
         res.on("finish", async () => { // callback to touch the session record
             if (!req.dfw.__meta.config.noSession) {
-                await req.dfw.db.dfw_session.update({
-                    data: {
-                        ip: req.ip,
-                        agent: req.headers['user-agent'] ?? "",
-                        expire: DateTime.now().plus({ days: this.sessionExpirationDays }).toJSDate()
-                    },
-                    where: {
-                        id: Number(req.dfw.session.record.id)
-                    }
-                })
+                if (req.dfw.session.record.ip !== req.ip || req.dfw.session.record.agent !== (req.headers['user-agent'] ?? "")) {
+                    await req.dfw.db.dfw_session.update({
+                        data: {
+                            ip: req.ip,
+                            agent: req.headers['user-agent'] ?? "",
+                        },
+                        where: {
+                            id: Number(req.dfw.session.record.id)
+                        }
+                    })
+                }
             }
         });
     };
