@@ -1,6 +1,6 @@
 {
   "name": "@scefira/dfw",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "nodejs express fast prototype library",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -45,7 +45,7 @@
     "@types/uuid": "^8.3.4",
     "cross-env": "^7.0.3",
     "nodemon": "^2.0.15",
-    "prisma": "^5.2.0",
+    "prisma": "^5.3.1",
     "ts-node": "^10.9.1",
     "typescript": "^5.2.2"
   }
