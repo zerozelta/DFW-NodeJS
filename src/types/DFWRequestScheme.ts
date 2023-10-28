@@ -1,5 +1,5 @@
 import DFWInstance from "../DFWInstance";
-import { Request } from "express";
+import { Request, Response } from "express";
 import SecurityManager from "../manager/SecurityManager";
 import UserManager from "../manager/UserManager";
 import SessionManager from "../manager/SessionManager";

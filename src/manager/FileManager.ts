@@ -233,6 +233,10 @@ export default class FileManager extends DFWModule {
         let ids = [typeof file == "object" ? file.id : file, ...await this.getChildrenFileIdsAsync(file)];
 
         let deletableFiles = await this.db.dfw_file.findMany({
+            select: {
+                id: true,
+                path: true
+            },
             where: {
                 id: {
                     in: ids
@@ -240,22 +244,13 @@ export default class FileManager extends DFWModule {
             }
         });
 
-        await this.db.dfw_file.deleteMany({
-            where: {
-                id: {
-                    in: ids
-                }
-            }
-        }).catch((e) => { throw new Error(`Unable to delete file records in DB ` + e) });
-
         for (let file of deletableFiles) {
             if (fs.existsSync(file.path)) {
-                await fileUnlink(file.path).then(async () => {
-                    await this.db.dfw_file.delete({
-                        where: {
-                            id: file.id
-                        }
-                    });
+                await fileUnlink(file.path);
+                await this.db.dfw_file.delete({
+                    where: {
+                        id: file.id
+                    }
                 });
             }
         }
