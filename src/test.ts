@@ -40,6 +40,13 @@ DFW.APIManager.addListener("/security", async (req, res, dfw) => {
 })
 
 DFW.APIManager.addListener("/boot", async (req, res) => {
+    const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+    req.dfw.addCallback(async () => {
+        await sleep(1000)
+        console.log('callback called...')
+    })
+
     return req.dfw.boot();
 })
 
@@ -65,6 +72,6 @@ DFW.APIManager.addListener("/strap", async ({ dfw }, res) => {
     let newUser = await dfw.UserManager.createUserAsync("test3@gmail.com", "test3", "test");
     //let newCredential = await dfw.SecurityManager.createCredentialAsync("TESTER");
     let user = await dfw.db.dfw_user.findUnique({ where: { id: newUser.id } });
-    let credential = await dfw.UserManager.assignCredentialAsync(user!, ["ADMIN","TESTER"]);
+    let credential = await dfw.UserManager.assignCredentialAsync(user!, ["ADMIN", "TESTER"]);
     return { credential }
 });

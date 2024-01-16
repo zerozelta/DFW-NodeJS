@@ -16,8 +16,8 @@ export type DFWRequestScheme = {
     __meta: {
         config: APIListenerConfig       // retrives the API configuration
     },
-    req:DFWRequest
-    res:Response
+    req: DFWRequest
+    res: Response
     instance: DFWInstance
     session: {
         isLogged: boolean
@@ -28,6 +28,13 @@ export type DFWRequestScheme = {
     db: PrismaClient;
 
     boot: () => Promise<DFWBoot>
+
+    /**
+     * Callback called in background after finish the api response
+     * @param cb callback function or promise
+     * @returns 
+     */
+    addCallback: (cb: () => void | Promise<void>) => void
 
     //manager
     SecurityManager: SecurityManager

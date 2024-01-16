@@ -46,7 +46,7 @@ export default class APIManager extends DFWModule {
                     id: session.user.id,
                     nick: session.user.nick,
                     email: session.user.email,
-                    credentials:  session.user['credentials']
+                    credentials: session.user['credentials']
                 } : undefined
             }
         }
@@ -87,6 +87,9 @@ export default class APIManager extends DFWModule {
 
     public async middleware(req: DFWRequest, res: Response) {
         req.dfw.boot = () => this.getBootAsync(req);
+        req.dfw.addCallback = (cb) => {
+            res.on('finish', cb)
+        }
     }
 
     public startServer(port = 3000) {
