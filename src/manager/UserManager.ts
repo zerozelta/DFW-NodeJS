@@ -21,7 +21,7 @@ export default class UserManager extends DFWModule {
             data: {
                 nick,
                 email,
-                encodedKey: password ? SecurityManager.encryptPassword(password) : undefined
+                encodedKey: password ? await SecurityManager.encryptPassword(password) : undefined
             }
         });
     }

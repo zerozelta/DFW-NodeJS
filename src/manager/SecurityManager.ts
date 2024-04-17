@@ -1,9 +1,9 @@
 import { Request, Response } from "express";
-import Password from "node-php-password";
 import { DFWRequest } from "../types/DFWRequestScheme";
 import { ListenerSecurityConfig } from "../types/APIListenerConfig";
 import DFWModule from "./DFWModule";
 import { dfw_access, dfw_credential, dfw_user } from "@prisma/client";
+import bcrypt from 'bcrypt'
 
 export type SecurityScheme = {
     hasAccessAsync: (access: string | string[] | number | number[] | dfw_access | dfw_access[]) => Promise<boolean>
@@ -67,12 +67,21 @@ export default class SecurityManager extends DFWModule {
         return bindings;
     };
 
-    public static verifyPassword(encoded: string, test: string): boolean {
-        return Password.verify(test, encoded);
+    public static async verifyPassword(encoded: string, test: string): Promise<boolean> {
+        return bcrypt
+            .compare(test, encoded)
+            .catch(err => {
+                console.error(err.message)
+                return false
+            })
     }
 
-    public static encryptPassword(password: string): string {
-        return Password.hash(password);
+    public static async encryptPassword(password: string): Promise<string> {
+        return bcrypt
+            .hash(password, 9).catch(err => {
+                console.error(err.message)
+                throw "[DFW] ERROR HASHING PASSWORD"
+            })
     }
 
     /**

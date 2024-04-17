@@ -109,7 +109,7 @@ export default class SessionManager extends DFWModule {
         // Retrive user with credentials
         let userObj = await req.dfw.UserManager.getUserAsync(user);
         if (userObj) {
-            if (SecurityManager.verifyPassword(userObj.encodedKey!, password)) {
+            if (await SecurityManager.verifyPassword(userObj.encodedKey!, password)) {
                 let sessionUpdated = await this.db.dfw_session.update({
                     include: {
                         user: {

@@ -21,7 +21,7 @@ DFW.APIManager.addListener("/", async (req, res) => {
 })
 
 DFW.APIManager.addListener("/login", async (req, res, dfw) => {
-    await dfw.SessionManager.loginAsync(req, "aldodelacomarca@gmail.com", "Aldo1234");
+    await dfw.SessionManager.loginAsync(req, "test", "test");
     return dfw.boot();
 })
 
@@ -69,7 +69,7 @@ DFW.APIManager.addListener("/error", async (req, res, dfw) => {
 });
 
 DFW.APIManager.addListener("/strap", async ({ dfw }, res) => {
-    let newUser = await dfw.UserManager.createUserAsync("test3@gmail.com", "test3", "test");
+    let newUser = await dfw.UserManager.createUserAsync("test@gmail.com", "test", "test");
     //let newCredential = await dfw.SecurityManager.createCredentialAsync("TESTER");
     let user = await dfw.db.dfw_user.findUnique({ where: { id: newUser.id } });
     let credential = await dfw.UserManager.assignCredentialAsync(user!, ["ADMIN", "TESTER"]);
