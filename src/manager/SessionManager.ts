@@ -18,6 +18,8 @@ export default class SessionManager extends DFWModule {
     constructor(DFW: DFWInstance) {
         super(DFW);
         this.sessionExpirationDays = DFW.config.session && DFW.config.session.daysToExpire ? DFW.config.session.daysToExpire : DEFAULT_SESSION_EXPIRE_DAYS;
+        this.sidFieldName = DFW.config.session?.sid ?? this.sidFieldName
+        this.stkFieldName = DFW.config.session?.stk ?? this.stkFieldName
     }
 
     public middleware = async (req: DFWRequest, res: Response) => {
@@ -31,11 +33,11 @@ export default class SessionManager extends DFWModule {
 
         if (req.dfw.__meta.config.noSession) return;
 
-        if (!req.cookies || !req.cookies.sid || !req.cookies.stk) {
+        if (!req.cookies || !req.cookies[this.sidFieldName] || !req.cookies[this.stkFieldName]) {
             req.dfw.session = await this.regenerateSessionAsync(req);
         } else {
             let session = await this.db.dfw_session.findFirst({
-                where: { id: Number(req.cookies.sid), token: req.cookies.stk, expire: { gte: new Date() } },
+                where: { id: Number(req.cookies[this.sidFieldName]), token: req.cookies[this.stkFieldName], expire: { gte: new Date() } },
                 include: {
                     user: {
                         include: {
@@ -169,15 +171,15 @@ export default class SessionManager extends DFWModule {
      */
     public setSessionCookies(req: DFWRequest, res: Response) {
         let cookieOptions = this.instance.config.session ? this.instance.config.session.cookieOptions ?? {} : {};
-        let diffCookies = req.cookies.sid != req.dfw.session.record.id || req.cookies.stk != req.dfw.session.record.token;
+        let diffCookies = req.cookies[this.sidFieldName] != req.dfw.session.record.id || req.cookies[this.stkFieldName] != req.dfw.session.record.token;
 
         if (!diffCookies) return; // no diference in cookies prevent reset cookies
 
         res.cookie(this.sidFieldName, req.dfw.session.record.id, cookieOptions);
         res.cookie(this.stkFieldName, req.dfw.session.record.token, cookieOptions);
 
-        req.cookies.sid = req.dfw.session.record.id;
-        req.cookies.stk = req.dfw.session.record.token;
+        req.cookies[this.sidFieldName] = req.dfw.session.record.id;
+        req.cookies[this.stkFieldName] = req.dfw.session.record.token;
     }
 
     /**

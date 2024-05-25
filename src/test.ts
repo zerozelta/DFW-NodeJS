@@ -2,6 +2,8 @@ import { DFWCore } from ".";
 
 var DFW = DFWCore.createInstance({
     session: {
+        sid: 'test_sid',
+        stk: 'test_stk',
         cookieOptions: {
             sameSite: "lax",
             secure: false,
@@ -21,7 +23,9 @@ DFW.APIManager.addListener("/", async (req, res) => {
 })
 
 DFW.APIManager.addListener("/login", async (req, res, dfw) => {
-    await dfw.SessionManager.loginAsync(req, "test", "test");
+    await dfw.SessionManager.loginAsync(req, "test", "test").catch(() => {
+        throw 'ERROR'
+    })
     return dfw.boot();
 })
 

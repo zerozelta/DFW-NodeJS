@@ -1,5 +1,4 @@
 import { lookup } from "mime-types";
-import path from "path";
 
 const uuid = require("uuid");
 
