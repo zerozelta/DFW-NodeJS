@@ -33,6 +33,14 @@ type FileConfig = {
     replaceVariants?: boolean;
 }
 
+type VirtualFileConfig = {
+    expire?: Date;
+    description?: string;
+    user?: dfw_user | number | null;
+    parent?: number | dfw_file;  // file parent for file trees
+    variant?: string;          // file variant to diferenciate from another childs
+}
+
 export type UploadConfig = {
     headers?: any;
     highWaterMark?: number;
@@ -159,6 +167,34 @@ export default class FileManager extends DFWModule {
                 path: finalFilePath,
                 slug: cfg.slug,
                 size: stats.size,
+            }
+        });
+    }
+
+
+    public async assignVirtualFileAsync(url: string, cfg: VirtualFileConfig) {
+        let checksum = undefined;
+        let stats = await fileStat(url);
+        let mimetype = DFWUtils.getFileMimetype(url);
+        let expire = cfg.expire ? cfg.expire : null;
+        let description = cfg.description;
+        let variant = cfg.variant;
+        let idParent = typeof cfg.parent == "object" ? cfg.parent.id : cfg.parent;
+        let idUser = typeof cfg.user === "object" ? cfg.user!.id : cfg.user;
+
+        return this.db.dfw_file.create({
+            data: {
+                idParent,
+                mimetype,
+                checksum,
+                expire,
+                variant,
+                description,
+                idUser,
+                path: url,
+                slug: undefined,
+                size: stats.size,
+                virtual: true
             }
         });
     }
