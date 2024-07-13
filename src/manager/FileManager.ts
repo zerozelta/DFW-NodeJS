@@ -3,15 +3,13 @@ import DFWInstance from "../DFWInstance";
 import { DFWRequest } from "../types/DFWRequestScheme";
 import DFWModule from "./DFWModule";
 import md5File from 'md5-file';
-
 import express, { Response } from "express";
-
-import * as fs from "fs";
-import * as path from "path";
 import DFWUtils from "../DFWUtils";
 import { dfw_file, dfw_user } from "@prisma/client";
 import { UploadedFile } from "express-fileupload";
 import { DateTime } from "luxon";
+import * as fs from "fs";
+import * as path from "path";
 
 const fileExistsAsync = promisify(fs.exists);
 const fileRenameAsync = promisify(fs.rename);
@@ -28,8 +26,8 @@ type FileConfig = {
     slug?: string;
     description?: string;
     user?: dfw_user | number | null;
-    parent?: number | dfw_file;  // file parent for file trees
-    variant?: string;          // file variant to diferenciate from another childs
+    parent?: number | dfw_file;         // file parent for file trees
+    variant?: string;                   // file variant to diferenciate from another childs
     replaceVariants?: boolean;
 }
 
@@ -37,8 +35,10 @@ type VirtualFileConfig = {
     expire?: Date;
     description?: string;
     user?: dfw_user | number | null;
-    parent?: number | dfw_file;  // file parent for file trees
-    variant?: string;          // file variant to diferenciate from another childs
+    parent?: number | dfw_file;         // file parent for file trees
+    variant?: string;                   // file variant to diferenciate from another childs
+    checksum?: string,
+    size?: number
 }
 
 export type UploadConfig = {
@@ -171,10 +171,8 @@ export default class FileManager extends DFWModule {
         });
     }
 
-
     public async assignVirtualFileAsync(url: string, cfg: VirtualFileConfig) {
-        let checksum = undefined;
-        let stats = await fileStat(url);
+        let checksum = cfg.checksum;
         let mimetype = DFWUtils.getFileMimetype(url);
         let expire = cfg.expire ? cfg.expire : null;
         let description = cfg.description;
@@ -193,7 +191,7 @@ export default class FileManager extends DFWModule {
                 idUser,
                 path: url,
                 slug: undefined,
-                size: stats.size,
+                size: cfg.size,
                 virtual: true
             }
         });
@@ -271,7 +269,8 @@ export default class FileManager extends DFWModule {
         let deletableFiles = await this.db.dfw_file.findMany({
             select: {
                 id: true,
-                path: true
+                path: true,
+                virtual: true
             },
             where: {
                 id: {
@@ -282,7 +281,7 @@ export default class FileManager extends DFWModule {
 
         for (let file of deletableFiles) {
             if (fs.existsSync(file.path)) {
-                await fileUnlink(file.path);
+                if (!file.virtual) await fileUnlink(file.path);
                 await this.db.dfw_file.delete({
                     where: {
                         id: file.id
