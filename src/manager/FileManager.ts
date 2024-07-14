@@ -281,12 +281,14 @@ export default class FileManager extends DFWModule {
 
         for (let file of deletableFiles) {
             if (fs.existsSync(file.path)) {
-                if (!file.virtual) await fileUnlink(file.path);
+                if (!file.virtual) {
+                    await fileUnlink(file.path)
+                }
                 await this.db.dfw_file.delete({
                     where: {
                         id: file.id
                     }
-                });
+                })
             }
         }
 
