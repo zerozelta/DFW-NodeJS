@@ -17,17 +17,16 @@ model dfw_user {
 }
 
 model dfw_session {
-    id     Int       @id @default(autoincrement()) @db.UnsignedInt
-    token  String    @db.Char(36)
+    id     String    @id @db.Char(36)
     agent  String?   @db.VarChar(255)
     ip     String?   @db.VarChar(255)
     expire DateTime? @db.Date
-    idUser Int       @db.UnsignedInt
+    idUser Int?      @db.UnsignedInt
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
-    user dfw_user? @relation(fields: [idUser], references: [id])
+    user dfw_user? @relation(fields: [idUser], references: [id], onDelete: Cascade)
 
     @@index([idUser])
 }
@@ -60,19 +59,18 @@ model dfw_credential {
 }
 
 model dfw_file {
-    id        Int           @id @default(autoincrement()) @db.UnsignedInt
-    name      String?       @db.VarChar(255)
-    localPath String?       @db.VarChar(255)
-    url       String?       @db.VarChar(255)
-    idUser    Int?          @db.UnsignedInt
-    variant   String?       @db.VarChar(255)
-    size      Int?          @db.UnsignedInt
-    checksum  String?       @db.VarChar(255)
-    slug      String?       @db.VarChar(255)
-    mimetype  String?       @db.VarChar(255)
-    type      DFW_FILE_TYPE @default(LOCAL)
-    expire    DateTime?     @db.Date
-    idParent  Int?          @db.UnsignedInt
+    id       Int              @id @default(autoincrement()) @db.UnsignedInt
+    name     String?          @db.VarChar(255)
+    path     String?          @db.VarChar(255) // Path to resource
+    url      String?          @db.VarChar(255) // Public resource url
+    variant  String?          @db.VarChar(255)
+    size     Int?             @db.UnsignedInt
+    checksum String?          @db.VarChar(255)
+    mimetype String?          @db.VarChar(255)
+    storage  DFW_FILE_STORAGE @default(LOCAL)
+    expire   DateTime?        @db.Date
+    idParent Int?             @db.UnsignedInt
+    idUser   Int?             @db.UnsignedInt
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
@@ -83,12 +81,11 @@ model dfw_file {
 
     @@index([expire])
     @@index([id])
-    @@index([slug])
     @@index([idParent])
     @@index([idUser])
 }
 
-enum DFW_FILE_TYPE {
+enum DFW_FILE_STORAGE {
     LOCAL
     EXTERNAL
 }

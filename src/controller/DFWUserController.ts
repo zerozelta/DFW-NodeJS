@@ -1,6 +1,5 @@
 import DFWUtils from "../DFWUtils";
 import DFWController from "./DFWController";
-import bcrypt from "bcrypt"
 
 class DFWUserController extends DFWController {
 

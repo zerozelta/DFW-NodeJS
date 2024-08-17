@@ -1,14 +1,15 @@
 import { DFWCore } from ".";
+import DFWSessionControler from "./controller/DFWSessionController";
 import DFWUserController from "./controller/DFWUserController";
 import DFWAuthListener from "./listeners/auth/DFWAuthListener";
 import GETListener from "./listeners/GETListener";
 import POSTListener from "./listeners/POSTListener";
 import RawListener from "./listeners/RawListener";
-import jwt from 'jsonwebtoken'
 
 var DFW = new DFWCore({
     server: {
-        port: 300
+        port: 300,
+        trustProxy: true
     }
 }).start()
 
@@ -27,16 +28,29 @@ DFW.register({
         raw: RawListener('get', (req, res, next) => {
 
         }),
-        login: DFWAuthListener(),
+        test: POSTListener(async (req, res) => {
+            const SessionControl = new DFWSessionControler()
+            await SessionControl.updateSessionAgentAsync(req)
+            
+            return {
+                isAuthenticated: req.isAuthenticated(),
+                session: req.session,
+                user: req.user
+            }
+        }),
+        login: DFWAuthListener((req, res) => {
+            return {
+                isAuthenticated: req.isAuthenticated(),
+                session: req.session,
+                user: req.user
+            }
+        }),
         signup: POSTListener(async ({ dfw }) => {
             const UserControl = new DFWUserController()
             return UserControl.crateDFWUserAsync({
                 nick: 'zerozelta',
                 password: 'test'
             }).catch(() => { throw "UNABLE_TO_CREATE" })
-        }),
-        verify: POSTListener(async ({ dfw, body }) => {
-            return jwt.verify(body.token, body.secret)
         }),
         secured: [
             GETListener(() => {

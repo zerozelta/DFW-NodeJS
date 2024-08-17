@@ -1,6 +1,6 @@
 import bodyParser from "body-parser";
 import DFWCore from "..";
-import { Application, NextFunction, RequestHandler } from "express";
+import { NextFunction, RequestHandler } from "express";
 import { DFWRequest, DFWRequestSchema } from "../types/DFWRequest";
 import { APIListenerParams, APIListenerFunction } from "../types/APIListener";
 import DFWUtils from "../DFWUtils";
@@ -9,6 +9,9 @@ import chalk from "chalk";
 import cors from 'cors';
 import passport from "passport";
 import DFWPassportStrategy from "./strategies/DFWPassportStrategy";
+import session from "express-session"
+import DFWSessionStore from "./DFWSessionStore";
+
 
 export default class APIManager {
     private DFW: DFWCore
@@ -17,24 +20,45 @@ export default class APIManager {
         this.DFW = DFW
     }
 
-    public installPassport() {
+    public installAPILAyer() {
         const config = this.DFW.config
         const APIRouter = this.DFW.RouterAPILevel
 
+        //// PASSPORT AND SESSION ////
+        APIRouter.use(session({
+            name: 'stk',
+            secret: 'default',
+            genid: () => DFWUtils.uuid(),
+            resave: false,
+            saveUninitialized: true,
+            store: new DFWSessionStore(this.DFW),
+            cookie: {
+                secure: false,
+                maxAge: 1000 * 60 * 60 * 24 * 360 //1Y
+            }
+        }))
+
         APIRouter.use(passport.initialize())
+        APIRouter.use(passport.session())
 
         if (config.session?.authenticators?.dfw !== false) {
             passport.use('dfw', DFWPassportStrategy)
         }
-    }
 
-    public installDFWListenerLayer() {
-        const APIRouter = this.DFW.RouterAPILevel
+        passport.serializeUser(async ({ id }: any, done) => {
+            done(null, id)
+        })
 
+        passport.deserializeUser(async (idUser, done) => {
+            done(null, { id: idUser })
+        })
+
+        //// CORS ////
         if (this.DFW.config.server?.cors) {
             APIRouter.use(cors(this.DFW.config.server?.cors))
         }
 
+        //// DFW SChema ////
         APIRouter.use(((req: DFWRequest, _: Response, next: NextFunction) => {
             const dfw: Partial<DFWRequestSchema> = {
                 instance: this.DFW,
@@ -46,7 +70,7 @@ export default class APIManager {
         }) as any)
     }
 
-    public installDFWSecurityLayer() {
+    public installSecurityLayer() {
         this.DFW.RouterAPILevel.use(((req: DFWRequest, res: Response, next: NextFunction) => {
             next();
         }) as any)
@@ -93,11 +117,10 @@ export default class APIManager {
 
         server.use(path, (err: any, _, res, next) => { // Error handler
             if (process.env.NODE_ENV == "development") DFWUtils.log(err, true);
-            res.statusCode = 500;
             if (typeof err === "object" && err.message) {
-                res.json({ error: err.message, stack: process.env.NODE_ENV == "development" ? err.stack : null }).end();
+                res.status(500).json({ error: err.message, stack: process.env.NODE_ENV == "development" ? err.stack : null }).end();
             } else {
-                res.json({ error: err }).end();
+                res.status(500).json({ error: err }).end();
             }
             next(err);
         })

@@ -1,10 +1,12 @@
 import { CorsOptions } from "cors"
+import { CookieOptions } from "express-session"
 
 export type DFWConfig = {
 
     server?: {
         port?: number
         cors?: CorsOptions
+        trustProxy?: boolean | number
     }
 
     /**
@@ -22,6 +24,8 @@ export type DFWConfig = {
          * Default days to expire session in database (only in database cookie will not be affected)
          */
         daysToExpire?: number;
+
+        cookieOptions?: CookieOptions
     }
 
     /**

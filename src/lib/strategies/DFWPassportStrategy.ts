@@ -7,12 +7,12 @@ const DFWPassportStrategy = new Strategy(async (identifier: string, password: an
         const id = await UserControl.validateUserPasswordAsync(identifier, password)
 
         if (id) {
-            done(null, { id })
+            return done(null, { id })
         } else {
-            done('ACCESS_DENIED', { id })
+            return done('ACCESS_DENIED')
         }
     } catch (e) {
-        done(e)
+        return done(e)
     }
 })
 

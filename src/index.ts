@@ -8,8 +8,6 @@ import DFWUtils from "./DFWUtils";
 import APIManager from "./lib/APIManager";
 import { DFWRequest, DFWRequestSchema } from "./types/DFWRequest";
 import expressAsyncHandler from "express-async-handler";
-import SessionManager from "./lib/SessionManager";
-import passport from "passport";
 
 type DFWRegisterItem = APIListener | { [key: string]: DFWRegisterItem } | DFWRegisterItem[]
 
@@ -35,10 +33,10 @@ export class DFWCore {
     private database: PrismaClient;
 
     private APIManager = new APIManager(this)
-    private SessionManager = new SessionManager(this)
 
     constructor(config: DFWConfig) {
         this.config = Object.freeze(config)
+
         this.database = new PrismaClient({
             log: config.database ? config.database.log ? ['query', 'info', 'warn', 'error'] : undefined : undefined,
         });
@@ -47,9 +45,10 @@ export class DFWCore {
             fs.mkdirSync(DFWCore.DFW_PATH);
         }
 
-        this.APIManager.installPassport()
-        this.APIManager.installDFWListenerLayer()
-        this.APIManager.installDFWSecurityLayer()
+        if (config.server?.trustProxy) this.server.set('trust proxy', config.server?.trustProxy)
+
+        this.APIManager.installAPILAyer()
+        this.APIManager.installSecurityLayer()
 
         DFWCore.MAIN_INSTANCE = this
     }
