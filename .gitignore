@@ -1,5 +1,5 @@
-node_modules
-lib
-.dfw
-.env
+/node_modules
+/lib
+/.dfw
+/.env
 package-lock.json

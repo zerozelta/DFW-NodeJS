@@ -1,22 +1,62 @@
 import { DFWCore } from ".";
+import DFWUserController from "./controller/DFWUserController";
+import DFWAuthListener from "./listeners/auth/DFWAuthListener";
+import GETListener from "./listeners/GETListener";
+import POSTListener from "./listeners/POSTListener";
+import RawListener from "./listeners/RawListener";
+import jwt from 'jsonwebtoken'
 
-var DFW = DFWCore.createInstance({
-    session: {
-        sid: 'test_sid',
-        stk: 'test_stk',
-        cookieOptions: {
-            sameSite: "lax",
-            secure: false,
-            httpOnly: true,
-            domain: "localhost",
-            maxAge: 60 * 1000 * 60 * 24 * 365 // 365 days
-        }
+var DFW = new DFWCore({
+    server: {
+        port: 300
     }
-});
+}).start()
 
-//DFW.DatabaseManager.database.sync(); 
+DFW.register({
+    api: {
+        print: [
+            GETListener(({ dfw }, res) => {
+                return 'holamundo'
+            })
+        ],
+        error: [
+            GETListener(({ dfw }, res) => {
+                throw "ERROR_HAS_BEEN_OCURRED"
+            })
+        ],
+        raw: RawListener('get', (req, res, next) => {
 
-DFW.APIManager.startServer(300);
+        }),
+        login: DFWAuthListener(),
+        signup: POSTListener(async ({ dfw }) => {
+            const UserControl = new DFWUserController()
+            return UserControl.crateDFWUserAsync({
+                nick: 'zerozelta',
+                password: 'test'
+            }).catch(() => { throw "UNABLE_TO_CREATE" })
+        }),
+        verify: POSTListener(async ({ dfw, body }) => {
+            return jwt.verify(body.token, body.secret)
+        }),
+        secured: [
+            GETListener(() => {
+
+            })
+        ]
+    }
+})
+
+// Path protegido
+DFW.addAccessValidator('/test/secured', ({ dfw }) => {
+    return false
+})
+/*
+
+DFW.addListener('/', async ({
+
+}) => {
+
+})
 
 DFW.APIManager.addListener("/", async (req, res) => {
     return DFW.FileManager.removeFileAsync(1);
@@ -79,3 +119,4 @@ DFW.APIManager.addListener("/strap", async ({ dfw }, res) => {
     let credential = await dfw.UserManager.assignCredentialAsync(user!, ["ADMIN", "TESTER"]);
     return { credential }
 });
+*/
