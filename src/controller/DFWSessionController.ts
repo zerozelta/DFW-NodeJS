@@ -13,6 +13,18 @@ class DFWSessionControler extends DFWController {
             })
         }
     }
+
+    async logoutAsync(req: DFWRequest) {
+        return new Promise<void>((resolve) => {
+            req.logout((err) => {
+                console.log('passport logout', err)
+                req.session.destroy((err) => {
+                    console.log('session destroyed', err)
+                    resolve()
+                })
+            })
+        })
+    }
 }
 
 export default DFWSessionControler

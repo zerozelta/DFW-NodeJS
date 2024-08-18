@@ -7,7 +7,6 @@ import fs from "fs"
 import DFWUtils from "./DFWUtils";
 import APIManager from "./lib/APIManager";
 import { DFWRequest, DFWRequestSchema } from "./types/DFWRequest";
-import expressAsyncHandler from "express-async-handler";
 
 type DFWRegisterItem = APIListener | { [key: string]: DFWRegisterItem } | DFWRegisterItem[]
 
@@ -72,12 +71,13 @@ export class DFWCore {
     }
 
     public addAccessValidator(path: string, validator: (req: DFWRequest) => boolean | Promise<boolean>) {
-        this.RouterAccessLevel.use(path, expressAsyncHandler(async (req, res) => {
+        this.RouterAccessLevel.use(path, async (req, res, next) => {
             const isValid = await Promise.resolve(validator(req as DFWRequest))
             if (!isValid) {
-                res.status(403).json({ error: 'ACCESS_DENIED' }).end()
+                return res.status(403).json({ error: 'ACCESS_DENIED' }).end()
             }
-        }))
+            next()
+        })
     }
 
 

@@ -5,7 +5,11 @@ export type DFWConfig = {
 
     server?: {
         port?: number
+
+        /** CORS config for entire server */
         cors?: CorsOptions
+
+        
         trustProxy?: boolean | number
     }
 
@@ -24,6 +28,24 @@ export type DFWConfig = {
          * Default days to expire session in database (only in database cookie will not be affected)
          */
         daysToExpire?: number;
+
+        /**
+         * Store every session in database no matter if is logged or not, ideal for tracking visitors 
+         * @default false
+         */
+        saveAllSessions?: boolean
+
+        /**
+         * Secret to encode cookie session 
+         * @default "default"
+         */
+        secret?: string
+
+        /**
+         * Session cookie name
+         * @default stk
+         */
+        cookieName?: string
 
         cookieOptions?: CookieOptions
     }

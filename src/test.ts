@@ -1,4 +1,5 @@
 import { DFWCore } from ".";
+import DFWSecurityController from "./controller/DFWSecurityController";
 import DFWSessionControler from "./controller/DFWSessionController";
 import DFWUserController from "./controller/DFWUserController";
 import DFWAuthListener from "./listeners/auth/DFWAuthListener";
@@ -15,9 +16,27 @@ var DFW = new DFWCore({
 
 DFW.register({
     api: {
-        print: [
-            GETListener(({ dfw }, res) => {
-                return 'holamundo'
+        boot: [
+            POSTListener(async ({ dfw, user }, res) => {
+                return dfw.db.$transaction(async (db) => {
+                    const SecurityControl = new DFWSecurityController().use(db)
+                    const UserControl = new DFWUserController().use(db)
+
+                    const conty = await UserControl.createUserAsync({
+                        nick: 'conty',
+                        password: 'test'
+                    })
+
+                    const adminCred = await SecurityControl.createCredentiaAsync("ADMIN")
+                    const devCred = await SecurityControl.createCredentiaAsync("DEVELOPER")
+
+                    const keyAcc = await SecurityControl.createAccessAsync("SMALL_KEY")
+
+                    await SecurityControl.attachAccessToCredentialAsync(keyAcc, adminCred)
+                    await SecurityControl.attachUserToCredentialAsync(user?.['id'], adminCred)
+
+                    return { conty, adminCred, devCred, keyAcc }
+                })
             })
         ],
         error: [
@@ -31,7 +50,7 @@ DFW.register({
         test: POSTListener(async (req, res) => {
             const SessionControl = new DFWSessionControler()
             await SessionControl.updateSessionAgentAsync(req)
-            
+
             return {
                 isAuthenticated: req.isAuthenticated(),
                 session: req.session,
@@ -45,24 +64,37 @@ DFW.register({
                 user: req.user
             }
         }),
+        logout: POSTListener(async (req, res) => {
+            const SessionControl = new DFWSessionControler()
+            await SessionControl.logoutAsync(req)
+            //req.session = null as any
+            return {
+                isAuthenticated: req.isAuthenticated(),
+                session: req.session,
+                user: req.user
+            }
+        }),
         signup: POSTListener(async ({ dfw }) => {
             const UserControl = new DFWUserController()
-            return UserControl.crateDFWUserAsync({
+            return UserControl.createUserAsync({
                 nick: 'zerozelta',
                 password: 'test'
             }).catch(() => { throw "UNABLE_TO_CREATE" })
         }),
         secured: [
-            GETListener(() => {
-
+            POSTListener(() => {
+                return { access: true }
             })
         ]
     }
 })
 
 // Path protegido
-DFW.addAccessValidator('/test/secured', ({ dfw }) => {
-    return false
+DFW.addAccessValidator('/api/secured', async ({ dfw: { isAuthenticated, user } }) => {
+    if (!isAuthenticated()) return false
+
+    const SecurityControl = new DFWSecurityController()
+    return SecurityControl.userHasCredentialAsync(user!.id, "ADMINO")
 })
 /*
 

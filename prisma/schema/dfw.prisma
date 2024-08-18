@@ -76,7 +76,7 @@ model dfw_file {
     updatedAt DateTime @updatedAt
 
     user     dfw_user?  @relation(fields: [idUser], references: [id])
-    parent   dfw_file?  @relation("parent", fields: [idParent], references: [id])
+    parent   dfw_file?  @relation("parent", fields: [idParent], references: [id], onDelete: Cascade)
     children dfw_file[] @relation("parent")
 
     @@index([expire])

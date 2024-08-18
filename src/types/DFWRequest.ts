@@ -8,6 +8,8 @@ export type DFWRequest = {
 
 export type DFWRequestSchema = {
     instance: DFWCore
+    isAuthenticated: () => boolean,
+    user?: { id: number } & Partial<dfw_user>
     session: {
         getUserAsync: () => Promise<dfw_user | undefined>
         checkCredentials: () => Promise<boolean>

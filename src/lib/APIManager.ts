@@ -11,7 +11,7 @@ import passport from "passport";
 import DFWPassportStrategy from "./strategies/DFWPassportStrategy";
 import session from "express-session"
 import DFWSessionStore from "./DFWSessionStore";
-
+import { dfw_user } from "@prisma/client";
 
 export default class APIManager {
     private DFW: DFWCore
@@ -30,7 +30,7 @@ export default class APIManager {
             secret: 'default',
             genid: () => DFWUtils.uuid(),
             resave: false,
-            saveUninitialized: true,
+            saveUninitialized: false,
             store: new DFWSessionStore(this.DFW),
             cookie: {
                 secure: false,
@@ -63,6 +63,8 @@ export default class APIManager {
             const dfw: Partial<DFWRequestSchema> = {
                 instance: this.DFW,
                 db: this.DFW.db,
+                isAuthenticated: () => req.isAuthenticated(),
+                user: req.user as dfw_user,
                 addCallback: (cb) => { }
             }
             req.dfw = dfw as DFWRequestSchema
@@ -71,9 +73,7 @@ export default class APIManager {
     }
 
     public installSecurityLayer() {
-        this.DFW.RouterAPILevel.use(((req: DFWRequest, res: Response, next: NextFunction) => {
-            next();
-        }) as any)
+        // Nothing to do here yet
     }
 
     public addListener(path: string, params: APIListenerParams = {}, listener?: APIListenerFunction) {
@@ -102,7 +102,7 @@ export default class APIManager {
         if (params.middleware) server[method](path, params.middleware)
 
         if (listener) {
-            server[method](path, expressAsyncHandler(async (req, res, next) => {
+            server[method](path, async (req, res, next) => {
                 try {
                     await Promise.resolve(listener(req as DFWRequest, res as any)).then((data) => {
                         if (res.finished !== true && params.disableAutoSend !== true) res.json(data).end();
@@ -112,7 +112,7 @@ export default class APIManager {
                 } catch (e) {
                     next(e)
                 }
-            }))
+            })
         }
 
         server.use(path, (err: any, _, res, next) => { // Error handler

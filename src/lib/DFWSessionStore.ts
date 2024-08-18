@@ -12,7 +12,7 @@ class DFWSessionStore extends Store {
     }
 
     get(sid: string, callback: (err: any, session?: any) => void): void {
-        //console.log(`read session ${sid}`)
+        if (process.env.NODE_ENV === 'development') console.log(`read session ${sid}`)
         this.db.dfw_session.findUnique({
             select: { idUser: true },
             where: { id: sid }
@@ -27,7 +27,7 @@ class DFWSessionStore extends Store {
         })
     }
     set(sid: string, sessionData: any, callback?: (err?: any) => void): void {
-        //console.log(`setting session ${sid} ${JSON.stringify(sessionData)}`)
+        if (process.env.NODE_ENV === 'development') console.log(`setting session ${sid} ${JSON.stringify(sessionData)}`)
         this.db.dfw_session.upsert({
             create: {
                 id: sid,
@@ -44,7 +44,7 @@ class DFWSessionStore extends Store {
         })
     }
     destroy(sid: string, callback?: (err?: any) => void): void {
-        //console.log(`deleting session ${sid}`)
+        if (process.env.NODE_ENV === 'development') console.log(`deleting session ${sid}`)
         this.db.dfw_session.deleteMany({
             where: {
                 id: sid
