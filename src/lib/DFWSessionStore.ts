@@ -1,5 +1,5 @@
 import { Store } from "express-session";
-import DFWCore from "..";
+import DFWCore from "../DFWCore";
 import { PrismaClient } from "@prisma/client";
 
 class DFWSessionStore extends Store {

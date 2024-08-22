@@ -8,7 +8,7 @@
       "outDir": "./lib",                     /* Redirect output structure to the directory. */
       "noResolve": false,
       "rootDir": "./src",
-      "types" : ["busboy", "express"],
+      "types" : ["express"],
       "strict": true,                        /* Enable all strict type-checking options. */
       "strictPropertyInitialization" : true,
       "noImplicitAny": false,                /* Raise error on expressions and declarations with an implied 'any' type. */

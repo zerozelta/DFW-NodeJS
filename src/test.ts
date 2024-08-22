@@ -1,11 +1,13 @@
-import { DFWCore } from ".";
+import {
+    DFWAuthListener,
+    DFWCore,
+    GETListener,
+    POSTListener,
+    RawListener,
+} from ".";
 import DFWSecurityController from "./controller/DFWSecurityController";
-import DFWSessionControler from "./controller/DFWSessionController";
+import DFWSessionController from "./controller/DFWSessionController";
 import DFWUserController from "./controller/DFWUserController";
-import DFWAuthListener from "./listeners/auth/DFWAuthListener";
-import GETListener from "./listeners/GETListener";
-import POSTListener from "./listeners/POSTListener";
-import RawListener from "./listeners/RawListener";
 
 var DFW = new DFWCore({
     server: {
@@ -48,7 +50,7 @@ DFW.register({
 
         }),
         test: POSTListener(async (req, res) => {
-            const SessionControl = new DFWSessionControler()
+            const SessionControl = new DFWSessionController()
             await SessionControl.updateSessionAgentAsync(req)
 
             return {
@@ -65,7 +67,7 @@ DFW.register({
             }
         }),
         logout: POSTListener(async (req, res) => {
-            const SessionControl = new DFWSessionControler()
+            const SessionControl = new DFWSessionController()
             await SessionControl.logoutAsync(req)
             //req.session = null as any
             return {
@@ -96,73 +98,3 @@ DFW.addAccessValidator('/api/secured', async ({ dfw: { isAuthenticated, user } }
     const SecurityControl = new DFWSecurityController()
     return SecurityControl.userHasCredentialAsync(user!.id, "ADMINO")
 })
-/*
-
-DFW.addListener('/', async ({
-
-}) => {
-
-})
-
-DFW.APIManager.addListener("/", async (req, res) => {
-    return DFW.FileManager.removeFileAsync(1);
-})
-
-DFW.APIManager.addListener("/login", async (req, res, dfw) => {
-    await dfw.SessionManager.loginAsync(req, "test", "test").catch(() => {
-        throw 'ERROR'
-    })
-    return dfw.boot();
-})
-
-DFW.APIManager.addListener("/logout", async (req, res, dfw) => {
-    await req.dfw.SessionManager.logoutAsync(req);
-    return dfw.boot();
-})
-
-DFW.APIManager.addListener("/security", async (req, res, dfw) => {
-    console.log("Esto no debería haber pasado de aqui")
-    return dfw.boot();
-}, {
-    security: {
-        session: true
-    }
-})
-
-DFW.APIManager.addListener("/boot", async (req, res) => {
-    const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
-
-    req.dfw.addCallback(async () => {
-        await sleep(1000)
-        console.log('callback called...')
-    })
-
-    return req.dfw.boot();
-})
-
-DFW.APIManager.addListener("/file", async (req, res) => {
-    return req.dfw.FileManager.flushUpload(req, "file", { description: "File test" });
-}, { method: "post", upload: true, security: { session: true } })
-
-DFW.APIManager.addListener("/error", async (req, res, dfw) => {
-    return await dfw.db.$transaction(async (db) => {
-        let t1 = performance.now();
-        await dfw.UserManager.use(db).createCredentiaASync("DUMMY-1")
-        console.log(performance.now() - t1);
-        throw new Error("ERROR");
-        await dfw.UserManager.use(db).createCredentiaASync("DUMMY-2")
-        await dfw.UserManager.use(db).createCredentiaASync("DUMMY-2")
-    }).catch((e) => {
-        throw e.message;
-        console.log(Object.keys(e))
-    })
-});
-
-DFW.APIManager.addListener("/strap", async ({ dfw }, res) => {
-    let newUser = await dfw.UserManager.createUserAsync("test@gmail.com", "test", "test");
-    //let newCredential = await dfw.SecurityManager.createCredentialAsync("TESTER");
-    let user = await dfw.db.dfw_user.findUnique({ where: { id: newUser.id } });
-    let credential = await dfw.UserManager.assignCredentialAsync(user!, ["ADMIN", "TESTER"]);
-    return { credential }
-});
-*/

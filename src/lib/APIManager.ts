@@ -1,5 +1,5 @@
 import bodyParser from "body-parser";
-import DFWCore from "..";
+import DFWCore from "../DFWCore";
 import { NextFunction, RequestHandler } from "express";
 import { DFWRequest, DFWRequestSchema } from "../types/DFWRequest";
 import { APIListenerParams, APIListenerFunction } from "../types/APIListener";
@@ -122,7 +122,6 @@ export default class APIManager {
             } else {
                 res.status(500).json({ error: err }).end();
             }
-            next(err);
         })
 
         DFWUtils.log(`${chalk.yellow(method.toUpperCase().padEnd(7, ' '))}  ${chalk.green(path)}`)

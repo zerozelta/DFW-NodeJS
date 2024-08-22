@@ -1,7 +1,7 @@
 import { DFWRequest } from "../types/DFWRequest";
 import DFWController from "./DFWController";
 
-class DFWSessionControler extends DFWController {
+class DFWSessionController extends DFWController {
     async updateSessionAgentAsync({ dfw, sessionID, ip, socket, headers }: DFWRequest) {
         if (sessionID) {
             return dfw.db.dfw_session.updateMany({
@@ -27,4 +27,4 @@ class DFWSessionControler extends DFWController {
     }
 }
 
-export default DFWSessionControler
+export default DFWSessionController
