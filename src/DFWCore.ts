@@ -7,6 +7,7 @@ import fs from "fs"
 import DFWUtils from "./DFWUtils";
 import APIManager from "./lib/APIManager";
 import { DFWRequest, DFWRequestSchema } from "./types/DFWRequest";
+import cors from "cors"
 
 type DFWRegisterItem = APIListener | { [key: string]: DFWRegisterItem } | DFWRegisterItem[]
 
@@ -45,6 +46,11 @@ export class DFWCore {
         }
 
         if (config.server?.trustProxy) this.server.set('trust proxy', config.server?.trustProxy)
+
+        //// CORS ////
+        if (config.server?.cors) {
+            this.server.use(cors(config.server.cors))
+        }
 
         this.APIManager.installAPILAyer()
         this.APIManager.installSecurityLayer()

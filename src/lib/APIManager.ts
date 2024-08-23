@@ -53,11 +53,6 @@ export default class APIManager {
             done(null, { id: idUser })
         })
 
-        //// CORS ////
-        if (this.DFW.config.server?.cors) {
-            APIRouter.use(cors(this.DFW.config.server?.cors))
-        }
-
         //// DFW SChema ////
         APIRouter.use(((req: DFWRequest, _: Response, next: NextFunction) => {
             const dfw: Partial<DFWRequestSchema> = {
