@@ -1,4 +1,4 @@
-import { Request } from "express";
+import { Request, Response } from "express";
 import { dfw_user, PrismaClient } from "@prisma/client";
 import DFWCore from "../DFWCore";
 
@@ -6,14 +6,19 @@ export type DFWRequest = {
     dfw: DFWRequestSchema;
 } & Request
 
+export type DFWResponse = {
+} & Response
+
 export type DFWRequestSchema = {
     instance: DFWCore
     isAuthenticated: () => boolean,
     user?: { id: number } & Partial<dfw_user>
     session: {
-        getUserAsync: () => Promise<dfw_user | undefined>
-        checkCredentials: () => Promise<boolean>
-        checkAccess: () => Promise<boolean>
+        login: (user: Partial<dfw_user>) => Promise<void>
+        logout: () => Promise<void>
+        //getUserAsync: () => Promise<dfw_user | undefined>
+        //checkCredentials: () => Promise<boolean>
+        //checkAccess: () => Promise<boolean>
     },
     db: PrismaClient;
 

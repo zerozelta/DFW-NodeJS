@@ -4,9 +4,7 @@ import { NextFunction, RequestHandler } from "express";
 import { DFWRequest, DFWRequestSchema } from "../types/DFWRequest";
 import { APIListenerParams, APIListenerFunction } from "../types/APIListener";
 import DFWUtils from "../DFWUtils";
-import expressAsyncHandler from "express-async-handler";
 import chalk from "chalk";
-import cors from 'cors';
 import passport from "passport";
 import DFWPassportStrategy from "./strategies/DFWPassportStrategy";
 import session from "express-session"
@@ -60,6 +58,19 @@ export default class APIManager {
                 db: this.DFW.db,
                 isAuthenticated: () => req.isAuthenticated(),
                 user: req.user as dfw_user,
+                session: {
+                    login: async (user) => new Promise<void>((resolve, reject) => {
+                        req.login(user, (err) => {
+                            if (err) return reject(err)
+                            req.session['passport'] = { user: user.id }
+                            req.dfw.user = user as any
+                            resolve()
+                        })
+                    }),
+                    logout: () => new Promise<void>((resolve, reject) => {
+                        req.logout((err) => err ? reject(err) : resolve())
+                    })
+                },
                 addCallback: (cb) => { }
             }
             req.dfw = dfw as DFWRequestSchema

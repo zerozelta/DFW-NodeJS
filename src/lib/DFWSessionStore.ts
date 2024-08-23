@@ -18,7 +18,7 @@ class DFWSessionStore extends Store {
             where: { id: sid }
         }).then((sessionObj) => {
             if (sessionObj) {
-                callback(null, { cookie: {} as any, passport: { user: sessionObj?.idUser } as any })
+                callback(null, { cookie: {} as any, passport: { user: sessionObj.idUser } as any })
             } else {
                 callback(null, null)
             }
