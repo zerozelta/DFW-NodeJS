@@ -68,7 +68,12 @@ export default class APIManager {
                         })
                     }),
                     logout: () => new Promise<void>((resolve, reject) => {
-                        req.logout((err) => err ? reject(err) : resolve())
+                        req.logout((err) => {
+                            if (err) return reject(err)
+                            req.session['passport'] = { user: undefined }
+                            req.dfw.user = undefined
+                            resolve()
+                        })
                     })
                 },
                 addCallback: (cb) => { }

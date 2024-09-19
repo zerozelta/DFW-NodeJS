@@ -6,10 +6,12 @@ class DFWSessionController extends DFWController {
         if (sessionID) {
             return dfw.db.dfw_session.updateMany({
                 data: {
-                    ip: ip || socket?.remoteAddress,
-                    agent: headers['user-agent']
+                    ip: ip ?? socket?.remoteAddress,
+                    agent: headers['user-agent'] ?? null
                 },
                 where: { id: sessionID }
+            }).catch((e) => {
+                console.log(e)
             })
         }
     }
