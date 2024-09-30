@@ -1,3 +1,4 @@
+import fileUpload, { FileArray, UploadedFile } from "express-fileupload";
 import {
     DFWAuthListener,
     DFWCore,
@@ -8,6 +9,8 @@ import {
 import DFWSecurityController from "./controller/DFWSecurityController";
 import DFWSessionController from "./controller/DFWSessionController";
 import DFWUserController from "./controller/DFWUserController";
+import UploadListener from "./listeners/UploadListener";
+import DFWFileController from "./controller/DFWFileController";
 
 var DFW = new DFWCore({
     server: {
@@ -82,6 +85,17 @@ DFW.register({
                 nick: 'zerozelta',
                 password: 'test'
             }).catch(() => { throw "UNABLE_TO_CREATE" })
+        }),
+        upload: UploadListener(async ({ dfw, files }) => {
+            const { file } = files as { [key: string]: UploadedFile }
+            const DFWFileControl = new DFWFileController()
+
+            await DFWFileControl.saveLocalFileAsync(file,{ })
+
+            return files
+        }, {
+            tempFileDir: './.dfw/temp',
+            useTempFiles: true
         }),
         secured: [
             POSTListener(() => {
