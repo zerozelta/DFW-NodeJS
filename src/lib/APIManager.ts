@@ -99,6 +99,8 @@ export default class APIManager {
         if (params.raw) {
             if (params.middleware) server[method](path, params.middleware)
             if (listener) server[method](path, listener as unknown as RequestHandler)
+
+            DFWUtils.log(`${chalk.yellow(method.toUpperCase().padEnd(7, ' '))}  ${chalk.green(path)}`)
             return
         }
 
@@ -109,7 +111,7 @@ export default class APIManager {
         server[method](path, this.DFW.RouterAPILevel)
         server[method](path, this.DFW.RouterAccessLevel)
 
-        // Param middlewares
+        // middlewares and handlers
         if (params.middleware) server[method](path, params.middleware)
 
         if (listener) {

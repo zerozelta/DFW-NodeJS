@@ -9,8 +9,10 @@ export type DFWConfig = {
         /** CORS config for entire server */
         cors?: CorsOptions
 
-        
         trustProxy?: boolean | number
+
+        // Temporal directory path
+        tmpDir?: string
     }
 
     /**

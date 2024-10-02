@@ -8,6 +8,7 @@ import DFWUtils from "./DFWUtils";
 import APIManager from "./lib/APIManager";
 import { DFWRequest, DFWRequestSchema } from "./types/DFWRequest";
 import cors from "cors"
+import nodejsPath from "path";
 
 type DFWRegisterItem = APIListener | { [key: string]: DFWRegisterItem } | DFWRegisterItem[]
 
@@ -23,11 +24,14 @@ export class DFWCore {
 
     public static MAIN_INSTANCE: DFWCore
 
-    public static DFW_PATH = "./.dfw"
+    public static DFW_DIR = "./.dfw"
+    public static DFW_UPLOAD_DIR = `${DFWCore.DFW_DIR}/upload`
 
     public readonly server: Express = ExpressServer();
     public readonly RouterAPILevel: Router = Router();
     public readonly RouterAccessLevel: Router = Router();
+
+    public readonly tmpDir: string
 
     public readonly config: DFWConfig;
     private database: PrismaClient;
@@ -36,13 +40,23 @@ export class DFWCore {
 
     constructor(config: DFWConfig) {
         this.config = Object.freeze(config)
+        this.tmpDir = config.server?.tmpDir ?? '.dfw/temp'
+
+        if (fs.existsSync(this.tmpDir)) {
+            fs.rmSync(this.tmpDir, { recursive: true });
+            fs.mkdirSync(this.tmpDir);
+        } else {
+            fs.mkdirSync(this.tmpDir);
+        }
+
+        this.tmpDir = nodejsPath.normalize(fs.mkdtempSync(`${this.tmpDir}${nodejsPath.sep}`));
 
         this.database = new PrismaClient({
             log: config.database ? config.database.log ? ['query', 'info', 'warn', 'error'] : undefined : undefined,
         });
 
-        if (fs.existsSync(DFWCore.DFW_PATH) == false) {
-            fs.mkdirSync(DFWCore.DFW_PATH);
+        if (fs.existsSync(DFWCore.DFW_DIR) == false) {
+            fs.mkdirSync(DFWCore.DFW_DIR);
         }
 
         if (config.server?.trustProxy) this.server.set('trust proxy', config.server?.trustProxy)
@@ -85,7 +99,6 @@ export class DFWCore {
             next()
         })
     }
-
 
 
     /**

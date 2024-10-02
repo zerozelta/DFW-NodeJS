@@ -1,7 +1,7 @@
 import { RequestHandler } from "express";
-import { DFWRequest, DFWRequestSchema } from "./DFWRequest";
+import { DFWRequest } from "./DFWRequest";
 
-export type APIMethod = 'get' | 'post' | 'put' | 'delete' | 'options' | 'patch'
+export type APIMethod = 'get' | 'post' | 'put' | 'delete' | 'options' | 'patch' | 'use'
 export type APIListenerFunction = (req: DFWRequest, res: Response) => (Promise<any> | any)
 
 export type APIListener = {

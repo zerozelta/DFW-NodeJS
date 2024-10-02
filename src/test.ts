@@ -1,6 +1,5 @@
-import fileUpload, { FileArray, UploadedFile } from "express-fileupload";
+import { UploadedFile } from "express-fileupload";
 import {
-    DFWAuthListener,
     DFWCore,
     GETListener,
     POSTListener,
@@ -11,6 +10,7 @@ import DFWSessionController from "./controller/DFWSessionController";
 import DFWUserController from "./controller/DFWUserController";
 import UploadListener from "./listeners/UploadListener";
 import DFWFileController from "./controller/DFWFileController";
+import StaticDirectoryListener from "./listeners/StaticDirectoryListener";
 
 var DFW = new DFWCore({
     server: {
@@ -21,7 +21,10 @@ var DFW = new DFWCore({
 
 DFW.register({
     api: {
-        boot: [
+        boot: GETListener(async ({ dfw }) => {
+            return { user: dfw.user, isAuth: dfw.isAuthenticated() }
+        }),
+        bootstrap: [
             POSTListener(async ({ dfw, user }, res) => {
                 return dfw.db.$transaction(async (db) => {
                     const SecurityControl = new DFWSecurityController().use(db)
@@ -62,14 +65,12 @@ DFW.register({
                 user: req.user
             }
         }),
-        login: DFWAuthListener((req, res) => {
-            return {
-                isAuthenticated: req.isAuthenticated(),
-                session: req.session,
-                user: req.user
-            }
+        login: GETListener(async ({ dfw }, res) => {
+            await dfw.session.login(await dfw.db.dfw_user.findUnique({ where: { id: 1 } }) as any)
+            console.log(dfw.user)
+            return { user: dfw.user, isAuth: dfw.isAuthenticated() }
         }),
-        logout: POSTListener(async (req, res) => {
+        logout: GETListener(async (req, res) => {
             const SessionControl = new DFWSessionController()
             await SessionControl.logoutAsync(req)
             //req.session = null as any
@@ -90,13 +91,16 @@ DFW.register({
             const { file } = files as { [key: string]: UploadedFile }
             const DFWFileControl = new DFWFileController()
 
-            await DFWFileControl.saveLocalFileAsync(file,{ })
+            await DFWFileControl.saveUploadedFileAsync(file, {
+                makeUrl: (filePath) => `/api/files/${filePath}`
+            })
 
             return files
         }, {
-            tempFileDir: './.dfw/temp',
-            useTempFiles: true
+            useTempFiles: true,
+            tempFileDir: DFW.tmpDir
         }),
+        files: StaticDirectoryListener(DFWCore.DFW_UPLOAD_DIR),
         secured: [
             POSTListener(() => {
                 return { access: true }

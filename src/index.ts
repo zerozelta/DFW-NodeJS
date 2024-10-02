@@ -13,9 +13,10 @@ export { default as GETListener } from './listeners/GETListener'
 export { default as PATCHListener } from './listeners/PATCHListener'
 export { default as POSTListener } from './listeners/POSTListener'
 export { default as PUTListener } from './listeners/PUTListener'
+
 export { default as RawListener } from './listeners/RawListener'
 export { default as UploadListener } from './listeners/UploadListener'
-
+export { default as StaticDirectoryListener } from './listeners/StaticDirectoryListener'
 export { default as DFWAuthListener } from './listeners/auth/DFWAuthListener'
 
 export { default as DFWCore } from './DFWCore'
