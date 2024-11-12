@@ -1,6 +1,6 @@
 import bodyParser from "body-parser";
 import DFWCore from "../DFWCore";
-import { NextFunction, RequestHandler } from "express";
+import { NextFunction, RequestHandler, Response } from "express";
 import { DFWRequest, DFWRequestSchema } from "../types/DFWRequest";
 import { APIListenerParams, APIListenerFunction } from "../types/APIListener";
 import DFWUtils from "../DFWUtils";
@@ -52,7 +52,9 @@ export default class APIManager {
         })
 
         //// DFW SChema ////
-        APIRouter.use(((req: DFWRequest, _: Response, next: NextFunction) => {
+        APIRouter.use(((req: DFWRequest, res: Response, next: NextFunction) => {
+            const callbackStack: (() => void)[] = []
+
             const dfw: Partial<DFWRequestSchema> = {
                 instance: this.DFW,
                 db: this.DFW.db,
@@ -76,9 +78,14 @@ export default class APIManager {
                         })
                     })
                 },
-                addCallback: (cb) => { }
+                addCallback: (cb) => {
+                    callbackStack.push(cb)
+                }
             }
             req.dfw = dfw as DFWRequestSchema
+            res.on('finish', () => {
+                callbackStack.forEach((cb) => cb())
+            })
             next();
         }) as any)
     }

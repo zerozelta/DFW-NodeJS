@@ -27,5 +27,5 @@ export type DFWRequestSchema = {
      * @param cb callback function or promise
      * @returns 
      */
-    addCallback: (cb: () => void | Promise<void>) => void
+    addCallback: (cb: () => void) => void
 }

@@ -1,6 +1,7 @@
 import { UploadedFile } from "express-fileupload";
 import {
     DFWCore,
+    DFWUtils,
     GETListener,
     POSTListener,
     RawListener,
@@ -64,6 +65,14 @@ DFW.register({
                 session: req.session,
                 user: req.user
             }
+        }),
+        callback: GETListener(async ({ dfw }) => {
+            dfw.addCallback(() => {
+                DFWUtils.sleepAsync(2000).then(()=>{
+                    console.log("Pasando!!", dfw.isAuthenticated())
+                })
+            })
+            return { response: true }
         }),
         login: GETListener(async ({ dfw }, res) => {
             await dfw.session.login(await dfw.db.dfw_user.findUnique({ where: { id: 1 } }) as any)
