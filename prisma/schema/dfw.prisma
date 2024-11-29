@@ -1,6 +1,6 @@
 model dfw_user {
-    id          Int     @id @default(autoincrement()) @db.UnsignedInt
-    nick        String? @unique @db.VarChar(255)
+    id          String  @id @default(cuid())
+    name        String? @unique @db.VarChar(255)
     email       String? @unique @db.VarChar(255)
     displayName String?
     encodedKey  String? @db.VarChar(255)
@@ -11,17 +11,14 @@ model dfw_user {
     credentials dfw_credential[]
     files       dfw_file[]
     sessions    dfw_session[]
-
-    @@index([email])
-    @@index([nick])
 }
 
 model dfw_session {
-    id     String    @id @db.Char(36)
+    id     String    @id @default(uuid()) @db.Uuid
     agent  String?   @db.VarChar(255)
     ip     String?   @db.VarChar(255)
     expire DateTime? @db.Date
-    idUser Int?      @db.UnsignedInt
+    idUser String?
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
@@ -32,8 +29,7 @@ model dfw_session {
 }
 
 model dfw_access {
-    id          Int     @id @default(autoincrement()) @db.UnsignedInt
-    name        String  @unique @db.VarChar(255)
+    name        String  @id @db.VarChar
     description String?
 
     createdAt DateTime @default(now())
@@ -45,8 +41,7 @@ model dfw_access {
 }
 
 model dfw_credential {
-    id          Int     @id @default(autoincrement()) @db.UnsignedInt
-    name        String  @unique @db.VarChar(255)
+    name        String  @id @db.VarChar(255)
     description String?
 
     createdAt DateTime @default(now())
@@ -59,18 +54,19 @@ model dfw_credential {
 }
 
 model dfw_file {
-    id       Int              @id @default(autoincrement()) @db.UnsignedInt
+    id       String           @id @default(cuid())
     name     String?          @db.VarChar(255)
     path     String?          @db.VarChar(255) // Path to resource
     url      String?          @db.VarChar(255) // Public resource url
     variant  String?          @db.VarChar(255)
-    size     Int?             @db.UnsignedInt
+    size     Int?             @db.Integer
     checksum String?          @db.VarChar(255)
     mimetype String?          @db.VarChar(255)
     storage  DFW_FILE_STORAGE @default(LOCAL)
     expire   DateTime?        @db.Date
-    idParent Int?             @db.UnsignedInt
-    idUser   Int?             @db.UnsignedInt
+    metadata Json?
+    idParent String?
+    idUser   String?
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
@@ -80,7 +76,6 @@ model dfw_file {
     children dfw_file[] @relation("parent")
 
     @@index([expire])
-    @@index([id])
     @@index([idParent])
     @@index([idUser])
 }

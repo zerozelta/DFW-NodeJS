@@ -12,7 +12,7 @@ export type DFWResponse = {
 export type DFWRequestSchema = {
     instance: DFWCore
     isAuthenticated: () => boolean,
-    user?: { id: number } & Partial<dfw_user>
+    user?: { id: string } & Partial<dfw_user>
     session: {
         login: (user: Partial<dfw_user>) => Promise<void>
         logout: () => Promise<void>

@@ -7,7 +7,7 @@ class DFWUserController extends DFWController {
 
     public async validateUserPasswordAsync(identifier: string, password: any) {
         const isEmail = DFWUtils.isEmail(identifier)
-        const nick = isEmail ? undefined : identifier
+        const name = isEmail ? undefined : identifier
         const email = isEmail ? identifier : undefined
 
         const user = await this.db.dfw_user.findUnique({
@@ -16,7 +16,7 @@ class DFWUserController extends DFWController {
                 encodedKey: true
             },
             where: {
-                nick,
+                name,
                 email
             }
         })
@@ -30,7 +30,7 @@ class DFWUserController extends DFWController {
         return user.id
     }
 
-    public async createUserAsync({ password, ...params }: { [key: string]: any; nick?: string; email?: string; password: string }) {
+    public async createUserAsync({ password, ...params }: { [key: string]: any; name?: string; email?: string; password: string }) {
         return this.db.dfw_user.create({
             data: {
                 ...params,
@@ -39,7 +39,7 @@ class DFWUserController extends DFWController {
         })
     }
 
-    public async assignCredentialAsync(user: number | Partial<dfw_user>, credential: dfw_credential | number | string | (dfw_credential | number | string)[]): Promise<dfw_credential[]> {
+    public async assignCredentialAsync(user: string | Partial<dfw_user>, credential: dfw_credential | string | (dfw_credential | string)[]): Promise<dfw_credential[]> {
         const SecurityControl = new DFWSecurityController().use(this.db)
         return SecurityControl.attachUserToCredentialAsync(user, credential);
     }

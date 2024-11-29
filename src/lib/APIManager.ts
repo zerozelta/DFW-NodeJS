@@ -10,6 +10,8 @@ import DFWPassportStrategy from "./strategies/DFWPassportStrategy";
 import session from "express-session"
 import DFWSessionStore from "./DFWSessionStore";
 import { dfw_user } from "@prisma/client";
+import fileUpload from "express-fileupload";
+import { v7 as uuid7 } from 'uuid';
 
 export default class APIManager {
     private DFW: DFWCore
@@ -26,7 +28,7 @@ export default class APIManager {
         APIRouter.use(session({
             name: 'stk',
             secret: 'default',
-            genid: () => DFWUtils.uuid(),
+            genid: () => uuid7(),
             resave: false,
             saveUninitialized: false,
             store: new DFWSessionStore(this.DFW),
@@ -118,7 +120,10 @@ export default class APIManager {
         server[method](path, this.DFW.RouterAPILevel)
         server[method](path, this.DFW.RouterAccessLevel)
 
-        // middlewares and handlers
+        // file upload middleware
+        if (params.upload) server[method](path, fileUpload(typeof params.upload === 'boolean' ? {} : params.upload))
+
+        // plugged middlewares and handlers
         if (params.middleware) server[method](path, params.middleware)
 
         if (listener) {

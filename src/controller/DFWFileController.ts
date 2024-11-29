@@ -12,7 +12,7 @@ type SaveFileOptions = {
     name?: string
     variant?: string
     expire?: Date
-    idParent?: number
+    idParent?: string
     makeUrl: (filePath: string) => string
 }
 

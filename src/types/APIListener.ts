@@ -1,5 +1,6 @@
 import { RequestHandler } from "express";
 import { DFWRequest } from "./DFWRequest";
+import fileUpload from "express-fileupload";
 
 export type APIMethod = 'get' | 'post' | 'put' | 'delete' | 'options' | 'patch' | 'use'
 export type APIListenerFunction = (req: DFWRequest, res: Response) => (Promise<any> | any)
@@ -16,14 +17,20 @@ export type APIListenerParams = {
     method?: APIMethod;
 
     /**
-     * if true the listiner will be simple express function without any dfw middleware layers
+     * if true the listiner will be simple express function without any dfw middleware layer
      */
     raw?: boolean
 
     /**
-     * 
+     * Middleware (compatible with raw listeners)
      */
     middleware?: RequestHandler | RequestHandler[];
+
+
+    /**
+     * File Upload middleware enabled receive a fileUpload.Options
+     */
+    upload?: fileUpload.Options | boolean
 
     /**
      * 

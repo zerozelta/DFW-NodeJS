@@ -9,9 +9,8 @@ import {
 import DFWSecurityController from "./controller/DFWSecurityController";
 import DFWSessionController from "./controller/DFWSessionController";
 import DFWUserController from "./controller/DFWUserController";
-import UploadListener from "./listeners/UploadListener";
 import DFWFileController from "./controller/DFWFileController";
-import StaticDirectoryListener from "./listeners/StaticDirectoryListener";
+import StaticPathListener from "./listeners/StaticPathListener";
 
 var DFW = new DFWCore({
     server: {
@@ -32,7 +31,7 @@ DFW.register({
                     const UserControl = new DFWUserController().use(db)
 
                     const conty = await UserControl.createUserAsync({
-                        nick: 'conty',
+                        name: 'conty',
                         password: 'test'
                     })
 
@@ -67,15 +66,25 @@ DFW.register({
             }
         }),
         callback: GETListener(async ({ dfw }) => {
-            dfw.addCallback(() => {
-                DFWUtils.sleepAsync(2000).then(()=>{
-                    console.log("Pasando!!", dfw.isAuthenticated())
+            dfw.addCallback(async () => {
+                await DFWUtils.sleepAsync(2000).then(() => {
+                    console.log("Pasando!!1", dfw.isAuthenticated())
                 })
+                console.log("pasando!!1despues")
             })
             return { response: true }
+        }, {
+            callback: async ({ dfw }) => {
+                await DFWUtils.sleepAsync(2000).then(() => {
+                    console.log("Pasando!!2", dfw.isAuthenticated())
+                })
+            }
         }),
         login: GETListener(async ({ dfw }, res) => {
-            await dfw.session.login(await dfw.db.dfw_user.findUnique({ where: { id: 1 } }) as any)
+            const user = await dfw.db.dfw_user.findFirst()
+            if (!user) throw "UNABLE_TO_FIND_USER"
+
+            await dfw.session.login(user)
             console.log(dfw.user)
             return { user: dfw.user, isAuth: dfw.isAuthenticated() }
         }),
@@ -92,11 +101,11 @@ DFW.register({
         signup: POSTListener(async ({ dfw }) => {
             const UserControl = new DFWUserController()
             return UserControl.createUserAsync({
-                nick: 'zerozelta',
+                name: 'zerozelta',
                 password: 'test'
             }).catch(() => { throw "UNABLE_TO_CREATE" })
         }),
-        upload: UploadListener(async ({ dfw, files }) => {
+        upload: POSTListener(async ({ dfw, files }) => {
             const { file } = files as { [key: string]: UploadedFile }
             const DFWFileControl = new DFWFileController()
 
@@ -106,10 +115,12 @@ DFW.register({
 
             return files
         }, {
-            useTempFiles: true,
-            tempFileDir: DFW.tmpDir
+            upload: {
+                useTempFiles: true,
+                tempFileDir: DFW.tmpDir
+            }
         }),
-        files: StaticDirectoryListener(DFWCore.DFW_UPLOAD_DIR),
+        files: StaticPathListener(DFWCore.DFW_UPLOAD_DIR),
         secured: [
             POSTListener(() => {
                 return { access: true }

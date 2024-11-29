@@ -10,21 +10,19 @@ class DFWSecurityController extends DFWController {
         return this.db.dfw_access.create({ data: { name, description } });
     }
 
-    public async attachUserToCredentialAsync(user: number | Partial<dfw_user>, credential: dfw_credential | number | string | (dfw_credential | number | string)[]) {
+    public async attachUserToCredentialAsync(user: string | Partial<dfw_user>, credential: dfw_credential | string | (dfw_credential | string)[]) {
         const idUser = typeof user === "object" ? user.id : user;
         if (Array.isArray(credential)) {
             let result = await Promise.all(credential.map((credentialObj) => this.attachUserToCredentialAsync(user, credentialObj)))
             return result.flat(1);
         } else {
-            let idCredential: number;
+            let idCredential: string;
 
-            if (typeof credential == "number") {
-                idCredential = credential;
-            } else if (typeof credential == "string") {
-                let credentialObj = (await this.db.dfw_credential.findFirst({ select: { id: true }, where: { name: credential } }));
-                if (credentialObj) { idCredential = credentialObj.id; } else { return [] }
+            if (typeof credential == "string") {
+                let credentialObj = (await this.db.dfw_credential.findFirst({ select: { name: true }, where: { name: credential } }));
+                if (credentialObj) { idCredential = credentialObj.name; } else { return [] }
             } else {
-                idCredential = credential.id;
+                idCredential = credential.name;
             }
 
             const newCredential = await this.db.dfw_credential.update({
@@ -36,7 +34,7 @@ class DFWSecurityController extends DFWController {
                     }
                 },
                 where: {
-                    id: idCredential
+                    name: idCredential
                 }
             }).catch((e) => []);
 
@@ -44,27 +42,27 @@ class DFWSecurityController extends DFWController {
         }
     }
 
-    public async attachAccessToCredentialAsync(access: number | Partial<dfw_access>, credential: Partial<dfw_credential> | number) {
-        const idAccess = typeof access === 'object' ? access.id : access
-        const idCredential = typeof credential === 'object' ? credential.id : credential
+    public async attachAccessToCredentialAsync(access: string | Partial<dfw_access>, credential: Partial<dfw_credential> | string) {
+        const idAccess = typeof access === 'object' ? access.name : access
+        const idCredential = typeof credential === 'object' ? credential.name : credential
 
         const newCredential = await this.db.dfw_credential.update({
             data: {
                 access: {
                     connect: {
-                        id: idAccess
+                        name: idAccess
                     }
                 }
             },
             where: {
-                id: idCredential
+                name: idCredential
             }
         }).catch(() => []);
 
         return newCredential
     }
 
-    public async userHasCredentialAsync(userSource: number | Partial<dfw_user>, credential: string) {
+    public async userHasCredentialAsync(userSource: string | Partial<dfw_user>, credential: string) {
         const idUser = typeof userSource === 'object' ? userSource.id : userSource
 
         const user = await this.db.dfw_user.findUnique({
