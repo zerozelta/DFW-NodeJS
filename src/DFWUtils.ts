@@ -2,6 +2,7 @@ import chalk from "chalk";
 import { randomUUID } from "crypto";
 import { lookup } from "mime-types";
 import bcrypt from "bcrypt"
+import { createId } from '@paralleldrive/cuid2';
 
 export default class DFWUtils {
 
@@ -66,6 +67,10 @@ export default class DFWUtils {
      */
     public static uuid(): string {
         return randomUUID()
+    }
+
+    public static cuid(): string {
+        return createId()
     }
 
     public static async verifyPassword(encoded: string, test: string): Promise<boolean> {
