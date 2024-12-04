@@ -51,9 +51,12 @@ export class DFWCore {
 
         this.tmpDir = nodejsPath.normalize(fs.mkdtempSync(`${this.tmpDir}${nodejsPath.sep}`));
 
-        this.database = new PrismaClient({
-            log: config.database ? config.database.log ? ['query', 'info', 'warn', 'error'] : undefined : undefined,
-        });
+        this.database = config.server?.prismaGenerathor ?
+            config.server.prismaGenerathor(this)
+            :
+            new PrismaClient({
+                log: config.database ? config.database.log ? ['query', 'info', 'warn', 'error'] : undefined : undefined,
+            });
 
         if (fs.existsSync(DFWCore.DFW_DIR) == false) {
             fs.mkdirSync(DFWCore.DFW_DIR);

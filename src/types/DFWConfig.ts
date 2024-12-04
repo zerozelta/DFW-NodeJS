@@ -1,5 +1,7 @@
+import { PrismaClient } from "@prisma/client"
 import { CorsOptions } from "cors"
 import { CookieOptions } from "express-session"
+import { DFWCore } from ".."
 
 export type DFWConfig = {
 
@@ -13,6 +15,9 @@ export type DFWConfig = {
 
         // Temporal directory path
         tmpDir?: string
+
+        // Prisma client custom maker
+        prismaGenerathor?:(dfw:DFWCore)=>PrismaClient
     }
 
     /**
