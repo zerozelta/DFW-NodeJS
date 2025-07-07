@@ -1,10 +1,10 @@
-import DFWController from "./DFWController";
+import DFWRepository from "../lib/DFWRepository";
 import { promisify } from "util";
 import { UploadedFile } from "express-fileupload";
 import { DFW_FILE_STORAGE } from "@prisma/client";
 import { DateTime } from "luxon";
 import path from "path";
-import DFWUtils from "../DFWUtils";
+import DFWUtils from "../lib/DFWUtils";
 import fs from "fs";
 import { DFWCore } from "..";
 
@@ -16,7 +16,7 @@ type SaveFileOptions = {
     makeUrl: (filePath: string) => string
 }
 
-class DFWFileController extends DFWController {
+class DFWFileRepository extends DFWRepository {
 
     async saveUploadedFileAsync(file: UploadedFile, { name, expire, idParent, variant, makeUrl }: SaveFileOptions) {
         const filePath = DateTime.now().toFormat("yyyy/MM")
@@ -51,4 +51,4 @@ class DFWFileController extends DFWController {
     }
 }
 
-export default DFWFileController
+export default DFWFileRepository

@@ -1,9 +1,9 @@
 import { dfw_credential, dfw_user } from "@prisma/client";
-import DFWUtils from "../DFWUtils";
-import DFWController from "./DFWController";
-import DFWSecurityController from "./DFWSecurityController";
+import DFWUtils from "../lib/DFWUtils";
+import DFWRepository from "../lib/DFWRepository";
+import DFWSecurityRepository from "./security.repository";
 
-class DFWUserController extends DFWController {
+class DFWUserRepository extends DFWRepository {
 
     public async validateUserPasswordAsync(identifier: string, password: any) {
         const isEmail = DFWUtils.isEmail(identifier)
@@ -40,9 +40,9 @@ class DFWUserController extends DFWController {
     }
 
     public async assignCredentialAsync(user: string | Partial<dfw_user>, credential: dfw_credential | string | (dfw_credential | string)[]): Promise<dfw_credential[]> {
-        const SecurityControl = new DFWSecurityController().use(this.db)
+        const SecurityControl = new DFWSecurityRepository().use(this.db)
         return SecurityControl.attachUserToCredentialAsync(user, credential);
     }
 }
 
-export default DFWUserController
+export default DFWUserRepository

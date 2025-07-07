@@ -2,7 +2,7 @@ import { PrismaClient } from "@prisma/client"
 import * as runtime from "@prisma/client/runtime/library"
 import { DFWCore } from ".."
 
-class DFWController {
+class DFWRepository {
     private _db: PrismaClient = DFWCore.MAIN_INSTANCE.db
 
     get db() {
@@ -38,4 +38,4 @@ class DFWController {
     }
 }
 
-export default DFWController
+export default DFWRepository

@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { dfw_user, PrismaClient } from "@prisma/client";
-import DFWCore from "../DFWCore";
+import DFWCore from "../lib/DFWCore";
 
 export type DFWRequest = {
     dfw: DFWRequestSchema;

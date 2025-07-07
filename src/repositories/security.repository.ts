@@ -1,7 +1,7 @@
 import { dfw_access, dfw_credential, dfw_user } from "@prisma/client";
-import DFWController from "./DFWController";
+import DFWRepository from "../lib/DFWRepository";
 
-class DFWSecurityController extends DFWController {
+class DFWSecurityRepository extends DFWRepository {
     public async createCredentiaAsync(name: string, description?: string) {
         return this.db.dfw_credential.create({ data: { name, description } });
     }
@@ -83,4 +83,4 @@ class DFWSecurityController extends DFWController {
     }
 }
 
-export default DFWSecurityController
+export default DFWSecurityRepository

@@ -1,9 +1,9 @@
 import bodyParser from "body-parser";
-import DFWCore from "../DFWCore";
+import DFWCore from "./DFWCore";
 import { NextFunction, RequestHandler, Response } from "express";
 import { DFWRequest, DFWRequestSchema } from "../types/DFWRequest";
 import { APIListenerParams, APIListenerFunction } from "../types/APIListener";
-import DFWUtils from "../DFWUtils";
+import DFWUtils from "./DFWUtils";
 import chalk from "chalk";
 import passport from "passport";
 import DFWPassportStrategy from "./strategies/DFWPassportStrategy";
@@ -129,13 +129,20 @@ export default class APIManager {
         if (listener) {
             server[method](path, async (req, res, next) => {
                 try {
-                    await Promise.resolve(listener(req as DFWRequest, res as any)).then((data) => {
-                        if (res.finished !== true && params.disableAutoSend !== true) res.json(data).end();
-                        if (params.callback) res.on("finish", () => params.callback && params.callback(req as DFWRequest, data));
-                        next();
-                    })
+                    const data = await listener(req as DFWRequest, res as any);
+
+                    if (params.callback) {
+                        res.on('finish', () => params.callback!(req as DFWRequest, data));
+                    }
+
+                    if (!res.finished && !params.disableAutoSend) {
+                        if (data) res.json(data).end();
+                        else res.end();
+                    }
+
+                    next();
                 } catch (e) {
-                    next(e)
+                    next(e);
                 }
             })
         }

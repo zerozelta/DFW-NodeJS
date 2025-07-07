@@ -1,12 +1,12 @@
 import { PrismaClient } from "@prisma/client";
 import { Express, Router, default as ExpressServer } from "express";
-import { DFWConfig } from "./types/DFWConfig";
-import { APIListener, APIListenerFunction, APIListenerParams } from "./types/APIListener";
+import { DFWConfig } from "../types/DFWConfig";
+import { APIListener, APIListenerFunction, APIListenerParams } from "../types/APIListener";
 import chalk from "chalk";
 import fs from "fs"
 import DFWUtils from "./DFWUtils";
-import APIManager from "./lib/APIManager";
-import { DFWRequest, DFWRequestSchema } from "./types/DFWRequest";
+import APIManager from "./APIManager";
+import { DFWRequest, DFWRequestSchema } from "../types/DFWRequest";
 import cors from "cors"
 import nodejsPath from "path";
 
@@ -40,7 +40,9 @@ export class DFWCore {
 
     constructor(config: DFWConfig) {
         this.config = Object.freeze(config)
-        this.tmpDir = config.server?.tmpDir ?? '.dfw/temp'
+        this.tmpDir = config.server?.tmpDir ?? `${DFWCore.DFW_DIR}/temp`
+
+        if(!fs.existsSync(this.tmpDir)) fs.mkdirSync(DFWCore.DFW_DIR);
 
         if (fs.existsSync(this.tmpDir)) {
             fs.rmSync(this.tmpDir, { recursive: true });

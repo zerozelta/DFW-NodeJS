@@ -1,5 +1,5 @@
 import { Store } from "express-session";
-import DFWCore from "../DFWCore";
+import DFWCore from "./DFWCore";
 import { PrismaClient } from "@prisma/client";
 import { createLRU } from 'lru.min';
 

@@ -5,7 +5,7 @@
       "declaration": true,                   /* Generates corresponding '.d.ts' file. */
       "declarationMap": true,
       "sourceMap": true,                     /* Generates corresponding '.map' file. */
-      "outDir": "./lib",                     /* Redirect output structure to the directory. */
+      "outDir": "./dist",                     /* Redirect output structure to the directory. */
       "noResolve": false,
       "rootDir": "./src",
       "types" : ["express"],
@@ -16,7 +16,7 @@
     },
     "exclude": [
       "node_modules",
-      "lib",
+      "dist",
       ".vscode"
     ],
     "include": [
