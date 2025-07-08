@@ -1,26 +1,22 @@
 import { Request, Response } from "express";
 import { dfw_user, PrismaClient } from "@prisma/client";
 import DFWCore from "../lib/DFWCore";
+import { DFWServiceConstructor, MapServiceConstructors } from "../lib/DFWService";
 
-export type DFWRequest = {
-    dfw: DFWRequestSchema;
+export type DFWRequest<TServices extends readonly DFWServiceConstructor[] = []> = {
+    dfw: DFWRequestSchema<TServices>;
 } & Request
 
 export type DFWResponse = {
+    error: (message: any, status?: number) => void
 } & Response
 
-export type DFWRequestSchema = {
-    instance: DFWCore
-    isAuthenticated: () => boolean,
-    user?: { id: string } & Partial<dfw_user>
-    session: {
-        login: (user: Partial<dfw_user>) => Promise<void>
-        logout: () => Promise<void>
-        //getUserAsync: () => Promise<dfw_user | undefined>
-        //checkCredentials: () => Promise<boolean>
-        //checkAccess: () => Promise<boolean>
-    },
-    db: PrismaClient;
+export type DFWRequestSchema<TServices extends readonly DFWServiceConstructor[] = []> = {
+    getSession: () => {
+        isAuthenticated: boolean
+        user?: dfw_user | undefined
+    }
+    db: PrismaClient
 
     /**
      * Callback called in background after finish the api response
@@ -28,4 +24,4 @@ export type DFWRequestSchema = {
      * @returns 
      */
     addCallback: (cb: () => void) => void
-}
+} & MapServiceConstructors<TServices>

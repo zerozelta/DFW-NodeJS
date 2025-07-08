@@ -2,6 +2,7 @@ import { PrismaClient } from "@prisma/client"
 import { CorsOptions } from "cors"
 import { CookieOptions } from "express-session"
 import { DFWCore } from ".."
+import { PrismaClientOptions } from "@prisma/client/runtime/library"
 
 export type DFWConfig = {
 
@@ -17,7 +18,7 @@ export type DFWConfig = {
         tmpDir?: string
 
         // Prisma client custom maker
-        prismaGenerathor?:(dfw:DFWCore)=>PrismaClient
+        prismaGenerathor?: (dfw: DFWCore) => PrismaClient
     }
 
     /**
@@ -66,9 +67,7 @@ export type DFWConfig = {
     }
 
     /**
-     * 
+     * Prisma client options
      */
-    database?: {
-        log?: boolean;
-    }
+    prisma?: Omit<PrismaClientOptions, '__internal'>
 }

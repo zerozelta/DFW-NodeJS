@@ -1,7 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import { Express, Router, default as ExpressServer } from "express";
 import { DFWConfig } from "../types/DFWConfig";
-import { APIListener, APIListenerFunction, APIListenerParams } from "../types/APIListener";
+import { APIListener, ListenerFn, APIListenerParams } from "../lib/APIListener";
 import chalk from "chalk";
 import fs from "fs"
 import DFWUtils from "./DFWUtils";
@@ -16,6 +16,10 @@ declare global {
     namespace Express {
         export interface Request {
             dfw?: DFWRequestSchema
+        }
+
+        export interface Response {
+            error: (message: any, status: number) => void
         }
     }
 }
@@ -42,7 +46,7 @@ export class DFWCore {
         this.config = Object.freeze(config)
         this.tmpDir = config.server?.tmpDir ?? `${DFWCore.DFW_DIR}/temp`
 
-        if(!fs.existsSync(this.tmpDir)) fs.mkdirSync(DFWCore.DFW_DIR);
+        if (!fs.existsSync(this.tmpDir)) fs.mkdirSync(DFWCore.DFW_DIR);
 
         if (fs.existsSync(this.tmpDir)) {
             fs.rmSync(this.tmpDir, { recursive: true });
@@ -56,9 +60,7 @@ export class DFWCore {
         this.database = config.server?.prismaGenerathor ?
             config.server.prismaGenerathor(this)
             :
-            new PrismaClient({
-                log: config.database ? config.database.log ? ['query', 'info', 'warn', 'error'] : undefined : undefined,
-            });
+            new PrismaClient(config.prisma as any);
 
         if (fs.existsSync(DFWCore.DFW_DIR) == false) {
             fs.mkdirSync(DFWCore.DFW_DIR);
@@ -85,12 +87,12 @@ export class DFWCore {
         return this
     }
 
-    public addListener(path: string, params: APIListenerParams, listener: APIListenerFunction);
+    public addListener(path: string, params: APIListenerParams, listener: ListenerFn);
     public addListener(path: string, params: APIListenerParams);
-    public addListener(path: string, listener: APIListenerFunction);
-    public addListener(path: string, b: APIListenerParams | APIListenerFunction, c?: APIListenerFunction) {
+    public addListener(path: string, listener: ListenerFn);
+    public addListener(path: string, b: APIListenerParams | ListenerFn, c?: ListenerFn) {
         const params = (typeof b == 'function' ? c : b) as APIListenerParams
-        const listener = typeof b === 'function' ? b : c as APIListenerFunction
+        const listener = typeof b === 'function' ? b : c as ListenerFn
 
         this.APIManager.addListener(path, params, listener)
     }
@@ -116,7 +118,7 @@ export class DFWCore {
             node.forEach((n) => { this.register(n, path) })
         } else if (!!node.listener || !!node.params) {
             if (node.listener) {
-                this.addListener(path, node.params as APIListenerParams, node.listener as APIListenerFunction)
+                this.addListener(path, node.params as APIListenerParams, node.listener as ListenerFn)
             } else {
                 this.addListener(path, node.params as APIListenerParams)
             }

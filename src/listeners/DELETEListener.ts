@@ -1,13 +1,7 @@
-import { APIListener, APIListenerFunction, APIListenerParams } from "../types/APIListener";
+import { makeAPIListenerFunction } from "../lib/APIListener"
 
-const DELETEListener: (fn: APIListenerFunction, params?: APIListenerParams) => APIListener = (fn, params) => {
-    return {
-        listener: fn,
-        params: {
-            ...params,
-            method: 'delete'
-        }
-    }
-}
+const DELETEListener = makeAPIListenerFunction({
+    method: 'delete'
+})
 
 export default DELETEListener

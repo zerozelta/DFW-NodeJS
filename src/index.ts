@@ -1,7 +1,9 @@
-export * from "./repositories"
+export * from "./modules"
 export * from "./types"
 export * from "./listeners"
+export * from './lib/APIListener'
 
 export { default as DFWCore } from './lib/DFWCore'
 export { default as DFWUtils } from "./lib/DFWUtils"
-export { default as DFWRepository } from './lib/DFWRepository'
+export { default as DFWModule } from './lib/DFWModule'
+

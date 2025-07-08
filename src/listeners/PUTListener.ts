@@ -1,13 +1,7 @@
-import { APIListener, APIListenerFunction, APIListenerParams } from "../types/APIListener";
+import { makeAPIListenerFunction } from "../lib/APIListener"
 
-const PUTListener: (fn: APIListenerFunction, params?: APIListenerParams) => APIListener = (fn, params) => {
-    return {
-        listener: fn,
-        params: {
-            ...params,
-            method: 'put'
-        }
-    }
-}
+const PUTListener = makeAPIListenerFunction({
+    method: 'put'
+})
 
 export default PUTListener

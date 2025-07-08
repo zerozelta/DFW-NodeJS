@@ -1,13 +1,7 @@
-import { APIListener, APIListenerFunction, APIListenerParams } from "../types/APIListener";
+import { makeAPIListenerFunction } from "../lib/APIListener"
 
-const PATCHListener: (fn: APIListenerFunction, params?: APIListenerParams) => APIListener = (fn, params) => {
-    return {
-        listener: fn,
-        params: {
-            ...params,
-            method: 'patch'
-        }
-    }
-}
+const PATCHListener = makeAPIListenerFunction({
+    method: 'patch'
+})
 
 export default PATCHListener

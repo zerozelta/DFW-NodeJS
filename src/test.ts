@@ -1,16 +1,16 @@
-import { UploadedFile } from "express-fileupload";
 import {
     DFWCore,
-    DFWUtils,
     GETListener,
-    POSTListener,
-    RawListener,
 } from ".";
-import DFWSecurityRepository from "./repositories/security.repository";
-import DFWSessionRepository from "./repositories/session.repository";
-import DFWUserRepository from "./repositories/user.repository";
-import DFWFileRepository from "./repositories/file.repository";
-import StaticPathListener from "./listeners/StaticPathListener";
+import { DFWService } from "./lib/DFWService";
+
+export class DFWSessionService extends DFWService {
+    readonly namespace = 'session' as const;
+
+    updateSessionAgentAsync() {
+        console.log('Actualizando sesión...');
+    }
+}
 
 var DFW = new DFWCore({
     server: {
@@ -19,16 +19,64 @@ var DFW = new DFWCore({
     }
 }).start()
 
+
+DFW.register({
+    test: [
+        GETListener({
+            services: [DFWSessionService],
+        },
+            async ({ db, session }, { body }) => {
+                session.updateSessionAgentAsync()
+                return { 'hola': 'mundo' }
+            }
+        ),
+
+        {
+            params: {
+                services: [DFWSessionService]
+            },
+            listener: async ({  }, { body }) => {
+                return { 'hola': 'mundo' }
+            }
+        }
+    ]
+})
+
+
+/*
+
 DFW.register({
     api: {
+        test: [
+            GETListener({
+                services: [ DFWSessionModule ],
+            },
+                async ({ db, session }, { body }) => {
+                    session.updateSessionAgentAsync(db)
+
+                    return { 'hola': 'mundo' }
+                }
+            ),
+
+            POSTListener(async (req, res) => {
+                const SessionControl = new DFWSessionModule()
+                await SessionControl.updateSessionAgentAsync(req)
+
+                return {
+                    isAuthenticated: req.isAuthenticated(),
+                    session: req.session,
+                    user: req.user
+                }
+            })
+        ],
         boot: GETListener(async ({ dfw }) => {
             return { user: dfw.user, isAuth: dfw.isAuthenticated() }
         }),
         bootstrap: [
-            POSTListener(async ({ dfw, user }, res) => {
+            POSTListener(async ({ dfw, user, body }, res) => {
                 return dfw.db.$transaction(async (db) => {
-                    const SecurityControl = new DFWSecurityRepository().use(db)
-                    const UserControl = new DFWUserRepository().use(db)
+                    const SecurityControl = new DFWSecurityModule().use(db)
+                    const UserControl = new DFWUserModule().use(db)
 
                     const conty = await UserControl.createUserAsync({
                         name: 'conty',
@@ -49,23 +97,20 @@ DFW.register({
         ],
         error: [
             GETListener(({ dfw }, res) => {
-                throw "ERROR_HAS_BEEN_OCURRED"
+                res.error({ paraMuestra: "error" }, 510)
+                console.log("Esto no se deberia ejecutar")
             })
         ],
         raw: RawListener('get', (req, res, next) => {
 
         }),
-        test: POSTListener(async (req, res) => {
-            const SessionControl = new DFWSessionRepository()
-            await SessionControl.updateSessionAgentAsync(req)
-
-            return {
-                isAuthenticated: req.isAuthenticated(),
-                session: req.session,
-                user: req.user
+        callback: GETListener({
+            callback: async ({ dfw }) => {
+                await DFWUtils.sleepAsync(2000).then(() => {
+                    console.log("Pasando!!2", dfw.isAuthenticated())
+                })
             }
-        }),
-        callback: GETListener(async ({ dfw }) => {
+        }, async ({ dfw }) => {
             dfw.addCallback(async () => {
                 await DFWUtils.sleepAsync(2000).then(() => {
                     console.log("Pasando!!1", dfw.isAuthenticated())
@@ -73,12 +118,6 @@ DFW.register({
                 console.log("pasando!!1despues")
             })
             return { response: true }
-        }, {
-            callback: async ({ dfw }) => {
-                await DFWUtils.sleepAsync(2000).then(() => {
-                    console.log("Pasando!!2", dfw.isAuthenticated())
-                })
-            }
         }),
         login: GETListener(async ({ dfw }, res) => {
             const user = await dfw.db.dfw_user.findFirst()
@@ -89,7 +128,7 @@ DFW.register({
             return { user: dfw.user, isAuth: dfw.isAuthenticated() }
         }),
         logout: GETListener(async (req, res) => {
-            const SessionControl = new DFWSessionRepository()
+            const SessionControl = new DFWSessionModule()
             await SessionControl.logoutAsync(req)
             //req.session = null as any
             return {
@@ -99,26 +138,26 @@ DFW.register({
             }
         }),
         signup: POSTListener(async ({ dfw }) => {
-            const UserControl = new DFWUserRepository()
+            const UserControl = new DFWUserModule()
             return UserControl.createUserAsync({
                 name: 'zerozelta',
                 password: 'test'
             }).catch(() => { throw "UNABLE_TO_CREATE" })
         }),
-        upload: POSTListener(async ({ dfw, files }) => {
+        upload: POSTListener({
+            upload: {
+                useTempFiles: true,
+                tempFileDir: DFW.tmpDir
+            }
+        }, async ({ dfw, files }) => {
             const { file } = files as { [key: string]: UploadedFile }
-            const DFWFileControl = new DFWFileRepository()
+            const DFWFileControl = new DFWFileModule()
 
             await DFWFileControl.saveUploadedFileAsync(file, {
                 makeUrl: (filePath) => `/api/files/${filePath}`
             })
 
             return files
-        }, {
-            upload: {
-                useTempFiles: true,
-                tempFileDir: DFW.tmpDir
-            }
         }),
         files: StaticPathListener(DFWCore.DFW_UPLOAD_DIR),
         secured: [
@@ -133,6 +172,7 @@ DFW.register({
 DFW.addAccessValidator('/api/secured', async ({ dfw: { isAuthenticated, user } }) => {
     if (!isAuthenticated()) return false
 
-    const SecurityControl = new DFWSecurityRepository()
+    const SecurityControl = new DFWSecurityModule()
     return SecurityControl.userHasCredentialAsync(user!.id, "ADMINO")
 })
+*/

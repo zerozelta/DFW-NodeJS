@@ -1,13 +1,7 @@
-import { APIListener, APIListenerFunction, APIListenerParams } from "../types/APIListener";
+import { makeAPIListenerFunction } from "../lib/APIListener";
 
-const GETListener: (fn: APIListenerFunction, params?: APIListenerParams) => APIListener = (fn, params) => {
-    return {
-        listener: fn,
-        params: {
-            ...params,
-            method: 'get'
-        }
-    }
-}
+const GETListener = makeAPIListenerFunction({
+    method: 'get'
+})
 
 export default GETListener

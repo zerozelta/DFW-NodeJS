@@ -1,11 +1,18 @@
-import { APIListener } from "../types/APIListener";
-import { static as ExpressStatic, RequestHandler } from "express";
+import { static as ExpressStatic } from "express";
+import { APIListener, APIListenerParams } from "../lib/APIListener";
+import { ServeStaticOptions } from "serve-static";
 
-const StaticPathListener: (localPath: string, handlers?: RequestHandler[]) => APIListener = (localPath, handlers) => {
+const StaticPathListener: (localPath: string, options?: ServeStaticOptions, params?: APIListenerParams) => APIListener = (localPath, options, params) => {
+    const { middleware, ...restParams } = params ?? {};
+
     return {
         params: {
-            middleware: [...handlers ?? [], ExpressStatic(localPath, { maxAge: 2592000 })],
-            method: 'use'
+            middleware: [
+                ...(Array.isArray(middleware) ? middleware : middleware ? [middleware] : []),
+                ExpressStatic(localPath, options)
+            ],
+            method: 'use',
+            ...restParams
         }
     }
 }

@@ -1,4 +1,4 @@
-import DFWRepository from "../lib/DFWRepository";
+import DFWModule from "../lib/DFWModule";
 import { promisify } from "util";
 import { UploadedFile } from "express-fileupload";
 import { DFW_FILE_STORAGE } from "@prisma/client";
@@ -16,7 +16,7 @@ type SaveFileOptions = {
     makeUrl: (filePath: string) => string
 }
 
-class DFWFileRepository extends DFWRepository {
+class DFWFileModule extends DFWModule {
 
     async saveUploadedFileAsync(file: UploadedFile, { name, expire, idParent, variant, makeUrl }: SaveFileOptions) {
         const filePath = DateTime.now().toFormat("yyyy/MM")
@@ -46,9 +46,9 @@ class DFWFileRepository extends DFWRepository {
         })
     }
 
-    public generateTempFileName(posfix?: string) {
+    generateTempFileName(posfix?: string) {
         return path.join(this.DFW.tmpDir, `${DFWUtils.uuid()}${posfix ?? ""}`);
     }
 }
 
-export default DFWFileRepository
+export default DFWFileModule

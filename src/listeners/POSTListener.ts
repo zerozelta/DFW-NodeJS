@@ -1,13 +1,7 @@
-import { APIListener, APIListenerFunction, APIListenerParams } from "../types/APIListener";
+import { makeAPIListenerFunction } from "../lib/APIListener"
 
-const POSTListener: (fn: APIListenerFunction, params?: APIListenerParams) => APIListener = (fn, params) => {
-    return {
-        listener: fn,
-        params: {
-            ...params,
-            method: 'post'
-        }
-    }
-}
+const POSTListener = makeAPIListenerFunction({
+    method: 'post'
+})
 
 export default POSTListener

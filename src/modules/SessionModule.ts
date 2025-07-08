@@ -1,7 +1,8 @@
 import { DFWRequest } from "../types/DFWRequest";
-import DFWRepository from "../lib/DFWRepository";
+import DFWModule from "../lib/DFWModule";
 
-class DFWSessionRepository extends DFWRepository {
+class DFWSessionModule extends DFWModule {
+
     async updateSessionAgentAsync({ dfw, sessionID, ip, socket, headers }: DFWRequest) {
         if (sessionID) {
             return dfw.db.dfw_session.updateMany({
@@ -29,4 +30,4 @@ class DFWSessionRepository extends DFWRepository {
     }
 }
 
-export default DFWSessionRepository
+export default DFWSessionModule

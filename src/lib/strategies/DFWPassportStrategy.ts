@@ -1,10 +1,10 @@
 import { Strategy } from "passport-local"
-import DFWUserRepository from "../../repositories/user.repository"
+import DFWUserModule from "../../modules/UserModule"
 import DFWUtils from "../DFWUtils"
 
 const DFWPassportStrategy = new Strategy(async (identifier: string, password: any, done) => {
     try {
-        const UserControl = new DFWUserRepository()
+        const UserControl = new DFWUserModule()
         const id = await UserControl.validateUserPasswordAsync(identifier, password)
 
         if (id) {

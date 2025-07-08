@@ -2,7 +2,15 @@ import { PrismaClient } from "@prisma/client"
 import * as runtime from "@prisma/client/runtime/library"
 import { DFWCore } from ".."
 
-class DFWRepository {
+type Constructor<T = any> = new (...args: any[]) => T;
+
+export type ExtractRepositories<T extends Constructor[]> = {
+    [K in T[number]as K extends { namespace: string }
+    ? K['namespace']
+    : never]: InstanceType<K>;
+};
+
+class DFWModule {
     private _db: PrismaClient = DFWCore.MAIN_INSTANCE.db
 
     get db() {
@@ -38,4 +46,4 @@ class DFWRepository {
     }
 }
 
-export default DFWRepository
+export default DFWModule
