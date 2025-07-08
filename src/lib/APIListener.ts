@@ -1,4 +1,4 @@
-import { RequestHandler } from "express";
+import { Handler } from "express";
 import fileUpload from "express-fileupload";
 import { DFWRequest, DFWRequestSchema, DFWResponse } from "../types";
 import { DFWServiceConstructor } from "./DFWService";
@@ -9,33 +9,24 @@ export type ListenerFn<TServices extends readonly DFWServiceConstructor[] = []> 
     dfw: DFWRequestSchema<TServices>,
     req: DFWRequest<TServices>,
     res: DFWResponse
-  ) => Promise<any | undefined> | any | undefined;
+  ) => Promise<any | void> | any | void;
 
 export type APIListener = {
-  params?: APIListenerParams
-  listener?: ListenerFn
-}
 
-export type APIListenerFunction = {
-  (fn: ListenerFn): APIListener;
-  (params: APIListenerParams, fn: ListenerFn): APIListener;
-}
-
-export type APIListenerParams = {
   /**
    * REST API Method
    */
   method?: APIMethod;
 
   /**
-   * if true the listiner will be simple express function without any DFW native middleware
+   * Main function to be called
    */
-  raw?: boolean
+  listener?: ListenerFn
 
   /**
    * Express middleware (compatible with raw listeners)
    */
-  middleware?: RequestHandler | RequestHandler[];
+  middleware?: Handler | Handler[];
 
   /**
    *  
@@ -66,11 +57,17 @@ export type APIListenerParams = {
   callback?: (req: DFWRequest, listenerRes: any) => Promise<void>
 }
 
-export type APIListenerParamsWithoutMethod = Omit<APIListenerParams, 'method'>;
+export type APIListenerWithoutFn = Omit<APIListener, 'listener'>;
+export type APIListenerWithoutMethod = Omit<APIListener, 'method'>;
 
-export const makeAPIListenerFunction = (baseParams: Partial<APIListenerParams>) => {
+export type APIListenerFunction = {
+  (fn: ListenerFn): APIListener;
+  (params: APIListenerWithoutFn, fn: ListenerFn): APIListener;
+}
+
+export const makeAPIListenerFunction = (baseParams: Partial<APIListener>) => {
   function listener<TServices extends readonly DFWServiceConstructor[]>(
-    params: APIListenerParamsWithoutMethod & { services: TServices },
+    params: APIListenerWithoutMethod & { services: TServices },
     fn: ListenerFn<TServices>
   ): APIListener;
 
@@ -82,17 +79,13 @@ export const makeAPIListenerFunction = (baseParams: Partial<APIListenerParams>) 
     if (typeof arg1 === "function") {
       return {
         listener: arg1,
-        params: {
-          ...baseParams,
-        },
+        ...baseParams,
       };
     } else {
       return {
         listener: arg2!,
-        params: {
-          ...arg1,
-          ...baseParams,
-        },
+        ...arg1,
+        ...baseParams,
       };
     }
   }

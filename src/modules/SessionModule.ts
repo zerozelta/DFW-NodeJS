@@ -17,12 +17,22 @@ class DFWSessionModule extends DFWModule {
         }
     }
 
+    async loginAsync(req: DFWRequest, user: { id: string }) {
+        return new Promise<void>((resolve, reject) => {
+            req.login(user, (err) => {
+                if (err) return reject(err)
+                req.session['passport'] = { user: user.id }
+                req.user = { id: user.id }
+                resolve()
+            })
+        })
+    }
+
     async logoutAsync(req: DFWRequest) {
         return new Promise<void>((resolve) => {
             req.logout((err) => {
-                console.log('passport logout', err)
                 req.session.destroy((err) => {
-                    console.log('session destroyed', err)
+                    if (process.env.NODE_ENV === 'development') console.log('session destroyed', err)
                     resolve()
                 })
             })

@@ -1,5 +1,6 @@
 import { dfw_user, PrismaClient } from "@prisma/client";
 import { DFWRequestSchema } from "../types";
+import DFWModule from "./DFWModule";
 
 export type DFWServiceConstructor = new (dfw: any) => DFWService;
 
@@ -14,11 +15,11 @@ export type MapServiceConstructors<T extends readonly DFWServiceConstructor[]> =
   : never;
 };
 
-export abstract class DFWService {
+export default abstract class DFWService {
   abstract readonly namespace: string;
 
-  private readonly db: PrismaClient
-  private readonly user?: dfw_user
+  protected readonly db: PrismaClient
+  protected readonly user?: { id: string }
 
   constructor(dfw: DFWRequestSchema) {
     this.db = dfw.db;

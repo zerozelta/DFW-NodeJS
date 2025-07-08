@@ -1,14 +1,21 @@
+import { Handler } from "express";
 import {
     DFWCore,
+    DFWService,
+    DFWSessionModule,
+    DFWUserModule,
     GETListener,
 } from ".";
-import { DFWService } from "./lib/DFWService";
 
 export class DFWSessionService extends DFWService {
     readonly namespace = 'session' as const;
 
-    updateSessionAgentAsync() {
-        console.log('Actualizando sesión...');
+    test(userDto: any) {
+        return this.db.$transaction(async (db) => {
+            const { createUserAsync } = new DFWUserModule(db)
+
+            return { "pasa": userDto }
+        })
     }
 }
 
@@ -19,27 +26,63 @@ var DFW = new DFWCore({
     }
 }).start()
 
+const SessionGuard: Handler = async ({ dfw }, { error }, next) => {
+    console.log("SessionGuard")
+    if (!dfw.getSession().isAuthenticated) {
+        console.log("SessionGuard: UNAUTHORIZED")
+        next({ data: "UNAUTHORIZED" });
+    }
+    console.log("passed")
+    next()
+}
 
 DFW.register({
     test: [
         GETListener({
             services: [DFWSessionService],
+            middleware: [SessionGuard]
         },
-            async ({ db, session }, { body }) => {
-                session.updateSessionAgentAsync()
-                return { 'hola': 'mundo' }
+            async ({ session }) => {
+                return session.test({ tom: 'clancy' })
             }
         ),
 
+
         {
-            params: {
-                services: [DFWSessionService]
-            },
-            listener: async ({  }, { body }) => {
-                return { 'hola': 'mundo' }
+            method: 'post',
+            services: [DFWSessionService],
+            listener: async ({ db }, { body }) => {
+
             }
         }
-    ]
+    ],
+
+    boot: [
+        GETListener(async ({ getSession }) => {
+            const { user, isAuthenticated } = getSession()
+            return { user, isAuthenticated }
+        })
+    ],
+
+    login: GETListener(async ({ db, getSession }, req) => {
+        const { loginAsync } = new DFWSessionModule(db)
+
+        const user = await db.dfw_user.findFirst()
+
+        if (!user) throw "UNABLE_TO_FIND_USER"
+
+        await loginAsync(req, user)
+        return { ...getSession() }
+    }),
+
+    logout: GETListener(async ({ db, getSession }, req) => {
+        const { logoutAsync } = new DFWSessionModule(db)
+
+        await logoutAsync(req)
+        return { ...getSession() }
+    }),
+
+
 })
 
 

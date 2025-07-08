@@ -1,12 +1,12 @@
 import { PrismaClient } from "@prisma/client";
-import { Express, Router, default as ExpressServer } from "express";
+import { Express, Router, default as ExpressServer, Handler } from "express";
 import { DFWConfig } from "../types/DFWConfig";
-import { APIListener, ListenerFn, APIListenerParams } from "../lib/APIListener";
+import { APIListener, ListenerFn } from "../lib/APIListener";
 import chalk from "chalk";
 import fs from "fs"
 import DFWUtils from "./DFWUtils";
 import APIManager from "./APIManager";
-import { DFWRequest, DFWRequestSchema } from "../types/DFWRequest";
+import { DFWRequestSchema } from "../types/DFWRequest";
 import cors from "cors"
 import nodejsPath from "path";
 
@@ -15,11 +15,11 @@ type DFWRegisterItem = APIListener | { [key: string]: DFWRegisterItem } | DFWReg
 declare global {
     namespace Express {
         export interface Request {
-            dfw?: DFWRequestSchema
+            dfw: DFWRequestSchema
         }
 
         export interface Response {
-            error: (message: any, status: number) => void
+            error: (message: any, status?: number) => void
         }
     }
 }
@@ -33,7 +33,6 @@ export class DFWCore {
 
     public readonly server: Express = ExpressServer();
     public readonly RouterAPILevel: Router = Router();
-    public readonly RouterAccessLevel: Router = Router();
 
     public readonly tmpDir: string
 
@@ -74,7 +73,6 @@ export class DFWCore {
         }
 
         this.APIManager.installAPILAyer()
-        this.APIManager.installSecurityLayer()
 
         DFWCore.MAIN_INSTANCE = this
     }
@@ -87,42 +85,25 @@ export class DFWCore {
         return this
     }
 
-    public addListener(path: string, params: APIListenerParams, listener: ListenerFn);
-    public addListener(path: string, params: APIListenerParams);
-    public addListener(path: string, listener: ListenerFn);
-    public addListener(path: string, b: APIListenerParams | ListenerFn, c?: ListenerFn) {
-        const params = (typeof b == 'function' ? c : b) as APIListenerParams
-        const listener = typeof b === 'function' ? b : c as ListenerFn
-
-        this.APIManager.addListener(path, params, listener)
+    public addListener(path: string, listener: APIListener): void;
+    public addListener(path: string, fn: ListenerFn): void;
+    public addListener(path: string, b: APIListener | ListenerFn): void {
+        if (typeof b === 'function') {
+            this.APIManager.addListener(path, { listener: b });
+        } else {
+            this.APIManager.addListener(path, b);
+        }
     }
-
-    public addAccessValidator(path: string, validator: (req: DFWRequest) => boolean | Promise<boolean>) {
-        this.RouterAccessLevel.use(path, async (req, res, next) => {
-            const isValid = await Promise.resolve(validator(req as DFWRequest))
-            if (!isValid) {
-                return res.status(403).json({ error: 'ACCESS_DENIED' }).end()
-            }
-            next()
-        })
-    }
-
 
     /**
      * @param DFW
      * @param node
      * @param path
      */
-    public register(node: DFWRegisterItem | DFWRegisterItem[], path: string = "") {
+    public register(node: DFWRegisterItem, path: string = "") {
         if (Array.isArray(node)) {
             node.forEach((n) => { this.register(n, path) })
-        } else if (!!node.listener || !!node.params) {
-            if (node.listener) {
-                this.addListener(path, node.params as APIListenerParams, node.listener as ListenerFn)
-            } else {
-                this.addListener(path, node.params as APIListenerParams)
-            }
-        } else if (typeof node == "function") {
+        } else if (!!node.listener || !!node.middleware) {
             this.addListener(path, node)
         } else if (typeof node == "object") {
             for (let okey in node) {

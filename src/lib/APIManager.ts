@@ -1,17 +1,17 @@
 import bodyParser from "body-parser";
 import DFWCore from "./DFWCore";
-import { NextFunction, RequestHandler, Response } from "express";
+import { NextFunction, Response } from "express";
 import { DFWRequest, DFWRequestSchema, DFWResponse } from "../types/DFWRequest";
 import DFWUtils from "./DFWUtils";
 import chalk from "chalk";
 import passport from "passport";
-import DFWPassportStrategy from "./strategies/DFWPassportStrategy";
+import DFWPassportStrategy from "../strategies/DFWPassportStrategy";
 import session from "express-session"
 import DFWSessionStore from "./DFWSessionStore";
 import { dfw_user } from "@prisma/client";
 import fileUpload from "express-fileupload";
 import { v7 as uuid7 } from 'uuid';
-import { APIListenerParams, ListenerFn } from "./APIListener";
+import { APIListener } from "./APIListener";
 
 export default class APIManager {
     private DFW: DFWCore
@@ -63,6 +63,7 @@ export default class APIManager {
                     isAuthenticated: req.isAuthenticated(),
                     user: req.user as dfw_user | undefined
                 }),
+
                 addCallback: (cb) => {
                     callbackStack.push(cb)
                 }
@@ -80,33 +81,21 @@ export default class APIManager {
         }) as any)
     }
 
-    public installSecurityLayer() {
-        // Nothing to do here yet
-    }
-
-    public addListener(path: string, params: APIListenerParams = {}, listener?: ListenerFn) {
+    public addListener(path: string, params: APIListener) {
         const server = this.DFW.server
         const method = params.method ?? 'get'
+        const fn = params.listener
 
-        if (!listener && !params.middleware) {
+        if (!params.middleware && !fn) {
             DFWUtils.log(`Unable to set listener for [${method}] ${path} listener and middleware are undefined`)
             return
         }
 
-        if (params.raw) {
-            if (params.middleware) server[method](path, params.middleware)
-            if (listener) server[method](path, listener as unknown as RequestHandler)
-
-            DFWUtils.log(`${chalk.yellow(method.toUpperCase().padEnd(7, ' '))}  ${chalk.green(path)}`)
-            return
-        }
-
         // Body Parser
-        if (['post', 'put', 'patch','delete'].includes(method) && params.disableBodyParser !== true) server[method](path, bodyParser.json())
+        if (['post', 'put', 'patch', 'delete'].includes(method) && params.disableBodyParser !== true) server[method](path, bodyParser.json())
 
-        // DFW middlewares
+        // DFW native middleware
         server[method](path, this.DFW.RouterAPILevel)
-        server[method](path, this.DFW.RouterAccessLevel)
 
         // file upload middleware
         if (params.upload) server[method](path, fileUpload(typeof params.upload === 'boolean' ? {} : params.upload))
@@ -114,7 +103,7 @@ export default class APIManager {
         // plugged middlewares and handlers
         if (params.middleware) server[method](path, params.middleware)
 
-        if (listener) {
+        if (fn) {
             server[method](path, async (req, res, next) => {
                 try {
                     // Setting up services
@@ -124,7 +113,7 @@ export default class APIManager {
                     })
 
                     // calling the listener
-                    const data = await listener(req.dfw as DFWRequestSchema, req as DFWRequest, res as DFWResponse);
+                    const data = await fn(req.dfw as DFWRequestSchema, req as DFWRequest, res as DFWResponse);
 
                     if (params.callback) {
                         res.on('finish', () => params.callback!(req as DFWRequest, data));

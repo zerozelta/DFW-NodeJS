@@ -21,6 +21,12 @@ class DFWModule {
         return DFWCore.MAIN_INSTANCE
     }
 
+    constructor(db?: PrismaClient | Omit<PrismaClient, runtime.ITXClientDenyList>) {
+        if (db) {
+            this.use(db)
+        }
+    }
+
     /**
      *
      * @param db

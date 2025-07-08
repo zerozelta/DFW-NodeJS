@@ -73,7 +73,7 @@ export default class DFWUtils {
         return createId()
     }
 
-    public static async verifyPassword(encoded: string, test: string): Promise<boolean> {
+    public static async verifyPasswordAsync(encoded: string, test: string): Promise<boolean> {
         return bcrypt
             .compare(test, encoded)
             .catch(err => {
@@ -82,7 +82,7 @@ export default class DFWUtils {
             })
     }
 
-    public static async encryptPassword(password: string): Promise<string> {
+    public static async encryptPasswordAsync(password: string): Promise<string> {
         return bcrypt
             .hash(password, 9).catch(err => {
                 console.error(err.message)
