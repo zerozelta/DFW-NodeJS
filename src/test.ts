@@ -40,7 +40,10 @@ DFW.register({
     test: [
         GETListener({
             services: [DFWSessionService],
-            middleware: [SessionGuard]
+            middleware: [
+                //SessionGuard({ credentials: ['ADMIN'] , access:['POPO'] }),
+                //BodyValidationGuard(SessionDtoValidator),
+            ],  
         },
             async ({ session }) => {
                 return session.test({ tom: 'clancy' })
@@ -81,7 +84,6 @@ DFW.register({
         await logoutAsync(req)
         return { ...getSession() }
     }),
-
 
 })
 
