@@ -6,6 +6,7 @@ import {
     DFWUserModule,
     GETListener,
 } from ".";
+import z from "zod";
 
 export class DFWSessionService extends DFWService {
     readonly namespace = 'session' as const;
@@ -13,10 +14,15 @@ export class DFWSessionService extends DFWService {
     test(userDto: any) {
         return this.db.$transaction(async (db) => {
             const { createUserAsync } = new DFWUserModule(db)
-
-            return { "pasa": userDto }
+            return createUserAsync(userDto)
         })
     }
+
+    trans = (userDto: any) => this.buildTransaction(async (db) => {
+        const { createUserAsync } = new DFWUserModule(db)
+        return createUserAsync(userDto)
+    })
+
 }
 
 var DFW = new DFWCore({
@@ -25,6 +31,13 @@ var DFW = new DFWCore({
         trustProxy: true
     }
 }).start()
+
+export const emailSchema = z.object({
+    email: z.string()
+        .trim()           // opcional: elimina espacios en blanco al inicio y al final
+        .toLowerCase()    // opcional: convierte a minúsculas
+        .email()          // valida que sea un email válido
+});
 
 const SessionGuard: Handler = async ({ dfw }, { error }, next) => {
     console.log("SessionGuard")
@@ -39,30 +52,27 @@ const SessionGuard: Handler = async ({ dfw }, { error }, next) => {
 DFW.register({
     test: [
         GETListener({
+            middleware: [SessionGuard],
             services: [DFWSessionService],
-            middleware: [
-                //SessionGuard({ credentials: ['ADMIN'] , access:['POPO'] }),
-                //BodyValidationGuard(SessionDtoValidator),
-            ],  
-        },
-            async ({ session }) => {
-                return session.test({ tom: 'clancy' })
-            }
-        ),
+        }, async ({ session }) => session.test({ tom: 'clancy' })),
 
 
         {
             method: 'post',
             services: [DFWSessionService],
-            listener: async ({ db }, { body }) => {
-
+            validate: { body: emailSchema },
+            fn: async ({ db }, { body }) => {
+                return body.email
             }
         }
     ],
 
     boot: [
-        GETListener(async ({ getSession }) => {
-            const { user, isAuthenticated } = getSession()
+        GETListener(async ({ getSession, db }) => {
+            let { user, isAuthenticated } = getSession()
+            if (isAuthenticated) {
+                user = await db.dfw_user.findUnique({ where: { id: user?.id } }) as any
+            }
             return { user, isAuthenticated }
         })
     ],

@@ -16,9 +16,6 @@ export type DFWConfig = {
 
         // Temporal directory path
         tmpDir?: string
-
-        // Prisma client custom maker
-        prismaGenerathor?: (dfw: DFWCore) => PrismaClient
     }
 
     /**
@@ -69,5 +66,5 @@ export type DFWConfig = {
     /**
      * Prisma client options
      */
-    prisma?: Omit<PrismaClientOptions, '__internal'>
+    prisma?: Omit<PrismaClientOptions, '__internal'> | ((dfw: DFWCore) => PrismaClient)
 }

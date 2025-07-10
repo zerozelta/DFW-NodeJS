@@ -1,6 +1,5 @@
-import { dfw_user, PrismaClient } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 import { DFWRequestSchema } from "../types";
-import DFWModule from "./DFWModule";
 
 export type DFWServiceConstructor = new (dfw: any) => DFWService;
 
@@ -25,4 +24,9 @@ export default abstract class DFWService {
     this.db = dfw.db;
     this.user = dfw.getSession().user;
   }
+
+  public buildTransaction = (fn: (db: any) => Promise<any>) => this.db.$transaction(async (db) => {
+    return fn(db)
+  })
+
 }

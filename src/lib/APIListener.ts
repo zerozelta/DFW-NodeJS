@@ -2,6 +2,7 @@ import { Handler } from "express";
 import fileUpload from "express-fileupload";
 import { DFWRequest, DFWRequestSchema, DFWResponse } from "../types";
 import { DFWServiceConstructor } from "./DFWService";
+import { ZodSchema } from "zod";
 
 export type APIMethod = 'get' | 'post' | 'put' | 'delete' | 'options' | 'patch' | 'use'
 export type ListenerFn<TServices extends readonly DFWServiceConstructor[] = []> =
@@ -21,12 +22,27 @@ export type APIListener = {
   /**
    * Main function to be called
    */
-  listener?: ListenerFn
+  fn?: ListenerFn
 
   /**
    * Express middleware (compatible with raw listeners)
    */
   middleware?: Handler | Handler[];
+
+  /**
+   * zod validations
+   */
+  validate?: {
+    /**
+     * Validate the request body
+     */
+    body?: ZodSchema;
+
+    /**
+     * Validate the request query
+     */
+    query?: ZodSchema;
+  }
 
   /**
    *  
@@ -78,12 +94,12 @@ export const makeAPIListenerFunction = (baseParams: Partial<APIListener>) => {
   function listener(arg1: any, arg2?: any): APIListener {
     if (typeof arg1 === "function") {
       return {
-        listener: arg1,
+        fn: arg1,
         ...baseParams,
       };
     } else {
       return {
-        listener: arg2!,
+        fn: arg2!,
         ...arg1,
         ...baseParams,
       };

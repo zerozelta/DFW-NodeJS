@@ -14,14 +14,14 @@ model dfw_user {
 }
 
 model dfw_session {
-    id     String    @id @default(uuid()) @db.Uuid
-    agent  String?   @db.VarChar(255)
-    ip     String?   @db.VarChar(255)
-    expire DateTime? @db.Date
+    id     String  @id @default(uuid()) @db.Uuid
+    agent  String? @db.VarChar(255)
+    ip     String? @db.VarChar(255)
     idUser String?
 
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+    createdAt DateTime  @default(now())
+    updatedAt DateTime  @updatedAt
+    expiresAt DateTime? @db.Date
 
     user dfw_user? @relation(fields: [idUser], references: [id], onDelete: Cascade)
 

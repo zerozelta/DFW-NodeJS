@@ -56,10 +56,11 @@ export class DFWCore {
 
         this.tmpDir = nodejsPath.normalize(fs.mkdtempSync(`${this.tmpDir}${nodejsPath.sep}`));
 
-        this.database = config.server?.prismaGenerathor ?
-            config.server.prismaGenerathor(this)
-            :
-            new PrismaClient(config.prisma as any);
+        if (typeof config.prisma === 'function') {
+            this.database = config.prisma(this)
+        } else {
+            this.database = new PrismaClient(config.prisma as any);
+        }
 
         if (fs.existsSync(DFWCore.DFW_DIR) == false) {
             fs.mkdirSync(DFWCore.DFW_DIR);
@@ -89,7 +90,7 @@ export class DFWCore {
     public addListener(path: string, fn: ListenerFn): void;
     public addListener(path: string, b: APIListener | ListenerFn): void {
         if (typeof b === 'function') {
-            this.APIManager.addListener(path, { listener: b });
+            this.APIManager.addListener(path, { fn: b });
         } else {
             this.APIManager.addListener(path, b);
         }
@@ -103,7 +104,7 @@ export class DFWCore {
     public register(node: DFWRegisterItem, path: string = "") {
         if (Array.isArray(node)) {
             node.forEach((n) => { this.register(n, path) })
-        } else if (!!node.listener || !!node.middleware) {
+        } else if (!!node.fn || !!node.middleware) {
             this.addListener(path, node)
         } else if (typeof node == "object") {
             for (let okey in node) {

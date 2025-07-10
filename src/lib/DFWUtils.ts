@@ -3,13 +3,14 @@ import { randomUUID } from "crypto";
 import { lookup } from "mime-types";
 import bcrypt from "bcrypt"
 import { createId } from '@paralleldrive/cuid2';
+import z from "zod";
 
 export default class DFWUtils {
 
-    public static readonly EMAIL_REGEX = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    public static emailSchema = z.string().email()
 
     public static isEmail(email: string): boolean {
-        return this.EMAIL_REGEX.test(String(email).toLowerCase());
+        return this.emailSchema.safeParse(email).success;
     }
 
     public static log(message: string, isError: boolean = false) {

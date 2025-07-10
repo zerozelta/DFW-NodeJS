@@ -24,9 +24,15 @@ class DFWSessionStore extends Store {
 
         if (process.env.NODE_ENV === 'development') console.log(`read session ${sid}`)
 
-        this.db.dfw_session.findUnique({
+        this.db.dfw_session.findFirst({
             select: { idUser: true },
-            where: { id: sid }
+            where: {
+                id: sid,
+                OR: [
+                    { expiresAt: null },
+                    { expiresAt: { gt: new Date() } },
+                ],
+            }
         }).then((sessionObj) => {
             if (sessionObj) {
                 const passportSession = { cookie: {} as any, passport: { user: sessionObj.idUser } as any }
@@ -56,8 +62,8 @@ class DFWSessionStore extends Store {
                 id: sid
             }
         }).then(() => {
-            callback?.()
-        })
+            callback && callback()
+        }).catch(e => callback && callback(e))
     }
     destroy(sid: string, callback?: (err?: any) => void): void {
         if (process.env.NODE_ENV === 'development') console.log(`deleting session ${sid}`)
@@ -68,9 +74,9 @@ class DFWSessionStore extends Store {
                 id: sid
             },
         }).then(() => {
-            callback?.()
+            callback && callback()
         }).catch((e) => {
-            callback?.(e)
+            callback && callback(e)
         })
     }
 }

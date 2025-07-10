@@ -84,7 +84,7 @@ export default class APIManager {
     public addListener(path: string, params: APIListener) {
         const server = this.DFW.server
         const method = params.method ?? 'get'
-        const fn = params.listener
+        const fn = params.fn
 
         if (!params.middleware && !fn) {
             DFWUtils.log(`Unable to set listener for [${method}] ${path} listener and middleware are undefined`)
@@ -93,6 +93,37 @@ export default class APIManager {
 
         // Body Parser
         if (['post', 'put', 'patch', 'delete'].includes(method) && params.disableBodyParser !== true) server[method](path, bodyParser.json())
+
+        if (params.validate) {
+            server[method](path, (req: DFWRequest, res: DFWResponse, next: NextFunction) => {
+                const bodySchema = params.validate?.body
+                const querySchema = params.validate?.query
+
+                if (bodySchema) {
+                    const result = bodySchema.safeParse(req.body);
+                    if (!result.success) {
+                        return res.status(400).json({
+                            error: 'Body validation failed',
+                            validation: result.error.format(),
+                        })
+                    }
+                    req.body = result.data;
+                }
+
+                if (querySchema) {
+                    const result = querySchema.safeParse(req.query);
+                    if (!result.success) {
+                        return res.status(400).json({
+                            error: 'Query validation failed',
+                            validation: result.error.format(),
+                        })
+                    }
+                    req.query = result.data;
+                }
+
+                next();
+            })
+        }
 
         // DFW native middleware
         server[method](path, this.DFW.RouterAPILevel)
