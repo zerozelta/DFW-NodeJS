@@ -1,9 +1,9 @@
-import { Handler } from "express";
 import {
     DFWCore,
     DFWService,
     DFWSessionModule,
     DFWUserModule,
+    DFWUtils,
     GETListener,
 } from ".";
 import z from "zod";
@@ -25,6 +25,11 @@ export class DFWSessionService extends DFWService {
 
 }
 
+const SessionGuard = DFWUtils.makeGuard(async (_: string, { getSession }) => {
+    if (!getSession().isAuthenticated) throw `ACCESS_DENIED`
+})()
+
+
 var DFW = new DFWCore({
     server: {
         port: 300,
@@ -39,24 +44,12 @@ export const emailSchema = z.object({
         .email()          // valida que sea un email válido
 });
 
-const SessionGuard: Handler = async ({ dfw }, { error }, next) => {
-    console.log("SessionGuard")
-    if (!dfw.getSession().isAuthenticated) {
-        console.log("SessionGuard: UNAUTHORIZED")
-        next({ data: "UNAUTHORIZED" });
-    }
-    console.log("passed")
-    next()
-}
-
 DFW.register({
     test: [
         GETListener({
             middleware: [SessionGuard],
             services: [DFWSessionService],
         }, async ({ session }) => session.test({ tom: 'clancy' })),
-
-
         {
             method: 'post',
             services: [DFWSessionService],

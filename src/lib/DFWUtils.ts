@@ -4,6 +4,7 @@ import { lookup } from "mime-types";
 import bcrypt from "bcrypt"
 import { createId } from '@paralleldrive/cuid2';
 import z from "zod";
+import { DFWRequest, DFWRequestSchema, DFWResponse } from "../types";
 
 export default class DFWUtils {
 
@@ -89,5 +90,26 @@ export default class DFWUtils {
                 console.error(err.message)
                 throw "[DFW] ERROR HASHING PASSWORD"
             })
+    }
+
+    public static makeGuard = (fn: (value: any | undefined, dfw: DFWRequestSchema) => void | Promise<void>) => {
+        return (fieldObj?: { body?: string, query?: string, params?: string }) => async (req: DFWRequest, _: DFWResponse, next: (err?: any) => void) => {
+            try {
+                let value: string | undefined;
+
+                if (fieldObj?.body && req.body?.[fieldObj.body]) {
+                    value = req.body[fieldObj.body];
+                } else if (fieldObj?.query && req.query?.[fieldObj.query]) {
+                    value = req.query[fieldObj.query] as string;
+                } else if (fieldObj?.params && req.params?.[fieldObj.params]) {
+                    value = req.params[fieldObj.params];
+                }
+
+                await fn(value, req.dfw);
+                next();
+            } catch (err) {
+                next(err);
+            }
+        }
     }
 }

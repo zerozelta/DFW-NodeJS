@@ -83,7 +83,7 @@ export type APIListenerFunction = {
 
 export const makeAPIListenerFunction = (baseParams: Partial<APIListener>) => {
   function listener<TServices extends readonly DFWServiceConstructor[]>(
-    params: APIListenerWithoutMethod & { services: TServices },
+    params: APIListenerWithoutMethod & { services?: TServices },
     fn: ListenerFn<TServices>
   ): APIListener;
 
