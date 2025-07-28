@@ -1,17 +1,17 @@
-import { dfw_access, dfw_credential, dfw_user } from "@prisma/client";
+import { dfw_credential, dfw_user } from "@prisma/client";
 import DFWModule from "../lib/DFWModule";
 
 class DFWSecurityModule extends DFWModule {
 
-    async createCredentiaAsync(name: string, description?: string) {
+    createCredentiaAsync = async (name: string, description?: string) => {
         return this.db.dfw_credential.create({ data: { name, description } });
     }
 
-    async createAccessAsync(name: string, description?: string) {
+    createAccessAsync = async (name: string, description?: string) => {
         return this.db.dfw_access.create({ data: { name, description } });
     }
 
-    async attachUserToCredentialAsync(user: string | { id: string }, credential: dfw_credential | string | (dfw_credential | string)[]) {
+    attachUserToCredentialAsync = async (user: string | { id: string }, credential: dfw_credential | string | (dfw_credential | string)[]) => {
         const idUser = typeof user === "object" ? user.id : user;
         if (Array.isArray(credential)) {
             let result = await Promise.all(credential.map((credentialObj) => this.attachUserToCredentialAsync(user, credentialObj)))
@@ -43,7 +43,7 @@ class DFWSecurityModule extends DFWModule {
         }
     }
 
-    async attachAccessToCredentialAsync(access: string | { name: string }, credential: { name: string } | string) {
+    attachAccessToCredentialAsync = async (access: string | { name: string }, credential: { name: string } | string) => {
         const idAccess = typeof access === 'object' ? access.name : access
         const idCredential = typeof credential === 'object' ? credential.name : credential
 
@@ -63,7 +63,7 @@ class DFWSecurityModule extends DFWModule {
         return newCredential
     }
 
-    async userHasCredentialAsync(userSource: string | { id: string }, credential: string) {
+    userHasCredentialAsync = async (userSource: string | { id: string }, credential: string) => {
         const idUser = typeof userSource === 'object' ? userSource.id : userSource
 
         const user = await this.db.dfw_user.findUnique({
@@ -83,7 +83,7 @@ class DFWSecurityModule extends DFWModule {
         return !!user
     }
 
-    async userHasAccessAsync(userSource: string | Partial<dfw_user>, access: string) {
+    userHasAccessAsync = async (userSource: string | Partial<dfw_user>, access: string) => {
         const idUser = typeof userSource === 'object' ? userSource.id : userSource
 
         const user = await this.db.dfw_user.findUnique({

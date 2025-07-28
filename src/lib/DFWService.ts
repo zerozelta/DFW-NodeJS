@@ -32,7 +32,7 @@ export default abstract class DFWService {
     });
   }
 
-  protected buildMethod = <T>(fn: (db: DFWDatabase) => Promise<T>): Promise<T> => {
+  protected buildMethod = <T>(fn: (db: PrismaClient) => Promise<T>): Promise<T> => {
     return fn(this.db)
   }
 

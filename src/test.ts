@@ -11,14 +11,15 @@ import z from "zod";
 export class DFWSessionService extends DFWService {
     readonly namespace = 'session';
 
-    test(userDto: any) {
-        return this.db.$transaction(async (db) => {
+    test = (userDto: any) => this.buildMethod((db) => {
+        return db.$transaction(async (db) => {
             const { createUserAsync } = new DFWUserModule(db)
+            console.log(createUserAsync)
             return createUserAsync(userDto)
         })
-    }
+    })
 
-    trans = (userDto: any) => this.buildTransaction(async (db) => {
+    transaction = (userDto: any) => this.buildTransaction(async (db) => {
         const { createUserAsync } = new DFWUserModule(db)
         return createUserAsync(userDto)
     })
@@ -50,6 +51,7 @@ DFW.register({
             middleware: [SessionGuard],
             services: [DFWSessionService],
         }, async ({ session }) => session.test({ tom: 'clancy' })),
+
         {
             method: 'post',
             services: [DFWSessionService],

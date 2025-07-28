@@ -5,7 +5,7 @@ import DFWSecurityModule from "./DFWSecurityModule";
 
 class DFWUserModule extends DFWModule {
 
-    async verifyPasswordAsync(identifier: string, password: any) {
+    verifyPasswordAsync = async (identifier: string, password: any) => {
         const isEmail = DFWUtils.isEmail(identifier)
 
         const user = await this.db.dfw_user.findUnique({
@@ -27,7 +27,7 @@ class DFWUserModule extends DFWModule {
         return user.id
     }
 
-    async createUserAsync({ password, ...params }: { [key: string]: any; name?: string; email?: string; password: string }) {
+    createUserAsync = async ({ password, ...params }: { [key: string]: any; name?: string; email?: string; password: string }) => {
         return this.db.dfw_user.create({
             data: {
                 ...params,
@@ -36,7 +36,7 @@ class DFWUserModule extends DFWModule {
         })
     }
 
-    async assignCredentialAsync(user: string | { id: string }, credential: dfw_credential | string | (dfw_credential | string)[]): Promise<dfw_credential[]> {
+    assignCredentialAsync = async (user: string | { id: string }, credential: dfw_credential | string | (dfw_credential | string)[]): Promise<dfw_credential[]> => {
         const { attachUserToCredentialAsync } = new DFWSecurityModule(this.db)
         return attachUserToCredentialAsync(user, credential);
     }

@@ -32,9 +32,9 @@ class DFWModule {
      * @param db
      * @returns
      */
-    public use(
+    public use = (
         db: PrismaClient | Omit<PrismaClient, runtime.ITXClientDenyList>
-    ): this {
+    ): this => {
         this._db = db as PrismaClient
         return this
     }

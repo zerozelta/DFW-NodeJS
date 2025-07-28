@@ -3,7 +3,7 @@ import DFWModule from "../lib/DFWModule";
 
 class DFWSessionModule extends DFWModule {
 
-    async updateSessionAgentAsync({ dfw, sessionID, ip, socket, headers }: DFWRequest) {
+    updateSessionAgentAsync = async ({ dfw, sessionID, ip, socket, headers }: DFWRequest) => {
         if (sessionID) {
             return dfw.db.dfw_session.updateMany({
                 data: {
@@ -17,7 +17,7 @@ class DFWSessionModule extends DFWModule {
         }
     }
 
-    async loginAsync(req: DFWRequest, user: { id: string }) {
+    loginAsync = async (req: DFWRequest, user: { id: string }) => {
         return new Promise<void>((resolve, reject) => {
             req.login(user, (err) => {
                 if (err) return reject(err)
@@ -28,7 +28,7 @@ class DFWSessionModule extends DFWModule {
         })
     }
 
-    async logoutAsync(req: DFWRequest) {
+    logoutAsync = async (req: DFWRequest) => {
         return new Promise<void>((resolve) => {
             req.logout((err) => {
                 req.session.destroy((err) => {

@@ -18,7 +18,7 @@ type SaveFileOptions = {
 
 class DFWFileModule extends DFWModule {
 
-    async saveUploadedFileAsync(file: UploadedFile, { name, expire, idParent, variant, makeUrl }: SaveFileOptions) {
+    saveUploadedFileAsync = async (file: UploadedFile, { name, expire, idParent, variant, makeUrl }: SaveFileOptions) => {
         const filePath = DateTime.now().toFormat("yyyy/MM")
         const fileName = DFWUtils.uuid()
         const ext = path.extname(file.name)
@@ -46,7 +46,7 @@ class DFWFileModule extends DFWModule {
         })
     }
 
-    generateTempFileName(posfix?: string) {
+    generateTempFileName = (posfix?: string) => {
         return path.join(this.DFW.tmpDir, `${DFWUtils.uuid()}${posfix ?? ""}`);
     }
 }

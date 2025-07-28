@@ -9,9 +9,10 @@ import { APIListener, ListenerFn } from "../../lib/APIListener";
  * @param fn 
  * @returns 
  */
-const DFWAuthListener: (fn?: ListenerFn) => APIListener = () => ({
+const DFWAuthListener: (fn?: ListenerFn) => APIListener = (fn) => ({
     method: 'post',
     middleware: [passport.authenticate('dfw')],
+    fn: fn ?? (() => { return 'success' }),
     callback: async (req) => {
         const SessionControl = new DFWSessionModule()
         await SessionControl.updateSessionAgentAsync(req)

@@ -8,3 +8,4 @@ export { default as RawListener } from './RawListener'
 export { default as StaticPathListener } from './StaticPathListener'
 
 export { default as DFWAuthListener } from './auth/DFWAuthListener'
+export { default as DFWLogoutListener } from './auth/DFWLogoutListener'
