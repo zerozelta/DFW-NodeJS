@@ -8,7 +8,7 @@ import { DFWRequest, DFWRequestSchema, DFWResponse } from "../types";
 
 export default class DFWUtils {
 
-    public static emailSchema = z.string().email()
+    public static emailSchema = z.email()
 
     public static isEmail(email: string): boolean {
         return this.emailSchema.safeParse(email).success;

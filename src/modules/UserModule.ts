@@ -1,4 +1,4 @@
-import { dfw_credential, dfw_user } from "@prisma/client";
+import { dfw_credential } from "@prisma/client";
 import DFWUtils from "../lib/DFWUtils";
 import DFWModule from "../lib/DFWModule";
 import DFWSecurityModule from "./DFWSecurityModule";
@@ -7,8 +7,6 @@ class DFWUserModule extends DFWModule {
 
     async verifyPasswordAsync(identifier: string, password: any) {
         const isEmail = DFWUtils.isEmail(identifier)
-        const name = isEmail ? undefined : identifier
-        const email = isEmail ? identifier : undefined
 
         const user = await this.db.dfw_user.findUnique({
             select: {
@@ -16,9 +14,8 @@ class DFWUserModule extends DFWModule {
                 encodedKey: true
             },
             where: {
-                name,
-                email
-            }
+                [isEmail ? 'email' : 'name']: identifier
+            } as any
         })
 
         if (!user || !user.encodedKey) return null
