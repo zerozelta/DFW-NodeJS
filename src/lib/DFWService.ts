@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import { DFWRequestSchema } from "../types";
+import { DFWRequestSchema, DFWRequestSession } from "../types";
 import { DFWDatabase } from "../types/DFWDatabase";
 
 export type DFWServiceConstructor = new (dfw: any) => DFWService;
@@ -19,11 +19,11 @@ export default abstract class DFWService {
   abstract readonly namespace: string;
 
   protected readonly db: PrismaClient
-  protected readonly user?: { id: string }
+  protected readonly session: DFWRequestSession
 
   constructor(dfw: DFWRequestSchema) {
     this.db = dfw.db;
-    this.user = dfw.getSession().user;
+    this.session = dfw.getSession()
   }
 
   protected buildTransaction = <T>(fn: (db: DFWDatabase) => Promise<T>): Promise<T> => {

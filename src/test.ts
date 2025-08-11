@@ -89,5 +89,4 @@ DFW.register({
         await logoutAsync(req)
         return { ...getSession() }
     }),
-
 })

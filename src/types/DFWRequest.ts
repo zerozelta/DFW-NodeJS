@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { dfw_user, PrismaClient } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 import { DFWServiceConstructor, MapServiceConstructors } from "../lib/DFWService";
 
 export type DFWRequest<TServices extends readonly DFWServiceConstructor[] = []> = {
@@ -10,11 +10,13 @@ export type DFWResponse = {
     error: (message: any, status?: number) => void
 } & Response
 
-export type DFWRequestSchema<TServices extends readonly DFWServiceConstructor[] = []> = {
-    getSession: () => {
+export type DFWRequestSession = {
         isAuthenticated: boolean
         user?: { id: string } | undefined
     }
+
+export type DFWRequestSchema<TServices extends readonly DFWServiceConstructor[] = []> = {
+    getSession: () => DFWRequestSession
 
     db: PrismaClient
 
