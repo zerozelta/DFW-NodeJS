@@ -154,8 +154,6 @@ export default class APIManager {
                         if (data) res.json(data).end();
                         else res.end();
                     }
-
-                    next();
                 } catch (e) {
                     next(e);
                 }
