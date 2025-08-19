@@ -15,11 +15,12 @@ export type SavedFileParams = {
     idParent?: string
     url?: string
     storage?: DFW_FILE_STORAGE
+    idUser?: string
 }
 
 class DFWFileModule extends DFWModule {
 
-    createFileRecordAsync = async (file: UploadedFile, { name, url, storage, expire, idParent, variant }: SavedFileParams) => {
+    createFileRecordAsync = async (file: UploadedFile, { name, idUser, url, storage, expire, idParent, variant }: SavedFileParams = {}, extraFields?: object) => {
         return this.db.dfw_file.create({
             data: {
                 name: name ?? file.name,
@@ -27,28 +28,30 @@ class DFWFileModule extends DFWModule {
                 mimetype: file.mimetype,
                 checksum: file.md5,
                 url,
+                idUser,
                 storage,
                 expire,
                 idParent,
-                variant
+                variant,
+                ...extraFields
             }
         })
     }
 
-    saveFileLocalAsync = async (file: UploadedFile, params: SavedFileParams) => {
+    saveFileLocalAsync = async (file: UploadedFile, params: SavedFileParams = {}) => {
         const filePath = DateTime.now().toFormat("yyyy/MM")
         const fileName = DFWUtils.uuid()
         const ext = path.extname(file.name)
         const localPath = `${DFWCore.DFW_UPLOAD_DIR}/${filePath}`
         const localFilePath = `${localPath}/${fileName}${ext ?? ''}`
-        
+
         const moveAsync = promisify(file.mv)
 
         fs.mkdirSync(localPath, { recursive: true })
 
         await moveAsync(localFilePath)
 
-        return this.createFileRecordAsync(file, params)
+        return this.createFileRecordAsync(file, params, { path: localFilePath })
     }
 
     generateTempFileName = (posfix?: string) => {
