@@ -8,42 +8,47 @@ import DFWUtils from "../lib/DFWUtils";
 import fs from "fs";
 import { DFWCore } from "..";
 
-type SaveFileOptions = {
+export type SavedFileParams = {
     name?: string
     variant?: string
     expire?: Date
     idParent?: string
-    makeUrl: (filePath: string) => string
+    url?: string
+    storage?: DFW_FILE_STORAGE
 }
 
 class DFWFileModule extends DFWModule {
 
-    saveUploadedFileAsync = async (file: UploadedFile, { name, expire, idParent, variant, makeUrl }: SaveFileOptions) => {
-        const filePath = DateTime.now().toFormat("yyyy/MM")
-        const fileName = DFWUtils.uuid()
-        const ext = path.extname(file.name)
-        const localPath = `${DFWCore.DFW_UPLOAD_DIR}/${filePath}`
-        const localFilePath = `${localPath}/${fileName}${ext ?? ''}`
-        const moveAsync = promisify(file.mv)
-
-        fs.mkdirSync(localPath, { recursive: true })
-
-        await moveAsync(localFilePath)
-
+    createFileRecordAsync = async (file: UploadedFile, { name, url, storage, expire, idParent, variant }: SavedFileParams) => {
         return this.db.dfw_file.create({
             data: {
                 name: name ?? file.name,
                 size: file.size,
                 mimetype: file.mimetype,
                 checksum: file.md5,
-                url: makeUrl(`${filePath}/${fileName}${ext ?? ''}`),
-                path: localFilePath,
-                storage: DFW_FILE_STORAGE.LOCAL,
+                url,
+                storage,
                 expire,
                 idParent,
                 variant
             }
         })
+    }
+
+    saveFileLocalAsync = async (file: UploadedFile, params: SavedFileParams) => {
+        const filePath = DateTime.now().toFormat("yyyy/MM")
+        const fileName = DFWUtils.uuid()
+        const ext = path.extname(file.name)
+        const localPath = `${DFWCore.DFW_UPLOAD_DIR}/${filePath}`
+        const localFilePath = `${localPath}/${fileName}${ext ?? ''}`
+        
+        const moveAsync = promisify(file.mv)
+
+        fs.mkdirSync(localPath, { recursive: true })
+
+        await moveAsync(localFilePath)
+
+        return this.createFileRecordAsync(file, params)
     }
 
     generateTempFileName = (posfix?: string) => {
