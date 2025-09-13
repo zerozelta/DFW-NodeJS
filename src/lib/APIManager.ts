@@ -118,7 +118,7 @@ export default class APIManager {
                             validation: result.error.format(),
                         })
                     }
-                    req.query = result.data as any;
+                    Object.assign(req.query, result.data)
                 }
 
                 next();
