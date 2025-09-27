@@ -5,6 +5,7 @@ import bcrypt from "bcrypt"
 import { createId } from '@paralleldrive/cuid2';
 import z from "zod";
 import { DFWRequest, DFWRequestSchema, DFWResponse } from "../types";
+import { ListenerFn } from "./APIListener";
 
 export default class DFWUtils {
 
@@ -92,24 +93,15 @@ export default class DFWUtils {
             })
     }
 
-    public static makeGuard = (fn: (value: any | undefined, dfw: DFWRequestSchema) => void | Promise<void>) => {
-        return (fieldObj?: { body?: string, query?: string, params?: string }) => async (req: DFWRequest, _: DFWResponse, next: (err?: any) => void) => {
+    public static makeGuard = (fn: ListenerFn) => {
+        return async (req: DFWRequest, res: DFWResponse, next: (err?: any) => void) => {
             try {
-                let value: string | undefined;
-
-                if (fieldObj?.body && req.body?.[fieldObj.body]) {
-                    value = req.body[fieldObj.body];
-                } else if (fieldObj?.query && req.query?.[fieldObj.query]) {
-                    value = req.query[fieldObj.query] as string;
-                } else if (fieldObj?.params && req.params?.[fieldObj.params]) {
-                    value = req.params[fieldObj.params];
-                }
-
-                await fn(value, req.dfw);
+                await fn(req.dfw, req, res);
                 next();
             } catch (err) {
                 next(err);
             }
         }
     }
+
 }

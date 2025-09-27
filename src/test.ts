@@ -26,10 +26,9 @@ export class DFWSessionService extends DFWService {
 
 }
 
-const SessionGuard = DFWUtils.makeGuard(async (_: string, { getSession }) => {
+const SessionGuard = DFWUtils.makeGuard(async ({ getSession }) => {
     if (getSession().isAuthenticated !== true) throw `ACCESS_DENIED`
-})()
-
+})
 
 var DFW = new DFWCore({
     server: {
