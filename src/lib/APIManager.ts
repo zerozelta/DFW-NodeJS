@@ -132,7 +132,10 @@ export default class APIManager {
         if (params.upload) server[method](path, fileUpload(typeof params.upload === 'boolean' ? {} : params.upload))
 
         // plugged middlewares and handlers
-        if (params.middleware) server[method](path, params.middleware)
+        if (params.middleware) {
+            const middlewares = Array.isArray(params.middleware) ? params.middleware : [params.middleware];
+            server[method](path, ...middlewares);
+        }
 
         if (fn) {
             server[method](path, async (req, res, next) => {
