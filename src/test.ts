@@ -1,11 +1,10 @@
-import {
-    DFWCore,
-    DFWService,
-    DFWSessionModule,
-    DFWUserModule,
-    DFWUtils,
-    GETListener,
-} from ".";
+
+import { DFWCore } from "#lib/DFWCore";
+import { DFWService } from "#lib/DFWService";
+import { DFWUtils } from "#lib/DFWUtils";
+import { GETListener } from "#listeners/GETListener";
+import { DFWSessionModule } from "#modules/DFWSessionModule";
+import { DFWUserModule } from "#modules/DFWUserModule";
 import z from "zod";
 
 export class DFWSessionService extends DFWService {

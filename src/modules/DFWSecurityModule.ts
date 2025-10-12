@@ -1,7 +1,7 @@
-import { dfw_credential, dfw_user } from "@prisma/client";
-import DFWModule from "../lib/DFWModule";
+import { DFWModule } from "#lib/DFWModule";
+import type { dfw_credential, dfw_user } from "@prisma/client";
 
-class DFWSecurityModule extends DFWModule {
+export class DFWSecurityModule extends DFWModule {
 
     createCredentiaAsync = async (name: string, description?: string) => {
         return this.db.dfw_credential.create({ data: { name, description } });
@@ -14,7 +14,7 @@ class DFWSecurityModule extends DFWModule {
     attachUserToCredentialAsync = async (user: string | { id: string }, credential: dfw_credential | string | (dfw_credential | string)[]) => {
         const idUser = typeof user === "object" ? user.id : user;
         if (Array.isArray(credential)) {
-            let result = await Promise.all(credential.map((credentialObj) => this.attachUserToCredentialAsync(user, credentialObj)))
+            let result: any = await Promise.all(credential.map((credentialObj) => this.attachUserToCredentialAsync(user, credentialObj)))
             return result.flat(1);
         } else {
             let idCredential: string;
@@ -105,5 +105,3 @@ class DFWSecurityModule extends DFWModule {
         return !!user
     }
 }
-
-export default DFWSecurityModule

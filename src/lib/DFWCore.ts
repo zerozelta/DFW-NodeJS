@@ -1,16 +1,15 @@
+import type { DFWRequestSchema } from "#types/DFWRequest";
+import type { APIListener, DFWRegisterItem, ListenerFn } from "#types/APIListener";
+import type { DFWConfig } from "#types/DFWConfig";
+import type { Express } from "express"
+import { Router, default as ExpressServer } from "express";
 import { PrismaClient } from "@prisma/client";
-import { Express, Router, default as ExpressServer, Handler } from "express";
-import { DFWConfig } from "../types/DFWConfig";
-import { APIListener, ListenerFn } from "../lib/APIListener";
 import chalk from "chalk";
 import fs from "fs"
-import DFWUtils from "./DFWUtils";
-import APIManager from "./APIManager";
-import { DFWRequestSchema } from "../types/DFWRequest";
+import { DFWUtils } from "#lib/DFWUtils";
+import { APIManager } from "#lib/APIManager";
 import cors from "cors"
 import nodejsPath from "path";
-
-type DFWRegisterItem = APIListener | { [key: string]: DFWRegisterItem } | DFWRegisterItem[]
 
 declare global {
     namespace Express {
@@ -108,7 +107,7 @@ export class DFWCore {
             this.addListener(path, node)
         } else if (typeof node == "object") {
             for (let okey in node) {
-                this.register(node[okey], `${path}/${okey}`)
+                this.register((node as any)[okey], `${path}/${okey}`)
             }
         } else {
             DFWUtils.log(`Unable to register '${path}' ${typeof node}`, true)
@@ -119,6 +118,3 @@ export class DFWCore {
         return this.database
     }
 }
-
-export default DFWCore;
-

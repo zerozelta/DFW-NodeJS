@@ -1,7 +1,5 @@
-import { makeAPIListenerFunction } from "../lib/APIListener"
+import { makeAPIListenerFunction } from "#lib/APIListener"
 
-const PATCHListener = makeAPIListenerFunction({
+export const PATCHListener = makeAPIListenerFunction({
     method: 'patch'
 })
-
-export default PATCHListener

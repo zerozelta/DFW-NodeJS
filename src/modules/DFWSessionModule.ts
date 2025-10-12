@@ -1,7 +1,7 @@
-import { DFWRequest } from "../types/DFWRequest";
-import DFWModule from "../lib/DFWModule";
+import type { DFWRequest } from "#types/DFWRequest"
+import { DFWModule } from "#lib/DFWModule"
 
-class DFWSessionModule extends DFWModule {
+export class DFWSessionModule extends DFWModule {
 
     updateSessionAgentAsync = async ({ dfw, sessionID, ip, socket, headers }: DFWRequest) => {
         if (sessionID) {
@@ -19,11 +19,11 @@ class DFWSessionModule extends DFWModule {
 
     loginAsync = async (req: DFWRequest, user: { id: string }) => {
         return new Promise<void>((resolve, reject) => {
-            req.login(user, (err) => {
-                if (err) return reject(err)
-                req.session['passport'] = { user: user.id }
+            req.login(user, (err: any) => {
+                if (err) { reject(err); return; }
+                (req.session as any)['passport'] = { user: user.id }
                 req.user = { id: user.id }
-                resolve()
+                resolve(undefined)
             })
         })
     }
@@ -39,5 +39,3 @@ class DFWSessionModule extends DFWModule {
         })
     }
 }
-
-export default DFWSessionModule

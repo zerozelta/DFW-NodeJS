@@ -1,7 +1,5 @@
-import { makeAPIListenerFunction } from "../lib/APIListener"
+import { makeAPIListenerFunction } from "#lib/APIListener"
 
-const DELETEListener = makeAPIListenerFunction({
+export const DELETEListener = makeAPIListenerFunction({
     method: 'delete'
 })
-
-export default DELETEListener

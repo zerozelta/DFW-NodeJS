@@ -1,6 +1,6 @@
+import type { APIListener, ListenerFn } from "#types/APIListener";
+import { DFWSessionModule } from "#modules/DFWSessionModule";
 import passport from "passport";
-import DFWSessionModule from "../../modules/SessionModule";
-import { APIListener, ListenerFn } from "../../lib/APIListener";
 
 /**
  * Login listener 
@@ -9,7 +9,7 @@ import { APIListener, ListenerFn } from "../../lib/APIListener";
  * @param fn 
  * @returns 
  */
-const DFWAuthListener: (fn?: ListenerFn) => APIListener = (fn) => ({
+export const DFWAuthListener: (fn?: ListenerFn) => APIListener = (fn) => ({
     method: 'post',
     middleware: [passport.authenticate('dfw')],
     fn: fn ?? (() => { return 'success' }),
@@ -18,5 +18,3 @@ const DFWAuthListener: (fn?: ListenerFn) => APIListener = (fn) => ({
         await SessionControl.updateSessionAgentAsync(req)
     },
 })
-
-export default DFWAuthListener

@@ -1,6 +1,6 @@
-import { Request, Response } from "express";
-import { PrismaClient } from "@prisma/client";
-import { DFWServiceConstructor, MapServiceConstructors } from "../lib/DFWService";
+import type { Request, Response } from "express";
+import type { PrismaClient } from "@prisma/client";
+import type { DFWServiceConstructor, MapServiceConstructors } from "#types/DFWService";
 
 export type DFWRequest<TServices extends readonly DFWServiceConstructor[] = []> = {
     dfw: DFWRequestSchema<TServices>;
@@ -26,4 +26,6 @@ export type DFWRequestSchema<TServices extends readonly DFWServiceConstructor[] 
      * @returns 
      */
     addCallback: (cb: () => void) => void
+
+    [key: string]: any; // Allow dynamic properties
 } & MapServiceConstructors<TServices>

@@ -1,7 +1,5 @@
-import { makeAPIListenerFunction } from "../lib/APIListener";
+import { makeAPIListenerFunction } from "#lib/APIListener"
 
-const GETListener = makeAPIListenerFunction({
+export const GETListener = makeAPIListenerFunction({
     method: 'get'
 })
-
-export default GETListener

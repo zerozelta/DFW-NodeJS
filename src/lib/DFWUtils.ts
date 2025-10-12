@@ -1,13 +1,13 @@
+import type { ListenerFn } from "#types/APIListener";
+import type { DFWRequest, DFWResponse } from "#types/DFWRequest";
 import chalk from "chalk";
 import { randomUUID } from "crypto";
 import { lookup } from "mime-types";
 import bcrypt from "bcrypt"
 import { createId } from '@paralleldrive/cuid2';
 import z from "zod";
-import { DFWRequest, DFWRequestSchema, DFWResponse } from "../types";
-import { ListenerFn } from "./APIListener";
 
-export default class DFWUtils {
+export class DFWUtils {
 
     public static emailSchema = z.email()
 

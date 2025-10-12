@@ -1,8 +1,8 @@
 import { Strategy } from "passport-local"
-import DFWUserModule from "../modules/UserModule"
-import DFWUtils from "../lib/DFWUtils"
+import { DFWUtils } from "#lib/DFWUtils"
+import { DFWUserModule } from "#modules/DFWUserModule"
 
-const DFWPassportStrategy = new Strategy(async (identifier: string, password: any, done) => {
+export const DFWPassportStrategy = new Strategy(async (identifier: string, password: string, done) => {
     try {
         const UserControl = new DFWUserModule()
         const id = await UserControl.verifyPasswordAsync(identifier, password)
@@ -18,5 +18,3 @@ const DFWPassportStrategy = new Strategy(async (identifier: string, password: an
         return done(e)
     }
 })
-
-export default DFWPassportStrategy

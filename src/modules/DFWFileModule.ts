@@ -1,14 +1,14 @@
-import DFWModule from "../lib/DFWModule";
+import type { UploadedFile } from "express-fileupload"
+import type { DFW_FILE_STORAGE } from "@prisma/client";
 import { promisify } from "util";
-import { UploadedFile } from "express-fileupload";
-import { DFW_FILE_STORAGE } from "@prisma/client";
 import { DateTime } from "luxon";
 import path from "path";
-import DFWUtils from "../lib/DFWUtils";
 import fs from "fs";
-import { DFWCore } from "..";
+import { DFWModule } from "#lib/DFWModule";
+import { DFWUtils } from "#lib/DFWUtils";
+import { DFWCore } from "#lib/DFWCore";
 
-export type SavedFileParams = {
+type SavedFileParams = {
     name?: string
     variant?: string
     expire?: Date
@@ -18,7 +18,7 @@ export type SavedFileParams = {
     idUser?: string
 }
 
-class DFWFileModule extends DFWModule {
+export class DFWFileModule extends DFWModule {
 
     createFileRecordAsync = async (file: UploadedFile, { name, idUser, url, storage, expire, idParent, variant }: SavedFileParams = {}, extraFields?: object) => {
         return this.db.dfw_file.create({
@@ -58,5 +58,3 @@ class DFWFileModule extends DFWModule {
         return path.join(this.DFW.tmpDir, `${DFWUtils.uuid()}${posfix ?? ""}`);
     }
 }
-
-export default DFWFileModule

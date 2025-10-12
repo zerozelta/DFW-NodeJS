@@ -1,7 +1,5 @@
-import { makeAPIListenerFunction } from "../lib/APIListener"
+import { makeAPIListenerFunction } from "#lib/APIListener"
 
-const PUTListener = makeAPIListenerFunction({
+export const PUTListener = makeAPIListenerFunction({
     method: 'put'
 })
-
-export default PUTListener

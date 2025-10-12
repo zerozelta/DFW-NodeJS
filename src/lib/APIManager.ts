@@ -1,19 +1,19 @@
-import bodyParser from "body-parser";
-import DFWCore from "./DFWCore";
-import { NextFunction, Response } from "express";
-import { DFWRequest, DFWRequestSchema, DFWResponse } from "../types/DFWRequest";
-import DFWUtils from "./DFWUtils";
+import type { NextFunction, Response } from "express";
+import type { DFWCore } from "#lib/DFWCore";
+import type { DFWRequest, DFWRequestSchema, DFWResponse } from "#types/DFWRequest";
+import type { dfw_user } from "@prisma/client";
+import type { APIListener } from "#types/APIListener";
 import chalk from "chalk";
 import passport from "passport";
-import DFWPassportStrategy from "../strategies/DFWPassportStrategy";
 import session from "express-session"
-import DFWSessionStore from "./DFWSessionStore";
-import { dfw_user } from "@prisma/client";
 import fileUpload from "express-fileupload";
 import { v7 as uuid7 } from 'uuid';
-import { APIListener } from "./APIListener";
+import bodyParser from "body-parser";
+import { DFWPassportStrategy } from "#lib/DFWPassportStrategy";
+import { DFWSessionStore } from "#lib/DFWSessionStore";
+import { DFWUtils } from "#lib/DFWUtils";
 
-export default class APIManager {
+export class APIManager {
     private DFW: DFWCore
 
     constructor(DFW: DFWCore) {
@@ -64,7 +64,7 @@ export default class APIManager {
                     user: req.user as dfw_user | undefined
                 }),
 
-                addCallback: (cb) => {
+                addCallback: (cb: () => void) => {
                     callbackStack.push(cb)
                 }
             }
@@ -163,7 +163,7 @@ export default class APIManager {
             })
         }
 
-        server.use(path, (err: any, _, res: Response, next) => { // Error handler
+        server.use(path, (err: any, _1: any, res: Response, _2: NextFunction) => { // Error handler
             if (process.env.NODE_ENV == "development") DFWUtils.log(err, true);
             const errorStatus = res.statusCode === 200 ? 500 : res.statusCode
             if (typeof err === "object" && err.message) {

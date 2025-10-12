@@ -1,9 +1,9 @@
-import { dfw_credential } from "@prisma/client";
-import DFWUtils from "../lib/DFWUtils";
-import DFWModule from "../lib/DFWModule";
-import DFWSecurityModule from "./DFWSecurityModule";
+import type { dfw_credential } from "@prisma/client";
+import { DFWModule } from "#lib/DFWModule";
+import { DFWUtils } from "#lib/DFWUtils";
+import { DFWSecurityModule } from "#modules/DFWSecurityModule";
 
-class DFWUserModule extends DFWModule {
+export class DFWUserModule extends DFWModule {
 
     verifyPasswordAsync = async (identifier: string, password: any) => {
         const isEmail = DFWUtils.isEmail(identifier)
@@ -41,5 +41,3 @@ class DFWUserModule extends DFWModule {
         return attachUserToCredentialAsync(user, credential);
     }
 }
-
-export default DFWUserModule

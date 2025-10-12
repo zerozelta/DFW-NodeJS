@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "target": "es2020",
+    "rootDir": "./src",
+    "strict": true,
+    "esModuleInterop": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "types": ["express"],
+    "noImplicitAny": true,
+    "strictPropertyInitialization": true,
+    "paths": {
+      "#lib/*": ["./src/lib/*"],
+      "#modules/*": ["./src/modules/*"],
+      "#types/*": ["./src/types/*"],
+      "#listeners/*": ["./src/listeners/*"]
+    }
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", ".vscode"]
+}

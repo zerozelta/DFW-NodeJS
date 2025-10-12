@@ -1,7 +1,5 @@
-import { makeAPIListenerFunction } from "../lib/APIListener"
+import { makeAPIListenerFunction } from "#lib/APIListener"
 
-const POSTListener = makeAPIListenerFunction({
+export const POSTListener = makeAPIListenerFunction({
     method: 'post'
 })
-
-export default POSTListener

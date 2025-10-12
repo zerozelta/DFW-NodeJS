@@ -1,11 +1,9 @@
-import { RequestHandler } from "express";
-import { APIListener, APIMethod } from "../lib/APIListener";
+import type { APIListener, APIMethod } from "#types/APIListener";
+import type { RequestHandler } from "express";
 
-const RawListener: (method: APIMethod, ...middleware: RequestHandler[]) => APIListener = (method, ...middleware) => {
+export const RawListener: (method: APIMethod, ...middleware: RequestHandler[]) => APIListener = (method, ...middleware) => {
     return {
         method,
         middleware
     }
 }
-
-export default RawListener

@@ -1,8 +1,8 @@
+import type { APIListener, APIListenerWithoutMethod } from "#types/APIListener";
+import type { ServeStaticOptions } from "serve-static";
 import { static as ExpressStatic } from "express";
-import { APIListener, APIListenerWithoutMethod } from "../lib/APIListener";
-import { ServeStaticOptions } from "serve-static";
 
-const StaticPathListener: (localPath: string, options?: ServeStaticOptions, params?: APIListenerWithoutMethod) => APIListener = (localPath, options, params) => {
+export const StaticPathListener: (localPath: string, options?: ServeStaticOptions, params?: APIListenerWithoutMethod) => APIListener = (localPath, options, params) => {
     const { middleware, ...restParams } = params ?? {};
 
     return {
@@ -14,5 +14,3 @@ const StaticPathListener: (localPath: string, options?: ServeStaticOptions, para
         ...restParams
     }
 }
-
-export default StaticPathListener

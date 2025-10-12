@@ -1,5 +1,5 @@
-import DFWSessionModule from "../../modules/SessionModule";
-import { APIListener, ListenerFn } from "../../lib/APIListener";
+import type { APIListener, ListenerFn } from "#types/APIListener"
+import { DFWSessionModule } from "#modules/DFWSessionModule"
 
 /**
  * Logout listener 
@@ -7,7 +7,7 @@ import { APIListener, ListenerFn } from "../../lib/APIListener";
  * @param fn 
  * @returns 
  */
-const DFWLogoutListener: (fn?: ListenerFn) => APIListener = (fn) => ({
+export const DFWLogoutListener: (fn?: ListenerFn) => APIListener = (fn) => ({
     method: 'post',
     middleware: [async (req, _, next) => {
         const { logoutAsync } = new DFWSessionModule()
@@ -16,5 +16,3 @@ const DFWLogoutListener: (fn?: ListenerFn) => APIListener = (fn) => ({
     }],
     fn: fn ?? (() => { return 'success' })
 })
-
-export default DFWLogoutListener

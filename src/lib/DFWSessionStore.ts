@@ -1,9 +1,9 @@
+import type { DFWCore } from "./DFWCore.js";
+import type { PrismaClient } from "@prisma/client";
 import { Store } from "express-session";
-import DFWCore from "./DFWCore";
-import { PrismaClient } from "@prisma/client";
 import { createLRU } from 'lru.min';
 
-class DFWSessionStore extends Store {
+export class DFWSessionStore extends Store {
 
     private db: PrismaClient
 
@@ -80,5 +80,3 @@ class DFWSessionStore extends Store {
         })
     }
 }
-
-export default DFWSessionStore

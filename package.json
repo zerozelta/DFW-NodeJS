@@ -1,19 +1,49 @@
 {
   "name": "@scefira/dfw",
-  "version": "1.2.14",
+  "version": "1.3.0",
   "description": "NodeJS fast API prototiping framework",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "dist/cjs/index.js",
+  "types": "dist/cjs/index.d.ts",
+  "module": "dist/esm/index.js",
   "files": [
     "dist/**/*",
     "prisma/**/*"
   ],
+  "exports": {
+    ".": {
+      "types": "./dist/cjs/index.d.ts",
+      "import": "./dist/esm/index.js",
+      "require": "./dist/cjs/index.js"
+    }
+  },
+  "imports": {
+    "#lib/*": {
+      "import": "./dist/esm/lib/*.js",
+      "require": "./dist/cjs/lib/*.js"
+    },
+    "#modules/*": {
+      "import": "./dist/esm/modules/*.js",
+      "require": "./dist/cjs/modules/*.js"
+    },
+    "#listeners/*": {
+      "import": "./dist/esm/listeners/*.js",
+      "require": "./dist/cjs/listeners/*.js"
+    },
+    "#types/*": {
+      "import": "./dist/esm/types/*.js",
+      "require": "./dist/cjs/types/*.js"
+    }
+  },
   "scripts": {
-    "dev": "nodemon",
+    "dev": "tsx --env-file=.env src/test.ts",
     "dev:prisma": "dotenv -e .env.development -- npx prisma studio",
-    "build": "tsc",
-    "sync": "npx prisma db push",
-    "prepublishOnly": "npm run build"
+    "dev:sync": "npx prisma db push",
+    "build:cjs": "tsc -p tsconfig.cjs.json",
+    "build:esm": "tsc -p tsconfig.esm.json",
+    "build": "rimraf dist && npm run build:cjs && npm run build:esm",
+    "postbuild": "node scripts/mark-esm.mjs",
+    "prepublishOnly": "npm run build",
+    "check:esm": "node scripts/check-exports.mjs"
   },
   "author": "Scefira Technologies",
   "license": "ISC",
@@ -26,7 +56,7 @@
   },
   "dependencies": {
     "@paralleldrive/cuid2": "^2.2.2",
-    "@types/express": "^5.0.3",
+    "@types/express": "^5",
     "@types/express-fileupload": "^1.5.1",
     "@types/express-session": "^1.18.2",
     "@types/luxon": "^3",
@@ -35,7 +65,7 @@
     "body-parser": "^2.2.0",
     "chalk": "^4.1.2",
     "cors": "^2.8.5",
-    "express": "^5.1.0",
+    "express": "^5",
     "express-fileupload": "^1.5.2",
     "express-session": "^1.18.2",
     "lru.min": "^1.1.2",
@@ -57,10 +87,10 @@
     "@types/node": "^20.4.2",
     "@types/passport-local": "^1.0.38",
     "@types/uuid": "^8.3.4",
-    "cross-env": "^7.0.3",
-    "nodemon": "^3.1.4",
+    "madge": "^8.0.0",
     "prisma": "^6",
-    "ts-node": "^10.9.2",
-    "typescript": "^5.5.4"
+    "rimraf": "^6",
+    "tsx": "^4",
+    "typescript": "^5"
   }
 }

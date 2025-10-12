@@ -1,26 +1,18 @@
-import { PrismaClient } from "@prisma/client"
-import { CorsOptions } from "cors"
-import { CookieOptions } from "express-session"
-import { DFWCore } from ".."
-import { PrismaClientOptions } from "@prisma/client/runtime/library"
+import type { PrismaClient } from "@prisma/client"
+import type { CorsOptions } from "cors"
+import type { CookieOptions } from "express-session"
+import type { PrismaClientOptions } from "@prisma/client/runtime/library"
+import type { DFWCore } from "../lib/DFWCore.js"
 
 export type DFWConfig = {
 
     server?: {
         port?: number
-
-        /** CORS config for entire server */
         cors?: CorsOptions
-
         trustProxy?: boolean | number
-
-        // Temporal directory path
         tmpDir?: string
     }
 
-    /**
-     * 
-     */
     session?: {
         /**
          * Passport auth config, by default dfw is always enabled unless you set it to false
@@ -53,7 +45,7 @@ export type DFWConfig = {
         cookieName?: string
 
         /**
-         * 
+         * Cookie options, more info: https://www.npmjs.com/package/express-session#cookie
          */
         cookieOptions?: CookieOptions
 

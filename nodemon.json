@@ -1,6 +1,0 @@
-{
-  "watch": ["src"],
-  "ignore": ["lib"],
-  "exec": "cross-env NODE_ENV=development ts-node --project tsconfig.json src/test.ts",
-  "ext": "js ts"
-}

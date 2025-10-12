@@ -1,4 +1,4 @@
-import { PrismaClient, } from "@prisma/client";
-import { ITXClientDenyList } from "@prisma/client/runtime/library";
+import type { PrismaClient, } from "@prisma/client";
+import type { ITXClientDenyList } from "@prisma/client/runtime/library";
 
 export type DFWDatabase = Omit<PrismaClient, ITXClientDenyList>
