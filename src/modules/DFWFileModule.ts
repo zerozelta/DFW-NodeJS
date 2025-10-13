@@ -8,7 +8,9 @@ import { DFWModule } from "#lib/DFWModule";
 import { DFWUtils } from "#lib/DFWUtils";
 import { DFWCore } from "#lib/DFWCore";
 
-type SavedFileParams = {
+export type DFWUploadedFile = UploadedFile
+
+export type SavedFileParams = {
     name?: string
     variant?: string
     expire?: Date
