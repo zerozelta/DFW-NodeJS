@@ -34,7 +34,8 @@ export class APIManager {
             store: new DFWSessionStore(this.DFW),
             cookie: {
                 secure: false,
-                maxAge: 1000 * 60 * 60 * 24 * 360 //1Y
+                maxAge: 1000 * 60 * 60 * 24 * 180, //6 Months
+                ...config.session?.cookieOptions
             }
         }))
 
