@@ -1,17 +1,11 @@
-import type { PrismaClient } from "@prisma/client"
 import type { CorsOptions } from "cors"
 import type { CookieOptions } from "express-session"
-import type { PrismaClientOptions } from "@prisma/client/runtime/library"
-import type { DFWCore } from "../lib/DFWCore.js"
 
 export type DFWConfig = {
-
-    server?: {
-        port?: number
-        cors?: CorsOptions
-        trustProxy?: boolean | number
-        tmpDir?: string
-    }
+    port?: number
+    cors?: CorsOptions
+    trustProxy?: boolean | number
+    tmpDir?: string
 
     session?: {
         /**
@@ -54,9 +48,4 @@ export type DFWConfig = {
          */
         sessionCacheSize?: number
     }
-
-    /**
-     * Prisma client options
-     */
-    prisma?: Omit<PrismaClientOptions, '__internal'> | ((dfw: DFWCore) => PrismaClient)
 }

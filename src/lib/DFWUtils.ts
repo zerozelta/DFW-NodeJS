@@ -1,5 +1,3 @@
-import type { ListenerFn } from "#types/APIListener";
-import type { DFWRequest, DFWResponse } from "#types/DFWRequest";
 import chalk from "chalk";
 import { randomUUID } from "crypto";
 import { lookup } from "mime-types";
@@ -92,16 +90,4 @@ export class DFWUtils {
                 throw "[DFW] ERROR HASHING PASSWORD"
             })
     }
-
-    public static makeGuard = (fn: ListenerFn) => {
-        return async (req: DFWRequest, res: DFWResponse, next: (err?: any) => void) => {
-            try {
-                await fn(req.dfw, req, res);
-                next();
-            } catch (err) {
-                next(err);
-            }
-        }
-    }
-
 }

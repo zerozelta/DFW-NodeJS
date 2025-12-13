@@ -7,16 +7,41 @@
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
-    "types": ["express"],
+    "types": [
+      "express"
+    ],
     "noImplicitAny": true,
     "strictPropertyInitialization": true,
     "paths": {
-      "#lib/*": ["./src/lib/*"],
-      "#modules/*": ["./src/modules/*"],
-      "#types/*": ["./src/types/*"],
-      "#listeners/*": ["./src/listeners/*"]
+      "#lib/*": [
+        "./src/lib/*"
+      ],
+      "#repositories/*": [
+        "./src/repositories/*"
+      ],
+      "#types/*": [
+        "./src/types/*"
+      ],
+      "#listeners/*": [
+        "./src/listeners/*"
+      ],
+      "#prisma/*": [
+        "./src/prisma/*"
+      ],
+      "#makers/*": [
+        "./src/makers/*"
+      ],
+      "#guards/*": [
+        "./src/guards/*"
+      ],
     }
   },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", ".vscode"]
+  "include": [
+    "src/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    ".vscode"
+  ]
 }

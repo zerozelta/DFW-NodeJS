@@ -1,13 +1,61 @@
-
-import { DFWCore } from "#lib/DFWCore";
-import { DFWService } from "#lib/DFWService";
-import { DFWUtils } from "#lib/DFWUtils";
-import { GETListener } from "#listeners/GETListener";
-import { DFWSessionModule } from "#modules/DFWSessionModule";
-import { DFWUserModule } from "#modules/DFWUserModule";
+import { DFW } from "./test.dfw";
+import { TestGuard } from "./test.guard";
 import z from "zod";
+import { TestService } from "./test.service";
+import { BodyValidationGuard } from "#guards/BodyValidatorGuard";
 
-export class DFWSessionService extends DFWService {
+const validationEmailSchema = z.object({
+    email: z.email(),
+    test: z.coerce.number().min(5)
+})
+
+DFW.register({
+
+    validate: DFW.listener.post({
+        middleware: [
+            BodyValidationGuard(validationEmailSchema)
+        ]
+    }, (_, { body }) => {
+        return body
+    }),
+
+    guard: DFW.listener.get({
+        middleware: [
+            TestGuard
+        ],
+    }, () => {
+        return 'passed guard test'
+    }),
+
+    test: DFW.listener.get(({ db }) => {
+        const { getSessions } = new TestService()
+        return getSessions()
+    })
+})
+
+DFW.start()
+
+/*
+const SessionGuard = DFWUtils.makeGuard(async ({ getSession }) => {
+    if (getSession().isAuthenticated !== true) throw `ACCESS_DENIED`
+})
+
+const SessionService = DFW.makeService('session', ({ user }) =>
+({
+    getSessionInfo: (test: string) =>
+        DFW.makeTransaction(async (db) => {
+            const { getSessionInfoAsync } = new SessionRepository()
+            console.log(test, user)
+            return getSessionInfoAsync()
+        }),
+
+    getSessionsForUser: () => {
+
+    }
+}))
+
+
+export class DFWSessionService {
     readonly namespace = 'session';
 
     test = (userDto: any) => this.buildMethod((db) => {
@@ -24,18 +72,6 @@ export class DFWSessionService extends DFWService {
     })
 
 }
-
-const SessionGuard = DFWUtils.makeGuard(async ({ getSession }) => {
-    if (getSession().isAuthenticated !== true) throw `ACCESS_DENIED`
-})
-
-var DFW = new DFWCore({
-    server: {
-        port: 300,
-        trustProxy: true
-    }
-}).start()
-
 export const emailSchema = z.object({
     email: z.string()
         .trim()           // opcional: elimina espacios en blanco al inicio y al final
@@ -88,3 +124,4 @@ DFW.register({
         return { ...getSession() }
     }),
 })
+*/

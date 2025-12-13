@@ -1,7 +1,6 @@
 import type { NextFunction, Response } from "express";
 import type { DFWCore } from "#lib/DFWCore";
 import type { DFWRequest, DFWRequestSchema, DFWResponse } from "#types/DFWRequest";
-import type { dfw_user } from "@prisma/client";
 import type { APIListener } from "#types/APIListener";
 import chalk from "chalk";
 import passport from "passport";
@@ -13,16 +12,16 @@ import { DFWPassportStrategy } from "#lib/DFWPassportStrategy";
 import { DFWSessionStore } from "#lib/DFWSessionStore";
 import { DFWUtils } from "#lib/DFWUtils";
 
-export class APIManager {
-    private DFW: DFWCore
+export class APIManager<TDFW extends DFWCore<any>> {
+    private DFW: TDFW
 
-    constructor(DFW: DFWCore) {
+    constructor(DFW: TDFW) {
         this.DFW = DFW
     }
 
-    public installAPILAyer() {
+    public installAPILayer() {
         const config = this.DFW.config
-        const APIRouter = this.DFW.RouterAPILevel
+        const APIRouter = this.DFW.routerAPILevel
 
         //// PASSPORT AND SESSION ////
         APIRouter.use(session({
@@ -43,7 +42,7 @@ export class APIManager {
         APIRouter.use(passport.session())
 
         if (config.session?.authenticators?.dfw !== false) {
-            passport.use('dfw', DFWPassportStrategy)
+            passport.use('dfw', DFWPassportStrategy(this.DFW))
         }
 
         passport.serializeUser(async ({ id }: any, done) => {
@@ -54,7 +53,7 @@ export class APIManager {
             done(null, { id: idUser })
         })
 
-        //// DFW SChema ////
+        //// DFW API Schema ////
         APIRouter.use(((req: DFWRequest, res: DFWResponse, next: NextFunction) => {
             const callbackStack: (() => void)[] = []
 
@@ -62,7 +61,7 @@ export class APIManager {
                 db: this.DFW.db,
                 getSession: () => ({
                     isAuthenticated: req.isAuthenticated(),
-                    user: req.user as dfw_user | undefined
+                    user: req.user as { id: string } | undefined
                 }),
 
                 addCallback: (cb: () => void) => {
@@ -71,10 +70,6 @@ export class APIManager {
             }
 
             req.dfw = dfw
-            res.error = (message: any, status: number = 500) => {
-                res.status(status)
-                throw message
-            }
             res.on('finish', () => {
                 callbackStack.forEach((cb) => cb())
             })
@@ -83,7 +78,7 @@ export class APIManager {
     }
 
     public addListener(path: string, params: APIListener) {
-        const server = this.DFW.server
+        const server = this.DFW.server as any
         const method = params.method ?? 'get'
         const fn = params.fn
 
@@ -95,39 +90,8 @@ export class APIManager {
         // Body Parser
         if (['post', 'put', 'patch', 'delete'].includes(method) && params.disableBodyParser !== true) server[method](path, bodyParser.json())
 
-        if (params.validate) {
-            server[method](path, (req: DFWRequest, res: DFWResponse, next: NextFunction) => {
-                const bodySchema = params.validate?.body
-                const querySchema = params.validate?.query
-
-                if (bodySchema) {
-                    const result = bodySchema.safeParse(req.body);
-                    if (!result.success) {
-                        return res.status(400).json({
-                            error: 'Body validation failed',
-                            validation: result.error.format(),
-                        })
-                    }
-                    req.body = result.data;
-                }
-
-                if (querySchema) {
-                    const result = querySchema.safeParse(req.query);
-                    if (!result.success) {
-                        return res.status(400).json({
-                            error: 'Query validation failed',
-                            validation: result.error.format(),
-                        })
-                    }
-                    Object.assign(req.query, result.data)
-                }
-
-                next();
-            })
-        }
-
         // DFW native middleware
-        server[method](path, this.DFW.RouterAPILevel)
+        server[method](path, this.DFW.routerAPILevel)
 
         // file upload middleware
         if (params.upload) server[method](path, fileUpload(typeof params.upload === 'boolean' ? {} : params.upload))
@@ -139,14 +103,8 @@ export class APIManager {
         }
 
         if (fn) {
-            server[method](path, async (req, res, next) => {
+            server[method](path, async (req: DFWRequest, res: DFWResponse, next: NextFunction) => {
                 try {
-                    // Setting up services
-                    params.services?.forEach((Service) => {
-                        const serviceInstance = new Service(req.dfw)
-                        req.dfw![serviceInstance.namespace] = serviceInstance
-                    })
-
                     // calling the listener
                     const data = await fn(req.dfw as DFWRequestSchema, req as DFWRequest, res as DFWResponse);
 

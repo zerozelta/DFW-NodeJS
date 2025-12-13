@@ -1,11 +1,15 @@
-import type { dfw_credential } from "@prisma/client";
-import { DFWModule } from "#lib/DFWModule";
+import type { DFWCore } from "#lib/DFWCore";
+import type { dfw_credential, PrismaClient } from "#prisma/client";
+import { DFWRepository } from "#lib/DFWRepository";
 import { DFWUtils } from "#lib/DFWUtils";
-import { DFWSecurityModule } from "#modules/DFWSecurityModule";
+import { DFWSecurityRepository } from "#repositories/DFWSecurityRepository";
 
-export class DFWUserModule extends DFWModule {
+export class DFWUserRepository extends DFWRepository<PrismaClient> {
+    constructor(DFW: DFWCore) {
+        super(DFW);
+    }
 
-    verifyPasswordAsync = async (identifier: string, password: any) => {
+    async verifyPasswordAsync(identifier: string, password: any) {
         const isEmail = DFWUtils.isEmail(identifier)
 
         const user = await this.db.dfw_user.findUnique({
@@ -27,7 +31,7 @@ export class DFWUserModule extends DFWModule {
         return user.id
     }
 
-    createUserAsync = async ({ password, ...params }: { [key: string]: any; name?: string; email?: string; password: string }) => {
+    async createUserAsync({ password, ...params }: { [key: string]: any; name?: string; email?: string; password: string }) {
         return this.db.dfw_user.create({
             data: {
                 ...params,
@@ -36,8 +40,8 @@ export class DFWUserModule extends DFWModule {
         })
     }
 
-    assignCredentialAsync = async (user: string | { id: string }, credential: dfw_credential | string | (dfw_credential | string)[]): Promise<dfw_credential[]> => {
-        const { attachUserToCredentialAsync } = new DFWSecurityModule(this.db)
+    async assignCredentialAsync(user: string | { id: string }, credential: dfw_credential | string | (dfw_credential | string)[]): Promise<dfw_credential[]> {
+        const { attachUserToCredentialAsync } = new DFWSecurityRepository(this.dfw)
         return attachUserToCredentialAsync(user, credential);
     }
 }

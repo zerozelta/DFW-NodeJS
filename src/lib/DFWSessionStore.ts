@@ -1,5 +1,5 @@
+import type { PrismaClient } from "#prisma/client";
 import type { DFWCore } from "./DFWCore.js";
-import type { PrismaClient } from "@prisma/client";
 import { Store } from "express-session";
 import { createLRU } from 'lru.min';
 
@@ -9,7 +9,7 @@ export class DFWSessionStore extends Store {
 
     private cache: ReturnType<typeof createLRU>
 
-    constructor(DFW: DFWCore) {
+    constructor(DFW: DFWCore<any>) {
         super()
         this.db = DFW.db
         this.cache = createLRU({ max: DFW.config.session?.sessionCacheSize ?? 300 })

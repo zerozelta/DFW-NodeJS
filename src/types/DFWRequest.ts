@@ -1,24 +1,20 @@
 import type { Request, Response } from "express";
-import type { PrismaClient } from "@prisma/client";
-import type { DFWServiceConstructor, MapServiceConstructors } from "#types/DFWService";
 
-export type DFWRequest<TServices extends readonly DFWServiceConstructor[] = []> = {
-    dfw: DFWRequestSchema<TServices>;
+export type DFWRequest<TDatabase = any> = {
+    dfw: DFWRequestSchema<TDatabase>;
 } & Request
 
-export type DFWResponse = {
-    error: (message: any, status?: number) => void
-} & Response
+export type DFWResponse = Response
 
 export type DFWRequestSession = {
-        isAuthenticated: boolean
-        user?: { id: string } | undefined
-    }
+    isAuthenticated: boolean
+    user?: { id: string } | undefined
+}
 
-export type DFWRequestSchema<TServices extends readonly DFWServiceConstructor[] = []> = {
+export type DFWRequestSchema<TDatabase = any> = {
     getSession: () => DFWRequestSession
 
-    db: PrismaClient
+    db: TDatabase
 
     /**
      * Callback called in background after finish the api response
@@ -28,4 +24,4 @@ export type DFWRequestSchema<TServices extends readonly DFWServiceConstructor[] 
     addCallback: (cb: () => void) => void
 
     [key: string]: any; // Allow dynamic properties
-} & MapServiceConstructors<TServices>
+}

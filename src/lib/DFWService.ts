@@ -1,26 +1,39 @@
-import type { PrismaClient } from "@prisma/client";
-import type { DFWDatabase } from "#types/DFWDatabase";
-import type { DFWRequestSchema, DFWRequestSession } from "#types/DFWRequest";
+import { DFWCore } from "#lib/DFWCore";
 
-export abstract class DFWService {
-  abstract readonly namespace: string;
+export class DFWService<TDatabase, TDeps extends object = {}> {
+  protected _dfw: DFWCore<TDatabase>;
+  protected _db: TDatabase;
+  protected _deps: TDeps;
 
-  protected readonly db: PrismaClient
-  protected readonly session: DFWRequestSession
-
-  constructor(dfw: DFWRequestSchema) {
-    this.db = dfw.db;
-    this.session = dfw.getSession()
+  get dfw() {
+    return this._dfw;
   }
 
-  protected buildTransaction = <T>(fn: (db: DFWDatabase) => Promise<T>): Promise<T> => {
-    return this.db.$transaction(async (db) => {
-      return fn(db);
-    });
+  get db() {
+    return this._db;
   }
 
-  protected buildMethod = <T>(fn: (db: PrismaClient) => Promise<T>): Promise<T> => {
-    return fn(this.db)
+  get deps() {
+    return this._deps;
   }
 
+  constructor(dfw: DFWCore<TDatabase>, deps: TDeps) {
+    this._dfw = dfw;
+    this._db = dfw.db;
+    this._deps = deps;
+  }
+
+  public transaction = async <
+    R = any,
+    TTx extends TDatabase = TDatabase
+  >(
+    cb: (tx: TTx) => Promise<R>
+  ): Promise<R> => {
+    const anyDb: any = this._db;
+    if (anyDb.$transaction) {
+      return anyDb.$transaction(cb);
+    } else {
+      return cb(this._db as any);
+    }
+  };
 }

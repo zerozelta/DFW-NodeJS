@@ -1,11 +1,12 @@
+import type { DFWCore } from "./DFWCore"
 import { Strategy } from "passport-local"
 import { DFWUtils } from "#lib/DFWUtils"
-import { DFWUserModule } from "#modules/DFWUserModule"
+import { DFWUserRepository } from "#repositories/DFWUserRepository"
 
-export const DFWPassportStrategy = new Strategy(async (identifier: string, password: string, done) => {
+export const DFWPassportStrategy = (DFW: DFWCore) => new Strategy(async (identifier: string, password: string, done) => {
     try {
-        const UserControl = new DFWUserModule()
-        const id = await UserControl.verifyPasswordAsync(identifier, password)
+        const { verifyPasswordAsync } = new DFWUserRepository(DFW)
+        const id = await verifyPasswordAsync(identifier, password)
 
         if (id) {
             return done(null, { id })

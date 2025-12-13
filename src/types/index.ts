@@ -1,5 +1,4 @@
 export type * from "#types/DFWDatabase"
 export type * from "#types/DFWConfig"
 export type * from "#types/DFWRequest"
-export type * from "#types/DFWService"
 export type * from "#types/APIListener"

@@ -1,48 +1,38 @@
-import type { DFWRequestSchema } from "#types/DFWRequest";
+import type { DFWResponse } from "#types/DFWRequest";
 import type { APIListener, DFWRegisterItem, ListenerFn } from "#types/APIListener";
 import type { DFWConfig } from "#types/DFWConfig";
 import type { Express } from "express"
 import { Router, default as ExpressServer } from "express";
-import { PrismaClient } from "@prisma/client";
-import chalk from "chalk";
-import fs from "fs"
 import { DFWUtils } from "#lib/DFWUtils";
 import { APIManager } from "#lib/APIManager";
+import { makeService as makeServiceHelper, type ServiceCtor, type ServiceInstance } from "#makers/makeService";
+import { makeListener } from "#makers/makeListener";
+import { makeGuard } from "#makers/makeGuard";
+import { makeRepository as makeRepositoryHelper, type RepositoryCtor, type RepositoryInstance } from "#makers/makeRepository";
 import cors from "cors"
+import chalk from "chalk";
+import fs from "fs"
 import nodejsPath from "path";
 
-declare global {
-    namespace Express {
-        export interface Request {
-            dfw: DFWRequestSchema
-        }
-
-        export interface Response {
-            error: (message: any, status?: number) => void
-        }
-    }
-}
-
-export class DFWCore {
-
-    public static MAIN_INSTANCE: DFWCore
-
+export class DFWCore<TDatabase = any> {
     public static DFW_DIR = "./.dfw"
     public static DFW_UPLOAD_DIR = `${DFWCore.DFW_DIR}/upload`
 
     public readonly server: Express = ExpressServer();
-    public readonly RouterAPILevel: Router = Router();
+    public readonly routerAPILevel: Router = Router();
 
     public readonly tmpDir: string
 
     public readonly config: DFWConfig;
-    private database: PrismaClient;
+
+    private database: any;
 
     private APIManager = new APIManager(this)
 
-    constructor(config: DFWConfig) {
+    constructor(db: TDatabase, config: DFWConfig) {
+        this.database = db;
         this.config = Object.freeze(config)
-        this.tmpDir = config.server?.tmpDir ?? `${DFWCore.DFW_DIR}/temp`
+        this.tmpDir = config?.tmpDir ?? `${DFWCore.DFW_DIR}/temp`
 
         if (!fs.existsSync(this.tmpDir)) fs.mkdirSync(DFWCore.DFW_DIR);
 
@@ -55,39 +45,34 @@ export class DFWCore {
 
         this.tmpDir = nodejsPath.normalize(fs.mkdtempSync(`${this.tmpDir}${nodejsPath.sep}`));
 
-        if (typeof config.prisma === 'function') {
-            this.database = config.prisma(this)
-        } else {
-            this.database = new PrismaClient(config.prisma as any);
-        }
-
         if (fs.existsSync(DFWCore.DFW_DIR) == false) {
             fs.mkdirSync(DFWCore.DFW_DIR);
         }
 
-        if (config.server?.trustProxy) this.server.set('trust proxy', config.server?.trustProxy)
+        if (config?.trustProxy) this.server.set('trust proxy', config?.trustProxy)
 
         //// CORS ////
-        if (config.server?.cors) {
-            this.server.use(cors(config.server.cors))
+        if (config?.cors) {
+            this.server.use(cors(config.cors))
         }
 
-        this.APIManager.installAPILAyer()
-
-        DFWCore.MAIN_INSTANCE = this
+        this.APIManager.installAPILayer()
     }
 
-    public start() {
-        const port = this.config.server?.port ?? 8080
-        this.server.listen(port, () => {
-            DFWUtils.log(`Server listening on port ${chalk.yellow(port)}`);
-        })
-        return this
+    public start(): Promise<this> {
+        const port = this.config?.port ?? 8080;
+        return new Promise((resolve, reject) => {
+            const srv = this.server.listen(port, () => {
+                DFWUtils.log(`Server listening on port ${chalk.yellow(port)}`);
+                resolve(this);
+            });
+            srv.on?.('error', (err: any) => reject(err));
+        });
     }
 
-    public addListener(path: string, listener: APIListener): void;
-    public addListener(path: string, fn: ListenerFn): void;
-    public addListener(path: string, b: APIListener | ListenerFn): void {
+    public addListener(path: string, listener: APIListener<TDatabase>): void;
+    public addListener(path: string, fn: ListenerFn<TDatabase>): void;
+    public addListener(path: string, b: APIListener<TDatabase> | ListenerFn<TDatabase>): void {
         if (typeof b === 'function') {
             this.APIManager.addListener(path, { fn: b });
         } else {
@@ -115,6 +100,30 @@ export class DFWCore {
     }
 
     get db() {
-        return this.database
+        return this.database as TDatabase
+    }
+
+    makeListener = makeListener
+    makeGuard = makeGuard<TDatabase>
+
+    makeService = <TDeps extends object, M extends object>(
+        deps: TDeps,
+        methods: M & ThisType<ServiceInstance<TDatabase, TDeps, M>>
+    ): ServiceCtor<TDatabase, TDeps, M> => {
+        return makeServiceHelper<TDatabase, TDeps, M>(this, deps, methods);
+    }
+
+    makeRepository = <M extends object>(
+        methods: M & ThisType<RepositoryInstance<M, TDatabase>>
+    ): RepositoryCtor<M, TDatabase> => {
+        return makeRepositoryHelper<TDatabase, M>(this, methods);
+    }
+
+    public listener = {
+        get: makeListener<TDatabase>({ method: 'get' }),
+        post: makeListener<TDatabase>({ method: 'post' }),
+        put: makeListener<TDatabase>({ method: 'put' }),
+        delete: makeListener<TDatabase>({ method: 'delete' }),
+        patch: makeListener<TDatabase>({ method: 'patch' }),
     }
 }
