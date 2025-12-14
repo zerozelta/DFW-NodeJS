@@ -21,7 +21,7 @@ export class APIManager<TDFW extends DFWCore<any>> {
 
     public installAPILayer() {
         const config = this.DFW.config
-        const APIRouter = this.DFW.routerAPILevel
+        const APIRouter = this.DFW.routerAPILayer
 
         //// PASSPORT AND SESSION ////
         APIRouter.use(session({
@@ -75,38 +75,49 @@ export class APIManager<TDFW extends DFWCore<any>> {
             })
             next();
         }) as any)
+
+        APIRouter.use(this.DFW.routerAPIContainer)
+
+        APIRouter.use((err: any, _1: any, res: Response, _2: NextFunction) => {
+            if (process.env.NODE_ENV == "development") DFWUtils.log(err, true);
+            const errorStatus = res.statusCode === 200 ? 500 : res.statusCode
+            if (typeof err === "object" && err.message) {
+                res.status(errorStatus).json({ error: err.message, stack: process.env.NODE_ENV == "development" ? err.stack : null }).end();
+            } else {
+                res.status(errorStatus).json({ error: err }).end();
+            }
+        })
     }
 
     public addListener(path: string, params: APIListener) {
-        const server = this.DFW.server as any
+        const APIContainer = this.DFW.routerAPIContainer as any
         const method = params.method ?? 'get'
-        const fn = params.fn
+        const mainFunction = params.fn
 
-        if (!params.middleware && !fn) {
+        if (!params.middleware && !mainFunction) {
             DFWUtils.log(`Unable to set listener for [${method}] ${path} listener and middleware are undefined`)
             return
         }
 
-        // Body Parser
-        if (['post', 'put', 'patch', 'delete'].includes(method) && params.disableBodyParser !== true) server[method](path, bodyParser.json())
+        this.DFW.server[method](path, this.DFW.routerAPILayer) // Install api layer in this route
 
-        // DFW native middleware
-        server[method](path, this.DFW.routerAPILevel)
+        // Body Parser
+        if (['post', 'put', 'patch', 'delete'].includes(method) && params.disableBodyParser !== true) APIContainer[method](path, bodyParser.json())
 
         // file upload middleware
-        if (params.upload) server[method](path, fileUpload(typeof params.upload === 'boolean' ? {} : params.upload))
+        if (params.upload) APIContainer[method](path, fileUpload(typeof params.upload === 'boolean' ? {} : params.upload))
 
         // plugged middlewares and handlers
         if (params.middleware) {
-            const middlewares = Array.isArray(params.middleware) ? params.middleware : [params.middleware];
-            server[method](path, ...middlewares);
+            const middlewares = Array.isArray(params.middleware) ? params.middleware : [params.middleware]
+            APIContainer[method](path, ...middlewares)
         }
 
-        if (fn) {
-            server[method](path, async (req: DFWRequest, res: DFWResponse, next: NextFunction) => {
+        if (mainFunction) {
+            APIContainer[method](path, async (req: DFWRequest, res: DFWResponse, next: NextFunction) => {
                 try {
                     // calling the listener
-                    const data = await fn(req.dfw as DFWRequestSchema, req as DFWRequest, res as DFWResponse);
+                    const data = await mainFunction(req.dfw as DFWRequestSchema, req as DFWRequest, res as DFWResponse);
 
                     if (params.callback) {
                         res.on('finish', () => params.callback!(req as DFWRequest, data));
@@ -121,16 +132,6 @@ export class APIManager<TDFW extends DFWCore<any>> {
                 }
             })
         }
-
-        server.use(path, (err: any, _1: any, res: Response, _2: NextFunction) => { // Error handler
-            if (process.env.NODE_ENV == "development") DFWUtils.log(err, true);
-            const errorStatus = res.statusCode === 200 ? 500 : res.statusCode
-            if (typeof err === "object" && err.message) {
-                res.status(errorStatus).json({ error: err.message, stack: process.env.NODE_ENV == "development" ? err.stack : null }).end();
-            } else {
-                res.status(errorStatus).json({ error: err }).end();
-            }
-        });
 
         DFWUtils.log(`${chalk.yellow(method.toUpperCase().padEnd(7, ' '))}  ${chalk.green(path)}`)
     }

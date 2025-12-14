@@ -19,7 +19,8 @@ export class DFWCore<TDatabase = any> {
     public static DFW_UPLOAD_DIR = `${DFWCore.DFW_DIR}/upload`
 
     public readonly server: Express = ExpressServer();
-    public readonly routerAPILevel: Router = Router();
+    public readonly routerAPILayer: Router = Router();
+    public readonly routerAPIContainer: Router = Router();
 
     public readonly tmpDir: string
 
