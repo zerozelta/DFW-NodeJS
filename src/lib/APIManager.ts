@@ -61,7 +61,7 @@ export class APIManager<TDFW extends DFWCore<any>> {
                 db: this.DFW.db,
                 getSession: () => ({
                     isAuthenticated: req.isAuthenticated(),
-                    user: req.user as { id: string } | undefined
+                    user: (req.user as any)?.id
                 }),
 
                 addCallback: (cb: () => void) => {
