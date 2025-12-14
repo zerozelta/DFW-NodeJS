@@ -1,6 +1,6 @@
 {
   "name": "@scefira/dfw",
-  "version": "1.4.2",
+  "version": "1.4.4",
   "description": "NodeJS fast API prototiping framework",
   "main": "dist/cjs/index.js",
   "types": "dist/cjs/index.d.ts",
