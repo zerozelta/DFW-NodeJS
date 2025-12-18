@@ -3,6 +3,9 @@ import { TestGuard } from "./test.guard";
 import z from "zod";
 import { TestService } from "./test.service";
 import { BodyValidationGuard } from "#guards/BodyValidatorGuard";
+import { makeLoginListener } from "#makers/makeLoginListener";
+import { makeLogoutListener } from "#makers/makeLogoutListener";
+import { DFWUserRepository } from "#repositories/DFWUserRepository";
 
 const validationEmailSchema = z.object({
     email: z.email(),
@@ -30,6 +33,24 @@ DFW.register({
     test: DFW.listener.get(({ db }) => {
         const { getSessions } = new TestService()
         return getSessions()
+    }),
+
+    boot: DFW.listener.get(async ({ db, getSession }) => {
+        const { user: idUser , id:sessionID } = getSession()
+        if(!idUser) return { user: null, sessionID }
+
+        const user = await db.dfw_user.findUnique({ where: { id: idUser } })
+        return { user, sessionID }
+    }),
+
+    login: makeLoginListener(DFW),
+
+    logout: makeLogoutListener(DFW),
+
+    createUser: DFW.listener.post(async ({ db }, { body }) => {
+        const { username, password } = body
+        const { createUserAsync } = new DFWUserRepository(DFW)
+        return createUserAsync({ password, name: username, email: `${username}@dfw.com` })
     })
 })
 

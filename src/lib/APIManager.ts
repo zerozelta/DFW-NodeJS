@@ -26,7 +26,7 @@ export class APIManager<TDFW extends DFWCore<any>> {
         //// PASSPORT AND SESSION ////
         APIRouter.use(session({
             name: 'stk',
-            secret: 'default',
+            secret: config.session?.secret ?? 'default',
             genid: () => uuid7(),
             resave: false,
             saveUninitialized: false,
@@ -61,7 +61,8 @@ export class APIManager<TDFW extends DFWCore<any>> {
                 db: this.DFW.db,
                 getSession: () => ({
                     isAuthenticated: req.isAuthenticated(),
-                    user: (req.user as any)?.id
+                    user: (req.user as any)?.id,
+                    id: req.sessionID
                 }),
 
                 addCallback: (cb: () => void) => {

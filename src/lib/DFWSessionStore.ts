@@ -12,7 +12,7 @@ export class DFWSessionStore extends Store {
     constructor(DFW: DFWCore<any>) {
         super()
         this.db = DFW.db
-        this.cache = createLRU({ max: DFW.config.session?.sessionCacheSize ?? 300 })
+        this.cache = createLRU({ max: DFW.config.session?.cacheSize ?? 200 })
     }
 
     get(sid: string, callback: (err: any, session?: any) => void): void {

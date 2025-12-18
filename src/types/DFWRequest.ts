@@ -7,6 +7,7 @@ export type DFWRequest<TDatabase = any> = {
 export type DFWResponse = Response
 
 export type DFWRequestSession = {
+    id: string
     isAuthenticated: boolean
     user?: string
 }

@@ -8,7 +8,7 @@ export class DFWSessionRepository extends DFWRepository<PrismaClient> {
         super(DFW);
     }
 
-    async updateSessionAgentAsync ({ dfw, sessionID, ip, socket, headers }: DFWRequest<PrismaClient>) {
+    updateSessionAgentAsync = async ({ dfw, sessionID, ip, socket, headers }: DFWRequest<PrismaClient>) => {
            if (sessionID) {
                return dfw.db.dfw_session.updateMany({
                    data: {
@@ -22,7 +22,7 @@ export class DFWSessionRepository extends DFWRepository<PrismaClient> {
            }
        }
    
-       async loginAsync (req: DFWRequest, user: { id: string }) {
+       loginAsync = async (req: DFWRequest, user: { id: string }) => {
            return new Promise<void>((resolve, reject) => {
                req.login(user, (err: any) => {
                    if (err) { reject(err); return; }
@@ -33,7 +33,7 @@ export class DFWSessionRepository extends DFWRepository<PrismaClient> {
            })
        }
    
-       async logoutAsync (req: DFWRequest) {
+       logoutAsync = async (req: DFWRequest) => {
            return new Promise<void>((resolve) => {
                req.logout((err) => {
                    req.session.destroy((err) => {

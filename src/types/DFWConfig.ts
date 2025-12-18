@@ -44,8 +44,9 @@ export type DFWConfig = {
         cookieOptions?: CookieOptions
 
         /**
-         * Session id cached on sever default 300
+         * Session id cached on sever
+         * @default 200
          */
-        sessionCacheSize?: number
+        cacheSize?: number
     }
 }
