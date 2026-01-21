@@ -7,7 +7,7 @@ const packageJson = {
   type: "module",
   imports: {
     "#lib/*": "./lib/*.js",
-    "#repositories/*": "./repositories/*.js",
+    "#modules/*": "./modules/*.js",
     "#guards/*": "./guards/*.js",
     "#makers/*": "./makers/*.js",
     "#listeners/*": "./listeners/*.js",

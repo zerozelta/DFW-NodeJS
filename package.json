@@ -1,6 +1,6 @@
 {
   "name": "@scefira/dfw",
-  "version": "1.4.5",
+  "version": "1.5.1",
   "description": "NodeJS fast API prototiping framework",
   "main": "dist/cjs/index.js",
   "types": "dist/cjs/index.d.ts",
@@ -21,9 +21,9 @@
       "import": "./dist/esm/lib/*.js",
       "require": "./dist/cjs/lib/*.js"
     },
-    "#repositories/*": {
-      "import": "./dist/esm/repositories/*.js",
-      "require": "./dist/cjs/repositories/*.js"
+    "#modules/*": {
+      "import": "./dist/esm/modules/*.js",
+      "require": "./dist/cjs/modules/*.js"
     },
     "#listeners/*": {
       "import": "./dist/esm/listeners/*.js",

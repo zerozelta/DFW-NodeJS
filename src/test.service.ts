@@ -1,15 +1,20 @@
-import { DFWUserRepository } from "./repositories/DFWUserRepository";
 import { DFW } from "./test.dfw";
 import { TestRepository } from "./test.repository";
 
-export const TestService = DFW.makeService({
-    test: new TestRepository(),
-    dfwUser: new DFWUserRepository(DFW),
-}, {
+export const TestService = DFW.makeModule({
     async getSessions() {
         return this.transaction(async (db) => {
-            const { getTestDataAsync } = this.test.use(db)
+            const { getTestDataAsync } = new TestRepository().use(db)
             return getTestDataAsync()
+        })
+    }
+})
+
+export const TestBService = DFW.makeModule({
+    async testB() {
+        return this.transaction(async (db) => {
+            const { getSessions } = new TestService().use(db)
+            return getSessions()
         })
     }
 })

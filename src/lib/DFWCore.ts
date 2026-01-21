@@ -5,10 +5,9 @@ import type { Express } from "express"
 import { Router, default as ExpressServer } from "express";
 import { DFWUtils } from "#lib/DFWUtils";
 import { APIManager } from "#lib/APIManager";
-import { makeService as makeServiceHelper, type ServiceCtor, type ServiceInstance } from "#makers/makeService";
 import { makeListener } from "#makers/makeListener";
 import { makeGuard } from "#makers/makeGuard";
-import { makeRepository as makeRepositoryHelper, type RepositoryCtor, type RepositoryInstance } from "#makers/makeRepository";
+import { makeModule as makeModuleHelper, type ModuleCtor, type ModuleInstance } from "#makers/makeModule";
 import cors from "cors"
 import chalk from "chalk";
 import fs from "fs"
@@ -106,18 +105,10 @@ export class DFWCore<TDatabase = any> {
 
     makeListener = makeListener
     makeGuard = makeGuard<TDatabase>
-
-    makeService = <TDeps extends object, M extends object>(
-        deps: TDeps,
-        methods: M & ThisType<ServiceInstance<TDatabase, TDeps, M>>
-    ): ServiceCtor<TDatabase, TDeps, M> => {
-        return makeServiceHelper<TDatabase, TDeps, M>(this, deps, methods);
-    }
-
-    makeRepository = <M extends object>(
-        methods: M & ThisType<RepositoryInstance<M, TDatabase>>
-    ): RepositoryCtor<M, TDatabase> => {
-        return makeRepositoryHelper<TDatabase, M>(this, methods);
+    makeModule = <M extends object>(
+        methods: M & ThisType<ModuleInstance<M, TDatabase>>
+    ): ModuleCtor<M, TDatabase> => {
+        return makeModuleHelper<TDatabase, M>(this, methods);
     }
 
     public listener = {

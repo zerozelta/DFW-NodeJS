@@ -1,8 +1,8 @@
 import type { DFWCore } from "#lib/DFWCore";
 import type { dfw_credential, dfw_user, PrismaClient } from "#prisma/client";
-import { DFWRepository } from "#lib/DFWRepository";
+import { DFWModule } from "#lib/DFWModule";
 
-export class DFWSecurityRepository extends DFWRepository<PrismaClient> {
+export class DFWSecurityModule extends DFWModule<PrismaClient> {
     constructor(DFW: DFWCore) {
         super(DFW);
     }

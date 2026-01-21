@@ -1,6 +1,6 @@
 import { DFWCore } from "#lib/DFWCore"
 
-export class DFWRepository<TDatabase> {
+export class DFWModule<TDatabase> {
     private _dfw: DFWCore<TDatabase>
     private _db: any
 
@@ -12,16 +12,11 @@ export class DFWRepository<TDatabase> {
         return this._db as TDatabase
     }
 
-    constructor(dfw: DFWCore<TDatabase>) {
+    constructor(dfw: DFWCore<TDatabase>, db?: TDatabase) {
         this._dfw = dfw
-        this._db = dfw.db
+        this._db = db ?? dfw.db
     }
 
-    /**
-     *
-     * @param db
-     * @returns
-     */
     public use = (
         db: any
     ): this => {

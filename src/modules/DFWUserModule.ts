@@ -1,10 +1,10 @@
 import type { DFWCore } from "#lib/DFWCore";
 import type { dfw_credential, PrismaClient } from "#prisma/client";
-import { DFWRepository } from "#lib/DFWRepository";
+import { DFWModule } from "#lib/DFWModule";
 import { DFWUtils } from "#lib/DFWUtils";
-import { DFWSecurityRepository } from "#repositories/DFWSecurityRepository";
+import { DFWSecurityModule } from "#modules/DFWSecurityModule";
 
-export class DFWUserRepository extends DFWRepository<PrismaClient> {
+export class DFWUserModule extends DFWModule<PrismaClient> {
     constructor(DFW: DFWCore) {
         super(DFW);
     }
@@ -40,7 +40,7 @@ export class DFWUserRepository extends DFWRepository<PrismaClient> {
     }
 
     assignCredentialAsync = async (user: string | { id: string }, credential: dfw_credential | string | (dfw_credential | string)[]): Promise<dfw_credential[]> => {
-        const { attachUserToCredentialAsync } = new DFWSecurityRepository(this.dfw)
+        const { attachUserToCredentialAsync } = new DFWSecurityModule(this.dfw)
         return attachUserToCredentialAsync(user, credential);
     }
 }

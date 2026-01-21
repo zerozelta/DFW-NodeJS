@@ -16,8 +16,8 @@
       "#lib/*": [
         "./src/lib/*"
       ],
-      "#repositories/*": [
-        "./src/repositories/*"
+      "#modules/*": [
+        "./src/modules/*"
       ],
       "#types/*": [
         "./src/types/*"

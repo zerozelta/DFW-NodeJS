@@ -1,6 +1,5 @@
 export * from "./makeGuard.js";
 export * from "./makeListener.js";
-export * from "./makeService.js";
-export * from "./makeRepository.js";
+export * from "./makeModule.js";
 export * from "./makeLoginListener.js";
 export * from "./makeLogoutListener.js";

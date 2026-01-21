@@ -1,11 +1,11 @@
 import { DFW } from "./test.dfw";
 import { TestGuard } from "./test.guard";
-import z from "zod";
 import { TestService } from "./test.service";
 import { BodyValidationGuard } from "#guards/BodyValidatorGuard";
 import { makeLoginListener } from "#makers/makeLoginListener";
 import { makeLogoutListener } from "#makers/makeLogoutListener";
-import { DFWUserRepository } from "#repositories/DFWUserRepository";
+import { DFWUserModule } from "#modules/DFWUserModule";
+import z from "zod";
 
 const validationEmailSchema = z.object({
     email: z.email(),
@@ -49,7 +49,7 @@ DFW.register({
 
     createUser: DFW.listener.post(async ({ db }, { body }) => {
         const { username, password } = body
-        const { createUserAsync } = new DFWUserRepository(DFW)
+        const { createUserAsync } = new DFWUserModule(DFW)
         return createUserAsync({ password, name: username, email: `${username}@dfw.com` })
     })
 })
