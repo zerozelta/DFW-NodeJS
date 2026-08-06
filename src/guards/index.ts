@@ -1,3 +1,3 @@
 export * from "#guards/BodyValidatorGuard"
-export * from "#guards/QueryValidationGuard"
+export * from "#guards/QueryValidatorGuard"
 export * from "#guards/UserAuthGuard"

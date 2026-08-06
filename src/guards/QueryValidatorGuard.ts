@@ -1,7 +1,7 @@
 import { makeGuard } from "#makers/makeGuard";
 import { z, type ZodObject } from "zod";
 
-export const QueryValidationGuard = (scheme: ZodObject) => makeGuard((_, req) => {
+export const QueryValidatorGuard = (scheme: ZodObject) => makeGuard((_, req) => {
     const result = scheme.safeParse(req.query)
 
     if (!result.success) {
