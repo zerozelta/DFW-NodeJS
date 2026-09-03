@@ -25,6 +25,7 @@ export class APIManager<TDFW extends DFWCore<any>> {
 
         //// PASSPORT AND SESSION ////
         APIRouter.use(session({
+            rolling: config.session?.rolling ?? false,
             name: 'stk',
             secret: config.session?.secret ?? 'default',
             genid: () => uuid7(),
@@ -55,7 +56,7 @@ export class APIManager<TDFW extends DFWCore<any>> {
 
         //// DFW API Schema ////
         APIRouter.use(((req: DFWRequest, res: DFWResponse, next: NextFunction) => {
-            const callbackStack: (() => void)[] = []
+            const callbackStack: (() => (void | Promise<void>))[] = []
 
             const dfw = {
                 db: this.DFW.db,
@@ -65,14 +66,20 @@ export class APIManager<TDFW extends DFWCore<any>> {
                     id: req.sessionID
                 }),
 
-                addCallback: (cb: () => void) => {
+                addCallback: (cb: () => (void | Promise<void>)) => {
                     callbackStack.push(cb)
                 }
             }
 
             req.dfw = dfw
-            res.on('finish', () => {
-                callbackStack.forEach((cb) => cb())
+            res.once("finish", () => {
+                callbackStack.forEach((cb) => {
+                    void Promise.resolve()
+                        .then(cb)
+                        .catch((error) => {
+                            console.error("[DFW] Callback error:", error);
+                        })
+                })
             })
             next();
         }) as any)

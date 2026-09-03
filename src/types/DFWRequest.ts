@@ -22,7 +22,7 @@ export type DFWRequestSchema<TDatabase = any> = {
      * @param cb callback function or promise
      * @returns 
      */
-    addCallback: (cb: () => void) => void
+    addCallback: (cb: () => (void | Promise<void>)) => void
 
     [key: string]: any; // Allow dynamic properties
 }

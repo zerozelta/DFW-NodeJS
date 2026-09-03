@@ -9,6 +9,12 @@ export type DFWConfig = {
 
     session?: {
         /**
+         * Force the session to be saved back to the session store, even if the session was never modified during the request.
+         * @default false
+         */
+        rolling?: boolean
+
+        /**
          * Passport auth config, by default dfw is always enabled unless you set it to false
          */
         authenticators?: {
