@@ -125,10 +125,14 @@ export class APIManager<TDFW extends DFWCore<any>> {
             APIContainer[method](path, async (req: DFWRequest, res: DFWResponse, next: NextFunction) => {
                 try {
                     // calling the listener
-                    const data = await mainFunction(req.dfw as DFWRequestSchema, req as DFWRequest, res as DFWResponse);
+                    const data = await mainFunction(req.dfw as DFWRequestSchema, req as DFWRequest, res as DFWResponse).catch(next);
 
                     if (params.callback) {
-                        res.on('finish', () => params.callback!(req as DFWRequest, data));
+                        res.on('finish', () => {
+                            params.callback?.(req as DFWRequest, data).catch((e) => {
+                                console.error('Error in callback:', e);
+                            })
+                        })
                     }
 
                     if (!res.finished && !params.disableAutoSend) {
